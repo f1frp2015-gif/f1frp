@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 
 const footerLinks = [
   {
@@ -36,17 +37,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-                FRP
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold leading-tight">复材在线</span>
-                <span className="text-[10px] text-muted-foreground leading-tight">
-                  F1FRP.COM
-                </span>
-              </div>
-            </div>
+            <Logo />
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
               中国纤维复合材料一站式数字平台
               <br />

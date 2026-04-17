@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#09090b"/>
+  <!-- Fiber weave pattern - 3 diagonal strands crossing -->
+  <g stroke="#fafafa" stroke-width="36" stroke-linecap="round" fill="none">
+    <!-- Forward strands (top-left to bottom-right) -->
+    <line x1="96" y1="128" x2="288" y2="384"/>
+    <line x1="176" y1="96" x2="416" y2="336"/>
+    <line x1="224" y1="176" x2="416" y2="416"/>
+    <!-- Cross strands (top-right to bottom-left) -->
+    <line x1="416" y1="128" x2="224" y2="384"/>
+    <line x1="336" y1="96" x2="96" y2="336"/>
+    <line x1="288" y1="176" x2="96" y2="416"/>
+  </g>
+  <!-- Center node accent -->
+  <circle cx="256" cy="256" r="18" fill="#fafafa"/>
+</svg>

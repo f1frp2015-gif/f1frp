@@ -17,8 +17,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "复材在线 - 中国纤维复合材料一站式数字平台",
-    template: "%s | 复材在线",
+    default: "F1FRP — 中国纤维复合材料一站式数字平台",
+    template: "%s | F1FRP",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "/apple-icon.png",
   },
   description:
     "复材在线是中国领先的纤维复合材料一站式数字平台，覆盖玻璃纤维、碳纤维、玄武岩纤维、芳纶纤维、生物基纤维全品类，提供材料数据库、配方数据库、标准查询、交易市场、工艺技术和供应商目录服务。",
