@@ -33,24 +33,28 @@ export const metadata: Metadata = {
 
 const tools = [
   {
-    name: "层合板厚度计算器",
-    description: "根据铺层设计计算FRP层合板理论厚度和纤维含量",
-    status: "即将上线",
+    name: "FRP型材计算器",
+    description: "梁挠度/弯曲应力分析，钢材→FRP等效替换计算，支持EN 13706/GB/T 31539",
+    status: "已上线",
+    href: "/tech/calculator",
+  },
+  {
+    name: "窗户U值计算器",
+    description: "整窗传热系数Uw计算，框材/玻璃/间隔条对比，国内外节能标准对照",
+    status: "已上线",
+    href: "/tech/u-value-calculator",
   },
   {
     name: "树脂用量计算器",
     description: "根据铺层面积和增强材料计算树脂、固化剂、促进剂用量",
     status: "即将上线",
+    href: "#",
   },
   {
     name: "纤维含量计算",
     description: "根据制品重量和增强材料重量计算纤维重量/体积含量",
     status: "即将上线",
-  },
-  {
-    name: "单位换算器",
-    description: "力学/热学/物理量常用单位换算（MPa↔psi, °C↔°F等）",
-    status: "即将上线",
+    href: "#",
   },
 ];
 
@@ -250,17 +254,19 @@ export default function TechPage() {
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {tools.map((tool) => (
-            <Card key={tool.name}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{tool.name}</CardTitle>
-                  <Badge variant="outline" className="text-xs">
-                    {tool.status}
-                  </Badge>
-                </div>
-                <CardDescription>{tool.description}</CardDescription>
-              </CardHeader>
-            </Card>
+            <Link key={tool.name} href={tool.href}>
+              <Card className={`h-full transition-colors ${tool.status === "已上线" ? "hover:border-primary/50" : "opacity-70"}`}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">{tool.name}</CardTitle>
+                    <Badge variant={tool.status === "已上线" ? "default" : "outline"} className="text-xs">
+                      {tool.status}
+                    </Badge>
+                  </div>
+                  <CardDescription>{tool.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
           ))}
         </div>
       </section>
