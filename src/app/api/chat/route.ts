@@ -1,13 +1,15 @@
 import { streamText } from "ai";
-import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
 
-const anthropic = createAnthropic();
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
+});
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     return Response.json(
-      { error: "AI service not configured" },
+      { error: "AI service not configured. Set GOOGLE_GENERATIVE_AI_API_KEY." },
       { status: 503 }
     );
   }
@@ -15,7 +17,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: google("gemini-2.0-flash"),
     system: SYSTEM_PROMPT,
     messages,
     maxOutputTokens: 2000,
