@@ -1,4 +1,4 @@
-import { streamText } from "ai";
+import { streamText, convertToModelMessages } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
 
@@ -9,7 +9,7 @@ const google = createGoogleGenerativeAI({
 export async function POST(req: Request) {
   if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     return Response.json(
-      { error: "AI service not configured. Set GOOGLE_GENERATIVE_AI_API_KEY." },
+      { error: "AI service not configured" },
       { status: 503 }
     );
   }
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const result = streamText({
     model: google("gemini-2.5-flash"),
     system: SYSTEM_PROMPT,
-    messages,
+    messages: await convertToModelMessages(messages),
     maxOutputTokens: 2000,
   });
 
