@@ -9,6 +9,7 @@ const navItems = [
   { href: "/", label: "首页" },
   { href: "/news", label: "资讯中心" },
   { href: "/materials", label: "材料数据库" },
+  { href: "/formulas", label: "配方数据库" },
   { href: "/trade", label: "交易市场" },
   { href: "/tech", label: "技术中心" },
   { href: "/suppliers", label: "供应商" },
