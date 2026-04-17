@@ -15,7 +15,7 @@ const navItems = [
   { href: "/trade", label: "交易市场" },
   { href: "/tech", label: "技术中心" },
   { href: "/standards", label: "标准库" },
-  { href: "/suppliers", label: "供应商" },
+  { href: "/ai", label: "复材AI" },
 ];
 
 function AuthButtons() {
