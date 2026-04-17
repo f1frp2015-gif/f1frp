@@ -1,21 +1,33 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/api/v1(.*)",
-]);
+const clerkEnabled = !!process.env.CLERK_SECRET_KEY;
 
-const isPublicApiRoute = createRouteMatcher([
-  "/api/v1/posts",
-  "/api/v1/enterprises",
-  "/api/wechat(.*)",
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req) && !isPublicApiRoute(req)) {
-    await auth.protect();
+export default async function proxy(req: NextRequest) {
+  if (!clerkEnabled) {
+    return NextResponse.next();
   }
-});
+
+  const { clerkMiddleware, createRouteMatcher } = await import(
+    "@clerk/nextjs/server"
+  );
+
+  const isProtectedRoute = createRouteMatcher([
+    "/dashboard(.*)",
+  ]);
+
+  const isPublicApiRoute = createRouteMatcher([
+    "/api/v1/posts",
+    "/api/v1/enterprises",
+    "/api/wechat(.*)",
+  ]);
+
+  return clerkMiddleware(async (auth, request) => {
+    if (isProtectedRoute(request) && !isPublicApiRoute(request)) {
+      await auth.protect();
+    }
+  })(req, {} as any);
+}
 
 export const config = {
   matcher: [
