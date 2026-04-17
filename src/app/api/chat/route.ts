@@ -1,6 +1,17 @@
-import { streamText, convertToModelMessages } from "ai";
+import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
+
+function normalizeMessages(raw: unknown[]): UIMessage[] {
+  return raw.map((m: any, i: number) => {
+    if (m.parts) return m as UIMessage;
+    return {
+      id: m.id || String(i),
+      role: m.role || "user",
+      parts: [{ type: "text" as const, text: m.content || "" }],
+    };
+  });
+}
 
 export async function POST(req: Request) {
   if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
@@ -12,12 +23,13 @@ export async function POST(req: Request) {
       apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
     });
 
-    const { messages } = await req.json();
+    const body = await req.json();
+    const uiMessages = normalizeMessages(body.messages || []);
 
     const result = streamText({
       model: google("gemini-2.5-flash"),
       system: SYSTEM_PROMPT,
-      messages: await convertToModelMessages(messages),
+      messages: await convertToModelMessages(uiMessages),
       maxOutputTokens: 2000,
     });
 
