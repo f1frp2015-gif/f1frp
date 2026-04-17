@@ -71,7 +71,7 @@ export function Footer() {
           ))}
         </div>
         <div className="mt-8 border-t pt-6 text-center text-[11px] text-muted-foreground">
-          © {new Date().getFullYear()} F1FRP.COM
+          © {new Date().getFullYear()} 复材站 f1frp.com
         </div>
       </div>
     </footer>

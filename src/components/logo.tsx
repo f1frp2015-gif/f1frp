@@ -1,38 +1,21 @@
-export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
+export function LogoMark({ className = "h-7 w-7" }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 512 512"
-      className={className}
-      aria-hidden="true"
-    >
-      <rect width="512" height="512" rx="96" fill="currentColor" className="text-foreground" />
-      <g stroke="currentColor" className="text-background" strokeWidth="36" strokeLinecap="round" fill="none">
-        <line x1="96" y1="128" x2="288" y2="384" />
-        <line x1="176" y1="96" x2="416" y2="336" />
-        <line x1="224" y1="176" x2="416" y2="416" />
-        <line x1="416" y1="128" x2="224" y2="384" />
-        <line x1="336" y1="96" x2="96" y2="336" />
-        <line x1="288" y1="176" x2="96" y2="416" />
-      </g>
-      <circle cx="256" cy="256" r="18" fill="currentColor" className="text-background" />
+    <svg viewBox="0 0 512 512" className={className} aria-hidden="true">
+      <rect width="512" height="512" rx="108" className="fill-foreground" />
+      <rect x="128" y="136" width="256" height="28" rx="4" className="fill-background" />
+      <rect x="128" y="204" width="256" height="28" rx="4" className="fill-background" opacity="0.6" />
+      <rect x="242" y="272" width="28" height="168" rx="4" className="fill-background" />
+      <line x1="164" y1="316" x2="348" y2="400" className="stroke-background" strokeWidth="24" strokeLinecap="round" opacity="0.6" />
+      <line x1="348" y1="316" x2="164" y2="400" className="stroke-background" strokeWidth="24" strokeLinecap="round" opacity="0.4" />
     </svg>
   );
 }
 
-export function Logo({ showText = true }: { showText?: boolean }) {
+export function Logo() {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2">
       <LogoMark />
-      {showText && (
-        <div className="flex flex-col">
-          <span className="text-base font-bold leading-tight tracking-tight">
-            F1FRP
-          </span>
-          <span className="text-[10px] font-medium text-muted-foreground leading-tight tracking-widest uppercase">
-            Composites
-          </span>
-        </div>
-      )}
+      <span className="text-[15px] font-bold tracking-tight">复材站</span>
     </div>
   );
 }

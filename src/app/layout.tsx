@@ -21,11 +21,11 @@ const siteUrl = "https://f1frp.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "F1FRP — AI赋能的纤维复合材料数字平台",
-    template: "%s | F1FRP",
+    default: "复材站 — AI赋能的纤维复合材料数字平台",
+    template: "%s | 复材站",
   },
   description:
-    "F1FRP是中国领先的AI赋能纤维复合材料平台，覆盖玻纤/碳纤/玄武岩/芳纶/生物基纤维全品类。AI选材推荐、配方设计、标准查询、价格行情、供应商匹配——一个平台解决复材全链路需求。",
+    "复材站是中国领先的AI赋能纤维复合材料平台，覆盖玻纤/碳纤/玄武岩/芳纶/生物基纤维全品类。AI选材推荐、配方设计、标准查询、价格行情、供应商匹配——一个平台解决复材全链路需求。",
   keywords: [
     "复合材料",
     "纤维复合材料",
@@ -61,15 +61,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
     url: siteUrl,
-    siteName: "F1FRP",
-    title: "F1FRP — AI赋能的纤维复合材料数字平台",
+    siteName: "复材站",
+    title: "复材站 — AI赋能的纤维复合材料数字平台",
     description:
       "AI选材推荐 · 配方设计 · 材料数据库 · 标准查询 · 价格行情 · 供应商匹配",
-    images: [{ url: "/og-icon.png", width: 512, height: 512, alt: "F1FRP" }],
+    images: [{ url: "/og-icon.png", width: 512, height: 512, alt: "复材站" }],
   },
   twitter: {
     card: "summary",
-    title: "F1FRP — AI赋能的纤维复合材料数字平台",
+    title: "复材站 — AI赋能的纤维复合材料数字平台",
     description: "AI选材 · 配方 · 材料库 · 标准 · 行情 · 供应商",
   },
   robots: {
