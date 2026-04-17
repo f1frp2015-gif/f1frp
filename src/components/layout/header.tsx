@@ -12,8 +12,8 @@ const navItems = [
   { href: "/formulas", label: "配方数据库" },
   { href: "/trade", label: "交易市场" },
   { href: "/tech", label: "技术中心" },
+  { href: "/standards", label: "标准库" },
   { href: "/suppliers", label: "供应商" },
-  { href: "/community", label: "社区" },
 ];
 
 export function Header() {
