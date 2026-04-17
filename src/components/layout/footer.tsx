@@ -48,9 +48,9 @@ export function Footer() {
               </div>
             </div>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-              中国FRP复合材料行业一站式数字平台
+              中国纤维复合材料一站式数字平台
               <br />
-              集资讯、数据、交易、技术、社区于一体
+              玻纤 · 碳纤 · 玄武岩 · 芳纶 · 生物基纤维
             </p>
             <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
               <span>客服微信: f1frp_com</span>
@@ -78,7 +78,7 @@ export function Footer() {
 
         <div className="mt-10 border-t pt-6 text-center text-xs text-muted-foreground">
           <p>
-            © {new Date().getFullYear()} 复材在线 F1FRP.COM — 中国FRP复合材料综合信息平台
+            © {new Date().getFullYear()} 复材在线 F1FRP.COM — 中国纤维复合材料一站式数字平台
           </p>
           <p className="mt-1">
             ICP备案号: 待申请 | 增值电信业务经营许可证: 待申请

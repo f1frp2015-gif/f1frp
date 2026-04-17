@@ -16,7 +16,7 @@ const features = [
   {
     icon: "📊",
     title: "材料数据库",
-    description: "300+种FRP材料属性数据，多条件筛选，材料对比分析",
+    description: "300+种复合材料属性数据，涵盖五大纤维体系，多条件筛选对比",
     href: "/materials",
   },
   {
@@ -66,16 +66,16 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
           <div className="mx-auto max-w-3xl text-center">
             <Badge variant="secondary" className="mb-4">
-              中国FRP复合材料行业一站式数字平台
+              中国纤维复合材料一站式数字平台
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               复材在线
             </h1>
             <p className="mt-2 text-lg font-medium text-muted-foreground sm:text-xl">
-              材料数据 · 交易市场 · 技术中心 · 行业社区
+              玻纤 · 碳纤 · 玄武岩纤维 · 芳纶 · 生物基纤维
             </p>
             <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground leading-relaxed">
-              覆盖树脂、纤维、芯材、制品全产业链，为制造商、采购方、工程师和研究者提供材料数据查询、供需匹配、工艺指导和行业资讯服务。
+              覆盖玻璃纤维、碳纤维、玄武岩纤维、芳纶纤维、生物基纤维全品类增强材料，从手糊到真空导入、从原材料到终端制品，为复合材料全产业链��供数据、交易、技术和社区服务。
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link href="/materials" className={buttonVariants({ size: "lg" })}>
@@ -106,7 +106,7 @@ export default function HomePage() {
           <div className="text-center">
             <h2 className="text-2xl font-bold sm:text-3xl">平台核心功能</h2>
             <p className="mt-2 text-muted-foreground">
-              从材料选型到供应商匹配，覆盖FRP行业全流程需求
+              从材料选型到供应商匹配，覆盖纤维复合材料行业全流程需求
             </p>
           </div>
 
@@ -243,7 +243,7 @@ export default function HomePage() {
           <div className="text-center">
             <h2 className="text-2xl font-bold sm:text-3xl">材料分类</h2>
             <p className="mt-2 text-muted-foreground">
-              涵盖FRP复合材料全产业链原辅材料和制品
+              涵盖五大纤维体系及树脂基体、芯材、制品全产业链
             </p>
           </div>
 

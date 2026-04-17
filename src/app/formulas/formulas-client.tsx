@@ -245,7 +245,7 @@ export function FormulasClient() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">配方数据库</h1>
         <p className="mt-2 text-muted-foreground">
-          FRP复合材料工艺配方大全 — 树脂体系、增强材料、辅材配比、工艺参数和实操要点
+          纤维复合材料工艺配方大全 — 树脂体系、增强材料、辅材配比、工艺参数和实操要点
         </p>
       </div>
 

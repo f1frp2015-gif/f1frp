@@ -108,7 +108,7 @@ export function MaterialsClient() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">材料数据库</h1>
         <p className="mt-2 text-muted-foreground">
-          中国首个结构化FRP复合材料属性数据库 — 查询、筛选、对比
+          中国首个覆盖五大纤维体系的结构化复合材料属性数据库 — 查询、筛选、对比
         </p>
       </div>
 

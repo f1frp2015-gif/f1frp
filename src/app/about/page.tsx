@@ -29,7 +29,7 @@ export default function AboutPage() {
       <div className="mb-10 text-center">
         <h1 className="text-3xl font-bold">关于复材在线</h1>
         <p className="mt-3 text-lg text-muted-foreground leading-relaxed">
-          中国FRP复合材料行业一站式数字平台
+          中国纤维复合材料一站式数字平台
         </p>
       </div>
 
@@ -40,7 +40,7 @@ export default function AboutPage() {
             中国复合材料市场规模超过2800亿元，拥有数千家制造企业，但行业数字化基础设施几乎为零。现有平台大多停留在十年前的技术水平，信息碎片化，价格不透明，供需对接效率低下。
           </p>
           <p className="mt-3 text-muted-foreground leading-relaxed">
-            复材在线致力于改变这一现状——通过构建中国首个结构化的FRP材料数据库、实时价格行情系统、AI驱动的供需匹配引擎，以及高质量的技术交流社区，让行业信息流通更高效，让上下游合作更便捷。
+            复材在线致力于改变这一现状——通过构建中国首个涵盖玻璃纤维、碳纤维、玄武岩纤维、芳纶纤��和生物基纤维五大体系的结构化材料数据库、实时价格行情系统、AI驱动的供需匹配引擎，以及高质量的技术交流社区，让行业信息流通更高效，让上下游合作更便捷。
           </p>
         </section>
 
@@ -53,7 +53,7 @@ export default function AboutPage() {
               <CardHeader>
                 <CardTitle className="text-base">材料数据权威</CardTitle>
                 <CardDescription>
-                  国内唯一结构化FRP属性数据库，300+种材料的力学、热学、物理性能数据
+                  国内唯一覆盖五大纤维体系的结构化复合材料属性数据库，300+种材料性能数据
                 </CardDescription>
               </CardHeader>
             </Card>

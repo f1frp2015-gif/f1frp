@@ -13,9 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { priceData } from "@/lib/data/materials";
 
 export const metadata: Metadata = {
-  title: "交易市场 - FRP原材料价格行情与供需信息",
+  title: "交易市场 - 纤维复合材料价格行情与供需信息",
   description:
-    "FRP复合材料原材料实时价格行情，树脂、玻纤、碳纤价格走势，在线发布采购和供应信息。",
+    "纤维复合材料原材料实时价格行情，树脂、玻纤、碳纤、玄武岩纤维、芳纶价格走势，在线发布采购和供应信息。",
 };
 
 const demandList = [
