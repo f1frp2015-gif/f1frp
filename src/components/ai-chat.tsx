@@ -5,7 +5,6 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { getMessageText } from "@/lib/ai/utils";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
 const quickQuestions = [
@@ -14,8 +13,6 @@ const quickQuestions = [
   "碳纤维和玻纤强度差多少？",
   "真空导入的配方怎么配？",
 ];
-
-const chatTransport = new DefaultChatTransport({ api: "/api/chat" });
 
 function MarkdownLite({ content }: { content: string }) {
   const parts = content.split(/(\[.*?\]\(.*?\))/g);
@@ -38,21 +35,24 @@ function MarkdownLite({ content }: { content: string }) {
 
 export function AiChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [localInput, setLocalInput] = useState("");
 
-  const { messages, sendMessage, status } = useChat({ transport: chatTransport });
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
+  });
+
   const busy = status === "streaming" || status === "submitted";
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
-  function send(text?: string) {
-    const msg = text || localInput.trim();
+  async function send(text?: string) {
+    const msg = text || input.trim();
     if (!msg || busy) return;
-    sendMessage({ text: msg });
-    setLocalInput("");
+    setInput("");
+    await sendMessage({ text: msg });
   }
 
   return (
@@ -100,19 +100,20 @@ export function AiChatWidget() {
                 <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed ${m.role === "user" ? "bg-foreground text-background" : "bg-muted"}`}>
                   {m.role === "assistant" ? (
                     <div className="whitespace-pre-wrap"><MarkdownLite content={getMessageText(m)} /></div>
-                  ) : (
-                    getMessageText(m)
-                  )}
+                  ) : getMessageText(m)}
                 </div>
               </div>
             ))}
             {busy && (
               <div className="flex justify-start">
                 <div className="rounded-lg bg-muted px-3 py-2">
-                  <div className="flex gap-1">
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "150ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "300ms" }} />
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "0ms" }} />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "150ms" }} />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40" style={{ animationDelay: "300ms" }} />
+                    </div>
+                    <span className="text-xs text-muted-foreground">思考中...</span>
                   </div>
                 </div>
               </div>
@@ -121,19 +122,17 @@ export function AiChatWidget() {
 
           <div className="border-t p-3">
             <div className="flex gap-2">
-              <Textarea
-                value={localInput}
-                onChange={(e) => setLocalInput(e.target.value)}
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder="输入你的问题..."
-                rows={1}
-                className="min-h-[38px] max-h-[100px] resize-none text-sm"
+                className="flex-1 rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               />
-              <Button type="button" size="icon" disabled={busy || !localInput.trim()} className="shrink-0" onClick={() => send()}>
+              <Button type="button" size="icon" disabled={busy || !input.trim()} className="shrink-0" onClick={() => send()}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </Button>
             </div>
-            <div className="mt-1.5 text-center text-[10px] text-muted-foreground">AI回答仅供参考，重要决策请咨询专业工程师</div>
           </div>
         </div>
       )}
