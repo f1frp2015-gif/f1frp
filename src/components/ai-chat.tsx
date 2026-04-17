@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { getMessageText } from "@/lib/ai/utils";
+import { AiMessage } from "@/components/ai-message";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -13,25 +14,6 @@ const quickQuestions = [
   "碳纤维和玻纤强度差多少？",
   "真空导入的配方怎么配？",
 ];
-
-function MarkdownLite({ content }: { content: string }) {
-  const parts = content.split(/(\[.*?\]\(.*?\))/g);
-  return (
-    <span>
-      {parts.map((part, i) => {
-        const linkMatch = part.match(/\[(.*?)\]\((.*?)\)/);
-        if (linkMatch) {
-          return (
-            <a key={i} href={linkMatch[2]} className="text-primary underline underline-offset-2 hover:text-primary/80">
-              {linkMatch[1]}
-            </a>
-          );
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </span>
-  );
-}
 
 export function AiChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -99,7 +81,7 @@ export function AiChatWidget() {
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed ${m.role === "user" ? "bg-foreground text-background" : "bg-muted"}`}>
                   {m.role === "assistant" ? (
-                    <div className="whitespace-pre-wrap"><MarkdownLite content={getMessageText(m)} /></div>
+                    <AiMessage content={getMessageText(m)} />
                   ) : getMessageText(m)}
                 </div>
               </div>

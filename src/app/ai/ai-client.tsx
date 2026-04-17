@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { getMessageText } from "@/lib/ai/utils";
+import { AiMessage } from "@/components/ai-message";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,21 +17,6 @@ const scenarios = [
   { icon: "💰", title: "AI价格咨询", prompts: ["196#树脂华东什么价格？", "T300碳纤维多少钱？", "ECR玻纤比E-玻纤贵多少？"] },
   { icon: "🏭", title: "AI供应商", prompts: ["江苏做格栅的厂家？", "国内碳纤维企业？", "哪里买乙烯基酯树脂？"] },
 ];
-
-function MarkdownLite({ content }: { content: string }) {
-  const parts = content.split(/(\[.*?\]\(.*?\))/g);
-  return (
-    <span>
-      {parts.map((part, i) => {
-        const linkMatch = part.match(/\[(.*?)\]\((.*?)\)/);
-        if (linkMatch) {
-          return <a key={i} href={linkMatch[2]} className="text-primary underline underline-offset-2 hover:text-primary/80">{linkMatch[1]}</a>;
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </span>
-  );
-}
 
 export function AiAssistantClient() {
   const [input, setInput] = useState("");
@@ -77,7 +63,7 @@ export function AiAssistantClient() {
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed ${m.role === "user" ? "bg-foreground text-background" : "bg-background border"}`}>
                   {m.role === "assistant" ? (
-                    <div className="whitespace-pre-wrap"><MarkdownLite content={getMessageText(m)} /></div>
+                    <AiMessage content={getMessageText(m)} />
                   ) : getMessageText(m)}
                 </div>
               </div>
