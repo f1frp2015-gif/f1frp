@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { clerkEnabled } from "@/lib/auth";
 
 const navItems = [
   { href: "/", label: "首页" },
@@ -15,6 +16,31 @@ const navItems = [
   { href: "/standards", label: "标准库" },
   { href: "/suppliers", label: "供应商" },
 ];
+
+function AuthButtons() {
+  const { useAuth, UserButton } = require("@clerk/nextjs");
+  const { isSignedIn } = useAuth();
+  if (isSignedIn) {
+    return (
+      <>
+        <Link href="/dashboard">
+          <Button variant="ghost" size="sm">用户中心</Button>
+        </Link>
+        <UserButton />
+      </>
+    );
+  }
+  return (
+    <>
+      <Link href="/sign-in">
+        <Button variant="ghost" size="sm">登录</Button>
+      </Link>
+      <Link href="/sign-up">
+        <Button size="sm">免费注册</Button>
+      </Link>
+    </>
+  );
+}
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -47,10 +73,18 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button variant="ghost" size="sm">
-            登录
-          </Button>
-          <Button size="sm">免费注册</Button>
+          {clerkEnabled ? (
+            <AuthButtons />
+          ) : (
+            <>
+              <Link href="/sign-in">
+                <Button variant="ghost" size="sm">登录</Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button size="sm">免费注册</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
@@ -85,10 +119,12 @@ export function Header() {
                 </Link>
               ))}
               <div className="mt-4 flex flex-col gap-2 border-t pt-4">
-                <Button variant="outline" className="w-full">
-                  登录
-                </Button>
-                <Button className="w-full">免费注册</Button>
+                <Link href="/dashboard" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="w-full">用户中心</Button>
+                </Link>
+                <Link href="/sign-in" onClick={() => setOpen(false)}>
+                  <Button className="w-full">登录 / 注册</Button>
+                </Link>
               </div>
             </nav>
           </SheetContent>
