@@ -135,13 +135,37 @@ export default function ProfileCalculator() {
   const srcArea = calcArea(eqShape, eqH, eqB, eqTw, eqTf);
   const reqWx = srcWx * (srcMat.sigma / tgtMat.sigma);
   const reqIx = srcIx * (srcMat.E / tgtMat.E);
-  const stiffnessScale = Math.pow(srcMat.E / tgtMat.E, 1 / 3);
-  const suggestedH = Math.round(eqH * stiffnessScale);
-  const suggestedB = Math.round(eqB * stiffnessScale);
-  const tgtAreaApprox = calcArea(eqShape, suggestedH, suggestedB, Math.round(eqTw * stiffnessScale), Math.round(eqTf * stiffnessScale));
-  const tgtWeight = (tgtAreaApprox / 1e6) * tgtMat.density;
+
+  // 几何相似缩放下：I ∝ k^4，W ∝ k^3
+  //   等刚度: k_stiff = (E_src / E_tgt)^(1/4)
+  //   等强度: k_strength = (σ_src / σ_tgt)^(1/3)
+  const stiffnessScale = Math.pow(srcMat.E / tgtMat.E, 1 / 4);
+  const strengthScale = Math.pow(srcMat.sigma / tgtMat.sigma, 1 / 3);
+
+  const stiffH = Math.round(eqH * stiffnessScale);
+  const stiffB = Math.round(eqB * stiffnessScale);
+  const stiffTw = Math.max(1, Math.round(eqTw * stiffnessScale));
+  const stiffTf = Math.max(1, Math.round(eqTf * stiffnessScale));
+
+  const strengthH = Math.round(eqH * strengthScale);
+  const strengthB = Math.round(eqB * strengthScale);
+  const strengthTw = Math.max(1, Math.round(eqTw * strengthScale));
+  const strengthTf = Math.max(1, Math.round(eqTf * strengthScale));
+
+  // 控制准则 = 用料更多的那条
+  const governingScale = Math.max(stiffnessScale, strengthScale);
+  const governingIsStiffness = stiffnessScale >= strengthScale;
+  const governingKey = governingIsStiffness ? "calculator.governingStiffness" : "calculator.governingStrength";
+
+  const stiffArea = calcArea(eqShape, stiffH, stiffB, stiffTw, stiffTf);
+  const strengthArea = calcArea(eqShape, strengthH, strengthB, strengthTw, strengthTf);
+  const stiffWeight = (stiffArea / 1e6) * tgtMat.density;
+  const strengthWeight = (strengthArea / 1e6) * tgtMat.density;
+  const tgtWeight = governingIsStiffness ? stiffWeight : strengthWeight;
   const srcWeight = (srcArea / 1e6) * srcMat.density;
   const weightSaving = srcWeight > 0 ? (1 - tgtWeight / srcWeight) * 100 : 0;
+
+  const isAluminumSource = eqSourceMat.startsWith("alu-");
 
   const inputCls = "w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary";
   const selectCls = "w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary";
@@ -403,14 +427,38 @@ export default function ProfileCalculator() {
               </table>
             </div>
 
+            {/* 双准则建议尺寸：等刚度 + 等强度 */}
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="rounded-md border bg-background p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("calculator.equalStiffnessTitle")}</div>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                  <div>H: <span className="font-bold">{stiffH} mm</span></div>
+                  <div>B: <span className="font-bold">{stiffB} mm</span></div>
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  k = (E<sub>src</sub>/E<sub>tgt</sub>)<sup>1/4</sup> = ×{stiffnessScale.toFixed(2)}
+                </p>
+              </div>
+              <div className="rounded-md border bg-background p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("calculator.equalStrengthTitle")}</div>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                  <div>H: <span className="font-bold">{strengthH} mm</span></div>
+                  <div>B: <span className="font-bold">{strengthB} mm</span></div>
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  k = (σ<sub>src</sub>/σ<sub>tgt</sub>)<sup>1/3</sup> = ×{strengthScale.toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            {/* 控制准则提示 */}
             <div className="rounded-md border border-green-300 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
-              <div className="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">{t("calculator.suggestedFrp")}</div>
-              <div className="mt-2 grid grid-cols-2 gap-2 text-base">
-                <div>H: <span className="font-bold">{suggestedH} mm</span></div>
-                <div>B: <span className="font-bold">{suggestedB} mm</span></div>
+              <div className="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">{t("calculator.governingTitle")}</div>
+              <div className="mt-1.5 text-base font-bold">
+                {t(governingKey)} — ×{governingScale.toFixed(2)}
               </div>
               <p className="mt-1.5 text-xs text-muted-foreground">
-                {t("calculator.scaleNote", { scale: stiffnessScale.toFixed(2) })}
+                {isAluminumSource ? t("calculator.governingHintAl") : t("calculator.governingHintSteel")}
               </p>
             </div>
 
@@ -421,7 +469,7 @@ export default function ProfileCalculator() {
               </div>
               <div className="rounded-md bg-background p-4 text-center">
                 <div className="text-xl font-extrabold text-primary">{tgtWeight.toFixed(2)}</div>
-                <div className="text-xs text-muted-foreground">{t("calculator.frpWeight")}</div>
+                <div className="text-xs text-muted-foreground">{t("calculator.frpWeightGov")}</div>
               </div>
               <div className="rounded-md border border-green-300 bg-green-50 p-4 text-center dark:border-green-800 dark:bg-green-950">
                 <div className="text-xl font-extrabold text-green-600 dark:text-green-400">{weightSaving.toFixed(0)}%</div>
