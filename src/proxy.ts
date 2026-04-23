@@ -1,37 +1,30 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import createIntlMiddleware from "next-intl/middleware";
+import { routing } from "@/i18n/routing";
 
-const clerkEnabled = !!process.env.CLERK_SECRET_KEY;
+const isProtectedRoute = createRouteMatcher(["/:locale?/dashboard(.*)"]);
+const isApiRoute = createRouteMatcher(["/api/(.*)"]);
 
-export default async function proxy(req: NextRequest) {
-  if (!clerkEnabled) {
-    return NextResponse.next();
+const handleIntlRouting = createIntlMiddleware(routing);
+
+export default clerkMiddleware(async (auth, request) => {
+  if (isApiRoute(request)) {
+    return;
   }
 
-  const { clerkMiddleware, createRouteMatcher } = await import(
-    "@clerk/nextjs/server"
-  );
-
-  const isProtectedRoute = createRouteMatcher([
-    "/dashboard(.*)",
-  ]);
-
-  const isPublicApiRoute = createRouteMatcher([
-    "/api/v1/posts",
-    "/api/v1/enterprises",
-    "/api/wechat(.*)",
-  ]);
-
-  return clerkMiddleware(async (auth, request) => {
-    if (isProtectedRoute(request) && !isPublicApiRoute(request)) {
-      await auth.protect();
+  if (isProtectedRoute(request)) {
+    const { userId, redirectToSignIn } = await auth();
+    if (!userId) {
+      return redirectToSignIn({ returnBackUrl: request.url });
     }
-  })(req, {} as any);
-}
+  }
+
+  return handleIntlRouting(request);
+});
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|_vercel|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|txt|xml)).*)",
     "/(api|trpc)(.*)",
   ],
 };

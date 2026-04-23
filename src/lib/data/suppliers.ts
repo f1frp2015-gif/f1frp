@@ -13,12 +13,12 @@ export interface Supplier {
 }
 
 export const supplierCategories = [
-  { id: "manufacturer", name: "制品生产商" },
-  { id: "resin", name: "树脂供应商" },
-  { id: "fiber", name: "纤维供应商" },
-  { id: "equipment", name: "设备供应商" },
-  { id: "mold", name: "模具制造商" },
-  { id: "service", name: "检测/认证服务" },
+  { id: "manufacturer", name: "制品生产商", nameEn: "Manufacturer" },
+  { id: "resin", name: "树脂供应商", nameEn: "Resin supplier" },
+  { id: "fiber", name: "纤维供应商", nameEn: "Fiber supplier" },
+  { id: "equipment", name: "设备供应商", nameEn: "Equipment supplier" },
+  { id: "mold", name: "模具制造商", nameEn: "Mold maker" },
+  { id: "service", name: "检测/认证服务", nameEn: "Testing / certification" },
 ];
 
 export const suppliers: Supplier[] = [

@@ -37,14 +37,15 @@ export interface Formula {
 }
 
 export const processFilters = [
-  { id: "all", name: "全部工艺", icon: "📋" },
-  { id: "hand-layup", name: "手糊成型", icon: "🖌️" },
-  { id: "filament-winding", name: "缠绕成型", icon: "🔄" },
-  { id: "pultrusion", name: "拉挤成型", icon: "➡️" },
-  { id: "compression", name: "模压成型", icon: "⬇️" },
-  { id: "rtm", name: "RTM成型", icon: "💉" },
-  { id: "vacuum-infusion", name: "真空导入", icon: "🌀" },
-  { id: "repair", name: "修补/防腐", icon: "🔧" },
+  { id: "all", name: "全部工艺", iconKey: "all-process" },
+  { id: "hand-layup", name: "手糊成型", iconKey: "hand-layup" },
+  { id: "filament-winding", name: "缠绕成型", iconKey: "filament-winding" },
+  { id: "pultrusion", name: "拉挤成型", iconKey: "pultrusion" },
+  { id: "compression", name: "模压成型", iconKey: "compression" },
+  { id: "rtm", name: "RTM成型", iconKey: "rtm" },
+  { id: "vacuum-infusion", name: "真空导入", iconKey: "vacuum-infusion" },
+  { id: "3d-printing", name: "3D打印", iconKey: "3d-printing" },
+  { id: "repair", name: "修补/防腐", iconKey: "repair" },
 ];
 
 export const categoryFilters = [

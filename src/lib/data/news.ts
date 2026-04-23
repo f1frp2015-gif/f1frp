@@ -85,4 +85,12 @@ export const newsList: NewsItem[] = [
     date: "2026-04-10",
     readTime: "4分钟",
   },
+  {
+    id: "9",
+    title: "光伏组件边框加速\"以塑代铝\"：FRP 拉挤型材量产落地",
+    summary: "头部组件厂商小批量验证完成，玻纤增强不饱和聚酯拉挤边框在成本、绝缘、耐候三项关键指标上已达铝边框替代门槛，2026 年规模化渗透率预计突破 8%...",
+    category: "industry",
+    date: "2026-04-09",
+    readTime: "6分钟",
+  },
 ];

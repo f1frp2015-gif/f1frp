@@ -1,13 +1,9 @@
-"use client";
-
 import { ClerkProvider } from "@clerk/nextjs";
 
-const clerkEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
 export function Providers({ children }: { children: React.ReactNode }) {
-  if (!clerkEnabled) {
-    return <>{children}</>;
-  }
-
-  return <ClerkProvider>{children}</ClerkProvider>;
+  return (
+    <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
+      {children}
+    </ClerkProvider>
+  );
 }
