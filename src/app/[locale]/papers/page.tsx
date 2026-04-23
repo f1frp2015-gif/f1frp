@@ -6,7 +6,10 @@ import { papers as papersTable } from "@/lib/db/schema";
 import { paperCategories } from "@/lib/data/papers";
 import { PapersClient, type SerializedPaper } from "./papers-client";
 
-export const revalidate = 600;
+// TODO: papers page generates >19MB ISR fallback (entire papers table serialized).
+// Switched to force-dynamic to unblock deploy. Proper fix: paginate + lazy-load
+// abstracts client-side, then restore ISR with revalidate.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
