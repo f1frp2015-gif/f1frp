@@ -418,6 +418,13 @@ export const supplierListings = pgTable(
     processList: jsonb("process_list").$type<string[]>(),
     established: integer("established"),
     verified: boolean("verified").default(false),
+    // Pinned listings sort above every other row in the directory, regardless
+    // of `verified`. Reserved for platform-owned or sponsor accounts.
+    pinned: boolean("pinned").default(false).notNull(),
+    // External website for the supplier. Rendered as an "官网" link on the card.
+    // Kept on the row (not via enterpriseId) so non-claimed listings can also
+    // carry a website.
+    website: varchar("website", { length: 255 }),
     description: text("description"),
     certifications: jsonb("certifications").$type<string[]>(),
     enterpriseId: uuid("enterprise_id").references(() => enterprises.id),
@@ -428,6 +435,7 @@ export const supplierListings = pgTable(
   (table) => [
     index("supplier_listings_category_idx").on(table.category),
     index("supplier_listings_province_idx").on(table.province),
+    index("supplier_listings_pinned_idx").on(table.pinned),
   ]
 );
 

@@ -438,6 +438,8 @@
     "resultCount": "{filtered} matching (of {total})",
     "noResults": "No suppliers match your filters. Try adjusting the criteria.",
     "verified": "Verified",
+    "pinned": "★ Featured",
+    "website": "Website",
     "established": "Est. {year}",
     "products": "Products",
     "processes": "Processes",
