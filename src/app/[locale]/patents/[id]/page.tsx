@@ -15,6 +15,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { patentCategories, patentStatusLabels, patentStatusLabelsEn } from "@/lib/data/patents";
 import { SaveButton } from "@/components/save-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 600;
 
@@ -39,8 +40,17 @@ export async function generateMetadata({
     .from(patentsTable)
     .where(or(eq(patentsTable.slug, id), eq(patentsTable.id, id)))
     .limit(1);
-  if (!row) return { title: t("detail.notFound") };
-  return { title: row.title, description: row.abstract ?? undefined };
+  const canonicalId = row?.slug ?? id;
+  const alternates = buildAlternates(
+    `/patents/${encodeURIComponent(canonicalId)}`,
+    locale
+  );
+  if (!row) return { title: t("detail.notFound"), alternates };
+  return {
+    title: row.title,
+    description: row.abstract ?? undefined,
+    alternates,
+  };
 }
 
 export default async function PatentDetailPage({

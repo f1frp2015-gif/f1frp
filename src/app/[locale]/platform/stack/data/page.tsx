@@ -30,6 +30,7 @@ import {
   PlatformCard,
   PlatformSectionHeading,
 } from "@/components/platform-card";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -41,7 +42,11 @@ export async function generateMetadata({
     locale,
     namespace: "Platform.Stack.Data",
   });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: buildAlternates("/platform/stack/data", locale),
+  };
 }
 
 export default async function DataPage({

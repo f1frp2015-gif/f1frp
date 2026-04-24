@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { FIBERS, RESINS, PROCESSES, findFiber } from "@/lib/data/matrix";
 import { FIBER_DETAIL } from "@/lib/data/fibers-detail";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 600;
 
@@ -43,13 +44,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
+  const alternates = buildAlternates(`/fibers/${slug}`, locale);
   const fiber = findFiber(slug);
-  if (!fiber) return { title: "Not found" };
+  if (!fiber) return { title: "Not found", alternates };
   const t = await getTranslations({ locale, namespace: "Fibers" });
   const name = locale === "en" ? fiber.nameEn : fiber.name;
   return {
     title: t("metaTitle", { name }),
     description: t("metaDescription", { name }),
+    alternates,
   };
 }
 

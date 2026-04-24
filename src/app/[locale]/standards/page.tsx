@@ -9,6 +9,7 @@ import {
   standardCategories,
   processTagOptions,
 } from "@/lib/data/standards";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -17,7 +18,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Standards" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: buildAlternates("/standards", locale),
+  };
 }
 
 export const revalidate = 3600;

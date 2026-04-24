@@ -15,6 +15,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { paperCategories } from "@/lib/data/papers";
 import { SaveButton } from "@/components/save-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 600;
 
@@ -39,10 +40,17 @@ export async function generateMetadata({
     .from(papersTable)
     .where(or(eq(papersTable.slug, id), eq(papersTable.id, id)))
     .limit(1);
-  if (!row) return { title: t("detail.notFound") };
+  // Prefer the slug-based canonical URL when available.
+  const canonicalId = row?.slug ?? id;
+  const alternates = buildAlternates(
+    `/papers/${encodeURIComponent(canonicalId)}`,
+    locale
+  );
+  if (!row) return { title: t("detail.notFound"), alternates };
   return {
     title: row.title,
     description: row.abstract ?? row.titleEn ?? undefined,
+    alternates,
   };
 }
 

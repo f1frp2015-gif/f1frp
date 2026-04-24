@@ -9,6 +9,7 @@ import {
 import { FormulasClient, type SerializedFormula } from "./formulas-client";
 import { processFilters, categoryFilters } from "@/lib/data/formulas";
 import { buildMaterialIndex, matchIngredient } from "@/lib/material-matcher";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -17,7 +18,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Formulas" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: buildAlternates("/formulas", locale),
+  };
 }
 
 export const revalidate = 3600;

@@ -20,6 +20,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/lib/db";
 import { processes as processesTable } from "@/lib/db/schema";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -28,7 +29,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Tech" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: buildAlternates("/tech", locale),
+  };
 }
 
 export const dynamic = "force-dynamic";

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { papers as papersTable } from "@/lib/db/schema";
 import { paperCategories } from "@/lib/data/papers";
 import { PapersClient, type SerializedPaper } from "./papers-client";
+import { buildAlternates } from "@/lib/seo";
 
 // TODO: papers page generates >19MB ISR fallback (entire papers table serialized).
 // Switched to force-dynamic to unblock deploy. Proper fix: paginate + lazy-load
@@ -18,7 +19,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Papers" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: buildAlternates("/papers", locale),
+  };
 }
 
 export default async function PapersPage({

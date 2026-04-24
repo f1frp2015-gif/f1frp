@@ -12,6 +12,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { AiChatWidget } from "@/components/ai-chat";
 import { JsonLd } from "@/components/json-ld";
 import { routing } from "@/i18n/routing";
+import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -24,7 +25,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://f1frp.com";
+const siteUrl = SITE_URL;
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -38,8 +39,11 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Site" });
 
-  const isDefault = locale === routing.defaultLocale;
-  const canonical = isDefault ? siteUrl : `${siteUrl}/${locale}`;
+  // NOTE: Do NOT set `alternates` here. The root layout's metadata is inherited
+  // by every descendant page, so any canonical/hreflang set here overrides
+  // every page that doesn't explicitly set its own. Per-page alternates are
+  // set in each page's generateMetadata via buildAlternates(path, locale).
+  // The homepage owns its own alternates in [locale]/page.tsx.
 
   const title = `${t("name")} — ${t("tagline")}`;
 
@@ -108,7 +112,6 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       locale: locale === "zh" ? "zh_CN" : "en_US",
-      url: canonical,
       siteName: t("name"),
       title,
       description: t("description"),
@@ -123,14 +126,6 @@ export async function generateMetadata({
       index: true,
       follow: true,
       googleBot: { index: true, follow: true },
-    },
-    alternates: {
-      canonical,
-      languages: {
-        zh: siteUrl,
-        en: `${siteUrl}/en`,
-        "x-default": siteUrl,
-      },
     },
     other: {
       "mobile-web-app-capable": "yes",

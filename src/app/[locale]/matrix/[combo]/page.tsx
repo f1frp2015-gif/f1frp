@@ -34,6 +34,7 @@ import {
 } from "@/components/platform-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 600;
 
@@ -163,11 +164,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string; combo: string }>;
 }): Promise<Metadata> {
   const { locale, combo } = await params;
+  const alternates = buildAlternates(`/matrix/${combo}`, locale);
   const parsed = parseCombo(combo);
-  if (!parsed) return { title: "Not found" };
+  if (!parsed) return { title: "Not found", alternates };
   const fiber = findFiber(parsed.fiberSlug);
   const resin = findResin(parsed.resinSlug);
-  if (!fiber || !resin) return { title: "Not found" };
+  if (!fiber || !resin) return { title: "Not found", alternates };
   const t0 = await getTranslations({ locale, namespace: "Platform.Matrix.Combo" });
   const name =
     locale === "en"
@@ -176,6 +178,7 @@ export async function generateMetadata({
   return {
     title: t0("metaTitle", { name }),
     description: t0("metaDescription", { name }),
+    alternates,
   };
 }
 

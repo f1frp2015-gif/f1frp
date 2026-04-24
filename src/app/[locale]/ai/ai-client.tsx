@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { getMessageText } from "@/lib/ai/utils";
 import { AiMessage } from "@/components/ai-message";
 import { useState, useRef, useEffect } from "react";
@@ -57,12 +58,10 @@ const SCENARIO_KEYS = [
   { iconKey: "ai-supplier", key: "supplier" },
 ] as const;
 
-export function AiAssistantClient({
-  initialQuery,
-}: {
-  initialQuery?: string;
-}) {
+export function AiAssistantClient() {
   const t = useTranslations("AI");
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") ?? undefined;
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoSentRef = useRef(false);

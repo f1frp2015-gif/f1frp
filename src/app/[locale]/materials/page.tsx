@@ -6,6 +6,7 @@ import { materials as materialsTable } from "@/lib/db/schema";
 import { MaterialsClient } from "./materials-client";
 import { materialCategories } from "@/lib/data/materials";
 import { JsonLd } from "@/components/json-ld";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -19,6 +20,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: buildAlternates("/materials", locale),
   };
 }
 

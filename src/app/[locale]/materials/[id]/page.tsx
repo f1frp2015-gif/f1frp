@@ -32,6 +32,7 @@ import { JsonLd } from "@/components/json-ld";
 import { InquiryButton } from "./inquiry-button";
 import { SaveButton } from "@/components/save-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -155,11 +156,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, id } = await params;
   const t = await getTranslations({ locale, namespace: "Materials.detail" });
+  const alternates = buildAlternates(
+    `/materials/${encodeURIComponent(id)}`,
+    locale
+  );
   const m = await loadMaterial(id);
-  if (!m) return { title: t("notFound") };
+  if (!m) return { title: t("notFound"), alternates };
   return {
     title: t("metaTitle", { name: m.name }),
     description: m.description ?? t("metaDescription", { name: m.name }),
+    alternates,
   };
 }
 
