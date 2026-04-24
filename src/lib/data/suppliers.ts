@@ -10,6 +10,8 @@ export interface Supplier {
   verified: boolean;
   description: string;
   certifications: string[];
+  pinned?: boolean;
+  website?: string;
 }
 
 export const supplierCategories = [
@@ -22,6 +24,22 @@ export const supplierCategories = [
 ];
 
 export const suppliers: Supplier[] = [
+  {
+    id: "s0-yaoyi",
+    name: "重庆曜一新材料有限公司",
+    location: "重庆江北区",
+    province: "重庆",
+    category: "manufacturer",
+    products: ["FRP 拉挤型材", "FRP 制品", "技术服务出海"],
+    processes: ["拉挤成型", "技术咨询"],
+    established: 2015,
+    verified: true,
+    pinned: true,
+    website: "https://f1composite.com",
+    description:
+      "F1Composite (复材站) 运营主体。专注 FRP 型材与海外技术服务，覆盖欧美客户的选型、合规与交付。",
+    certifications: ["PHI", "DNV", "CE", "ISO 9001"],
+  },
   {
     id: "s1",
     name: "南通恒新复合材料有限公司",

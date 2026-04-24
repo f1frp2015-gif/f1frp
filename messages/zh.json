@@ -438,6 +438,8 @@
     "resultCount": "共 {filtered} 家（库存 {total} 家）",
     "noResults": "未找到匹配的供应商，请调整筛选条件。",
     "verified": "已认证",
+    "pinned": "★ 置顶",
+    "website": "官网",
     "established": "成立{year}年",
     "products": "主营产品",
     "processes": "生产工艺",

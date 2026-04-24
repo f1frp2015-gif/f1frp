@@ -34,10 +34,16 @@ export default async function SuppliersPage({
 
   const t = await getTranslations("Suppliers");
 
+  // Sort precedence: pinned listings first, then verified, then alphabetical.
+  // `pinned` is the platform-curated "top slot" (currently only F1Composite).
   const rows = await db
     .select()
     .from(supplierListings)
-    .orderBy(desc(supplierListings.verified), asc(supplierListings.name));
+    .orderBy(
+      desc(supplierListings.pinned),
+      desc(supplierListings.verified),
+      asc(supplierListings.name)
+    );
 
   const inLanguage = locale === "en" ? "en" : "zh-CN";
   const top20Verified = rows.filter((s) => s.verified).slice(0, 20);
@@ -74,6 +80,8 @@ export default async function SuppliersPage({
     processList: (s.processList ?? []) as string[],
     certifications: (s.certifications ?? []) as string[],
     verified: Boolean(s.verified),
+    pinned: Boolean(s.pinned),
+    website: s.website ?? null,
     enterpriseId: s.enterpriseId ?? null,
   }));
 

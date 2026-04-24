@@ -24,6 +24,8 @@ export type SerializedSupplier = {
   processList: string[];
   certifications: string[];
   verified: boolean;
+  pinned: boolean;
+  website: string | null;
   enterpriseId: string | null;
 };
 
@@ -148,19 +150,32 @@ export function SuppliersClient({
             <Card
               key={s.id}
               id={s.id}
-              className="flex flex-col transition-colors hover:border-primary/50"
+              className={
+                "flex flex-col transition-colors hover:border-primary/50" +
+                (s.pinned ? " border-amber-400 ring-1 ring-amber-300/60" : "")
+              }
             >
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <CardTitle className="text-base">{s.name}</CardTitle>
-                  {s.verified && (
-                    <Badge
-                      variant="outline"
-                      className="shrink-0 border-green-500 text-[10px] text-green-600"
-                    >
-                      {t("verified")}
-                    </Badge>
-                  )}
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {s.pinned && (
+                      <Badge
+                        variant="outline"
+                        className="border-amber-400 bg-amber-50 text-[10px] text-amber-700 dark:bg-amber-950/40"
+                      >
+                        {t("pinned")}
+                      </Badge>
+                    )}
+                    {s.verified && (
+                      <Badge
+                        variant="outline"
+                        className="border-green-500 text-[10px] text-green-600"
+                      >
+                        {t("verified")}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <CardDescription className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-[10px]">
@@ -239,22 +254,34 @@ export function SuppliersClient({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between border-t pt-3">
-                  {s.enterpriseId ? (
-                    <Badge variant="secondary" className="text-[10px]">
-                      {t("claimed")}
-                    </Badge>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground">
-                      {t("areYouOwner")}
-                    </span>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+                  {s.website && (
+                    <a
+                      href={s.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-medium text-primary hover:underline"
+                    >
+                      {t("website")} ↗
+                    </a>
                   )}
-                  {!s.enterpriseId && (
-                    <SupplierClaimButton
-                      supplierId={s.id}
-                      supplierName={s.name}
-                    />
-                  )}
+                  <div className="ml-auto flex items-center gap-2">
+                    {s.enterpriseId ? (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {t("claimed")}
+                      </Badge>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">
+                        {t("areYouOwner")}
+                      </span>
+                    )}
+                    {!s.enterpriseId && (
+                      <SupplierClaimButton
+                        supplierId={s.id}
+                        supplierName={s.name}
+                      />
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

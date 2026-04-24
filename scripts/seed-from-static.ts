@@ -243,6 +243,8 @@ async function seed() {
         processList: s.processes,
         established: s.established,
         verified: s.verified,
+        pinned: s.pinned ?? false,
+        website: s.website ?? null,
         description: s.description,
         certifications: s.certifications,
       })
@@ -257,6 +259,8 @@ async function seed() {
           processList: s.processes,
           established: s.established,
           verified: s.verified,
+          pinned: s.pinned ?? false,
+          website: s.website ?? null,
           description: s.description,
           certifications: s.certifications,
           updatedAt: new Date(),
