@@ -9,6 +9,7 @@ import {
   standardSections as standardSectionsTable,
 } from "@/lib/db/schema";
 import { StandardDetailClient } from "./standard-detail-client";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -27,6 +28,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, id: rawId } = await params;
   const id = safeDecode(rawId);
+  const alternates = buildAlternates(
+    `/standards/${encodeURIComponent(id)}`,
+    locale
+  );
   const [std] = await db
     .select()
     .from(standardsTable)
@@ -34,11 +39,12 @@ export async function generateMetadata({
     .limit(1);
   if (!std) {
     const t = await getTranslations({ locale, namespace: "Standards" });
-    return { title: t("detail.notFound") };
+    return { title: t("detail.notFound"), alternates };
   }
   return {
     title: `${std.code} ${std.title}`,
     description: std.description ?? `${std.code} — ${std.title}`,
+    alternates,
   };
 }
 

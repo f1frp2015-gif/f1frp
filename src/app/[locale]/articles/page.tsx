@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { articles } from "@/lib/db/schema";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 600;
 
@@ -22,7 +23,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Articles" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: buildAlternates("/articles", locale),
+  };
 }
 
 function formatDate(d: Date | null | undefined): string {

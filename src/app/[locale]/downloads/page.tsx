@@ -15,6 +15,7 @@ import {
 import { db } from "@/lib/db";
 import { downloads } from "@/lib/db/schema";
 import { tierLabel } from "@/lib/membership";
+import { buildAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -26,6 +27,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: buildAlternates("/downloads", locale),
   };
 }
 

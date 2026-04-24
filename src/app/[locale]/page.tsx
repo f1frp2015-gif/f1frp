@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   Database,
   FlaskConical,
@@ -14,6 +15,7 @@ import {
 import { HomeAiPrompt } from "./home-ai-prompt";
 import { sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { buildAlternates } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +35,15 @@ import { newsList } from "@/lib/data/news";
 // Homepage live stats re-query DB on this cadence. DB count queries hit
 // indexed tables so 60s is safe even under traffic.
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return { alternates: buildAlternates("/", locale) };
+}
 
 // AI-native capability groups. AI first, then data, then delivery.
 const AI_CAPABILITIES = [

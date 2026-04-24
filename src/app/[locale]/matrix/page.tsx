@@ -23,6 +23,7 @@ import {
   PROCESSES,
   FEASIBILITY,
 } from "@/lib/data/matrix";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 600;
 
@@ -33,7 +34,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Platform.Matrix" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: buildAlternates("/matrix", locale),
+  };
 }
 
 export default async function MatrixPage({

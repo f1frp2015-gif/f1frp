@@ -10,6 +10,7 @@ import { articles, authors } from "@/lib/db/schema";
 import { ArticleBody } from "@/components/article-body";
 import { JsonLd } from "@/components/json-ld";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import { buildAlternates } from "@/lib/seo";
 
 export const revalidate = 600;
 
@@ -41,14 +42,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug: rawSlug } = await params;
   const slug = safeDecode(rawSlug);
+  const alternates = buildAlternates(
+    `/articles/${encodeURIComponent(slug)}`,
+    locale
+  );
   const row = await loadArticle(slug);
   if (!row) {
     const t = await getTranslations({ locale, namespace: "Articles" });
-    return { title: t("detail.notFound") };
+    return { title: t("detail.notFound"), alternates };
   }
   return {
     title: row.article.title,
     description: row.article.excerpt ?? undefined,
+    alternates,
   };
 }
 
