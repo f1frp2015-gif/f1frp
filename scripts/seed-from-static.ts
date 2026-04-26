@@ -245,7 +245,6 @@ async function seed() {
         verified: s.verified,
         description: s.description,
         certifications: s.certifications,
-        website: s.website,
       })
       .onConflictDoUpdate({
         target: supplierListings.id,
@@ -260,7 +259,6 @@ async function seed() {
           verified: s.verified,
           description: s.description,
           certifications: s.certifications,
-          website: s.website,
           updatedAt: new Date(),
         },
       });

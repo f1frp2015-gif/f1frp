@@ -25,7 +25,6 @@ export type SerializedSupplier = {
   certifications: string[];
   verified: boolean;
   enterpriseId: string | null;
-  website: string | null;
 };
 
 type Opt = { id: string; name: string; nameEn?: string };
@@ -237,19 +236,6 @@ export function SuppliersClient({
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                {s.website && (
-                  <div className="border-t pt-3">
-                    <a
-                      href={s.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                    >
-                      {t("officialWebsite")} ↗
-                    </a>
                   </div>
                 )}
 

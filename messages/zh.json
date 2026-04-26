@@ -421,7 +421,7 @@
   "Suppliers": {
     "pageTitle": "供应商",
     "pageDirectoryTitle": "供应商目录",
-    "pageDescription": "68 家真实复材企业档案，可认领并完善信息。",
+    "pageDescription": "67 家真实复材企业档案，可认领并完善信息。",
     "metaTitle": "供应商目录 - FRP 复合材料企业信息查询",
     "metaDescription": "FRP 复合材料行业认证供应商目录，涵盖制品生产商、原材料供应商、设备和模具制造商。",
     "subtitle": "FRP 复合材料行业认证企业查询 · 按类型/地区/关键词筛选",
@@ -444,8 +444,7 @@
     "certifications": "资质认证",
     "claimed": "✓ 已被企业认领",
     "areYouOwner": "您是这家企业？",
-    "claim": "认领此企业",
-    "officialWebsite": "访问官方网站"
+    "claim": "认领此企业"
   },
   "Tech": {
     "pageTitle": "工艺百科",
@@ -1259,7 +1258,7 @@
       "c5Body": "95 项 GB / ISO / ASTM / EN 标准按工艺和产品分类。点开有 AI 条款解读，不用啃原文 PDF。",
       "c5Try": "TRY · /standards",
       "c6Title": "供应商认领",
-      "c6Body": "68 家真实复材企业目录。企业可主动认领自家 listing，完善资料获得曝光。",
+      "c6Body": "67 家真实复材企业目录。企业可主动认领自家 listing，完善资料获得曝光。",
       "c6Try": "TRY · /suppliers",
       "s2Label": "场景 / SCENARIOS",
       "s2Title": "四个典型工作流",
@@ -1506,7 +1505,7 @@
         "f3Title": "在线计算器",
         "f3Body": "/tech/calculator 拉挤型材选型（载荷 → 截面推荐）、/tech/u-value-calculator 窗户 U 值计算。浏览器直接算，不用装软件。",
         "f4Title": "供应商认领",
-        "f4Body": "68 家真实企业可由本人主动认领。上传资质 → 审核 → 接收 RFQ。免费入驻 + 升级 Verified/Premium/Platinum 订阅。",
+        "f4Body": "67 家真实企业可由本人主动认领。上传资质 → 审核 → 接收 RFQ。免费入驻 + 升级 Verified/Premium/Platinum 订阅。",
         "f5Title": "双语 SEO 网站",
         "f5Body": "/zh/* + /en/* 双语 sitemap + hreflang，覆盖百度 / 搜狗 / 360 / Bing / Google / LLM 搜索。每日 cron 完成六引擎推送。",
         "f6Title": "用户 Dashboard",
