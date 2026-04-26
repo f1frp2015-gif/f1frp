@@ -421,7 +421,7 @@
   "Suppliers": {
     "pageTitle": "Suppliers",
     "pageDirectoryTitle": "Supplier Directory",
-    "pageDescription": "67 verified composite supplier profiles — claimable and expandable.",
+    "pageDescription": "68 verified composite supplier profiles — claimable and expandable.",
     "metaTitle": "Supplier Directory — FRP composites company lookup",
     "metaDescription": "Verified FRP composite industry suppliers: finished-goods manufacturers, raw-material suppliers, equipment and tooling makers.",
     "subtitle": "Verified FRP composite companies — filter by type, region or keyword.",
@@ -444,7 +444,8 @@
     "certifications": "Certifications",
     "claimed": "✓ Claimed",
     "areYouOwner": "Is this your company?",
-    "claim": "Claim this company"
+    "claim": "Claim this company",
+    "officialWebsite": "Visit official website"
   },
   "Tech": {
     "pageTitle": "Process Wiki",
@@ -1282,7 +1283,7 @@
       "c5Body": "95 GB / ISO / ASTM / EN standards organized by process and product. Each with AI clause digest — no PDF wrestling.",
       "c5Try": "TRY · /standards",
       "c6Title": "Supplier claiming",
-      "c6Body": "67 verified composite firms. Companies can claim their own listings, complete profile for exposure.",
+      "c6Body": "68 verified composite firms. Companies can claim their own listings, complete profile for exposure.",
       "c6Try": "TRY · /suppliers",
       "s2Label": "SCENARIOS",
       "s2Title": "Four typical workflows",

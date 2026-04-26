@@ -10,6 +10,7 @@ export interface Supplier {
   verified: boolean;
   description: string;
   certifications: string[];
+  website?: string;
 }
 
 export const supplierCategories = [
@@ -100,8 +101,34 @@ export const suppliers: Supplier[] = [
     description: "国内领先的风电叶片模具制造商，产品远销欧美。",
     certifications: ["ISO 9001", "ISO 14001"],
   },
+  {
+    id: "yaoyi",
+    name: "F1 Composite Co., Ltd（曜一新材）",
+    location: "重庆两江新区",
+    province: "重庆",
+    category: "manufacturer",
+    products: [
+      "拉挤型材（I 型梁/槽钢/角钢/管材/平板）",
+      "定制拉挤截面",
+      "FRP 格栅与板材",
+      "门窗系统型材（70/80/90 系列）",
+    ],
+    processes: ["拉挤成型 (Pultrusion)", "KNOWHOW 技术服务"],
+    established: 2015,
+    verified: true,
+    description:
+      "FRP 拉挤型材专业制造商，5 大生产基地、370 条拉挤线、年产能 15 万吨，200+ 工程化型材规格，产品出口 30+ 国家，已交付秦岭南极站等标杆项目。【关系披露】曜一新材为 f1frp 平台首批运营合作方与关联企业；f1frp 派单算法对曜一与其他供应商一视同仁，buyer 可在每条 RFQ 上查看派单匹配评分。详见官网 f1composite.com。",
+    certifications: [
+      "ISO 9001:2015",
+      "CE (EU CPR)",
+      "EN 13706",
+      "ASTM",
+      "PHI",
+    ],
+    website: "https://f1composite.com",
+  },
 ];
 
 export const provinces = [
-  "全国", "江苏", "浙江", "山东", "河北", "广东", "四川", "湖北", "安徽", "河南",
+  "全国", "江苏", "浙江", "山东", "河北", "广东", "四川", "湖北", "安徽", "河南", "重庆",
 ];

@@ -420,6 +420,7 @@ export const supplierListings = pgTable(
     verified: boolean("verified").default(false),
     description: text("description"),
     certifications: jsonb("certifications").$type<string[]>(),
+    website: varchar("website", { length: 255 }),
     enterpriseId: uuid("enterprise_id").references(() => enterprises.id),
     viewCount: integer("view_count").default(0).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
