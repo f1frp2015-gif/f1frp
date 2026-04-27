@@ -40,15 +40,15 @@ export function LogoMark({
   );
 }
 
+const brandOverride = process.env.NEXT_PUBLIC_SITE_NAME;
+
 export function Logo() {
   const t = useTranslations("Site");
+  const brand = brandOverride ?? t("name");
   return (
     <div className="flex items-center gap-2">
       <LogoMark />
-      <span className="text-[14px] font-semibold tracking-tight">{t("name")}</span>
-      <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:inline">
-        f1frp
-      </span>
+      <span className="text-[14px] font-semibold tracking-tight">{brand}</span>
     </div>
   );
 }
