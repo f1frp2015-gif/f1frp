@@ -24,7 +24,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://f1frp.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://f1frp.com";
+const brandOverride = process.env.NEXT_PUBLIC_SITE_NAME;
+const taglineOverride = process.env.NEXT_PUBLIC_SITE_TAGLINE;
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -38,16 +40,19 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Site" });
 
+  const brand = brandOverride ?? t("name");
+  const tagline = taglineOverride ?? t("tagline");
+
   const isDefault = locale === routing.defaultLocale;
   const canonical = isDefault ? siteUrl : `${siteUrl}/${locale}`;
 
-  const title = `${t("name")} — ${t("tagline")}`;
+  const title = `${brand} — ${tagline}`;
 
   return {
     metadataBase: new URL(siteUrl),
     title: {
       default: title,
-      template: `%s | ${t("name")}`,
+      template: `%s | ${brand}`,
     },
     description: t("description"),
     keywords:
@@ -109,10 +114,10 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "zh" ? "zh_CN" : "en_US",
       url: canonical,
-      siteName: t("name"),
+      siteName: brand,
       title,
       description: t("description"),
-      images: [{ url: "/og-icon.png", width: 512, height: 512, alt: t("name") }],
+      images: [{ url: "/og-icon.png", width: 512, height: 512, alt: brand }],
     },
     twitter: {
       card: "summary",
@@ -171,6 +176,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const t = await getTranslations({ locale, namespace: "Site" });
+  const brand = brandOverride ?? t("name");
   const htmlLang = locale === "zh" ? "zh-CN" : "en";
 
   return (
@@ -186,8 +192,10 @@ export default async function LocaleLayout({
               {
                 "@type": "Organization",
                 "@id": `${siteUrl}/#organization`,
-                name: t("name"),
-                alternateName: ["f1frp", `${t("name")} f1frp`],
+                name: brand,
+                alternateName: ["f1frp", "getfrp", t("name")].filter(
+                  (v, i, a) => v && a.indexOf(v) === i,
+                ),
                 url: siteUrl,
                 logo: `${siteUrl}/og-icon.png`,
                 description: t("description"),
@@ -205,7 +213,7 @@ export default async function LocaleLayout({
                 "@type": "WebSite",
                 "@id": `${siteUrl}/#website`,
                 url: siteUrl,
-                name: t("name"),
+                name: brand,
                 publisher: { "@id": `${siteUrl}/#organization` },
                 inLanguage: htmlLang,
                 potentialAction: {
