@@ -2,7 +2,7 @@
 // Pulls live counts from supplier_listings and materials. Categories that
 // have no rows yet show "Coming soon" — honest signal we're filling them in.
 
-import { sql, inArray } from "drizzle-orm";
+import { sql, inArray, isNotNull, and } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import {
@@ -37,31 +37,37 @@ async function countMatBy(cats: string[]): Promise<number> {
   }
 }
 
-async function countSupBy(cats: string[]): Promise<number> {
+async function countSupBy(cats: string[], enOnly: boolean): Promise<number> {
   if (cats.length === 0) return 0;
   try {
+    const where = enOnly
+      ? and(
+          inArray(supplierListings.category, cats),
+          isNotNull(supplierListings.nameEn),
+        )
+      : inArray(supplierListings.category, cats);
     const rows = await db
       .select({ c: sql<number>`count(*)::int` })
       .from(supplierListings)
-      .where(inArray(supplierListings.category, cats));
+      .where(where);
     return rows[0]?.c ?? 0;
   } catch {
     return 0;
   }
 }
 
-export async function ValueChainSection() {
+export async function ValueChainSection({ enOnly = true }: { enOnly?: boolean } = {}) {
   const t = await getTranslations("Home");
 
   const [rawMat, rawSup, equipSup, toolSup, moldSup, finMat, finSup] =
     await Promise.all([
       countMatBy(RAW_MATERIAL_CATS),
-      countSupBy(RAW_SUPPLIER_CATS),
-      countSupBy(["equipment"]),
-      countSupBy(["tooling", "tool"]),
-      countSupBy(["mold", "mould"]),
+      countSupBy(RAW_SUPPLIER_CATS, enOnly),
+      countSupBy(["equipment"], enOnly),
+      countSupBy(["tooling", "tool"], enOnly),
+      countSupBy(["mold", "mould"], enOnly),
       countMatBy(FINISHED_MAT_CATS),
-      countSupBy(FINISHED_SUPPLIER_CATS),
+      countSupBy(FINISHED_SUPPLIER_CATS, enOnly),
     ]);
 
   type Card = {

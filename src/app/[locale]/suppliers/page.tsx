@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { desc, asc } from "drizzle-orm";
+import { desc, asc, isNotNull } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -34,12 +34,20 @@ export default async function SuppliersPage({
 
   const t = await getTranslations("Suppliers");
 
-  const rows = await db
-    .select()
-    .from(supplierListings)
-    .orderBy(desc(supplierListings.verified), asc(supplierListings.name));
+  // On English deployments, hide records that don't have an English name yet.
+  // Existing Chinese-only rows stay on f1frp.com (zh) until backfilled.
+  const isEn = locale === "en";
+  const baseQuery = db.select().from(supplierListings);
+  const rows = await (isEn
+    ? baseQuery
+        .where(isNotNull(supplierListings.nameEn))
+        .orderBy(desc(supplierListings.verified), asc(supplierListings.nameEn))
+    : baseQuery.orderBy(
+        desc(supplierListings.verified),
+        asc(supplierListings.name),
+      ));
 
-  const inLanguage = locale === "en" ? "en" : "zh-CN";
+  const inLanguage = isEn ? "en" : "zh-CN";
   const top20Verified = rows.filter((s) => s.verified).slice(0, 20);
   const suppliersItemListJsonLd = {
     "@context": "https://schema.org",
@@ -53,10 +61,14 @@ export default async function SuppliersPage({
       position: i + 1,
       item: {
         "@type": "LocalBusiness",
-        name: s.name,
-        description: s.description ?? undefined,
-        address: s.location
-          ? { "@type": "PostalAddress", addressLocality: s.location, addressCountry: "CN" }
+        name: (isEn ? s.nameEn : s.name) ?? s.name,
+        description: (isEn ? s.descriptionEn : s.description) ?? undefined,
+        address: (isEn ? s.locationEn : s.location)
+          ? {
+              "@type": "PostalAddress",
+              addressLocality: (isEn ? s.locationEn : s.location) as string,
+              addressCountry: "CN",
+            }
           : undefined,
         url: `https://f1frp.com/${locale}/suppliers#${s.id}`,
       },
@@ -65,14 +77,14 @@ export default async function SuppliersPage({
 
   const serialized: SerializedSupplier[] = rows.map((s) => ({
     id: s.id,
-    name: s.name,
+    name: (isEn ? s.nameEn : s.name) ?? s.name,
     category: s.category ?? "",
-    location: s.location ?? "",
+    location: (isEn ? s.locationEn : s.location) ?? "",
     established: s.established ?? null,
-    description: s.description ?? "",
-    products: (s.products ?? []) as string[],
-    processList: (s.processList ?? []) as string[],
-    certifications: (s.certifications ?? []) as string[],
+    description: (isEn ? s.descriptionEn : s.description) ?? "",
+    products: ((isEn ? s.productsEn : s.products) ?? []) as string[],
+    processList: ((isEn ? s.processListEn : s.processList) ?? []) as string[],
+    certifications: ((isEn ? s.certificationsEn : s.certifications) ?? []) as string[],
     verified: Boolean(s.verified),
     enterpriseId: s.enterpriseId ?? null,
   }));
