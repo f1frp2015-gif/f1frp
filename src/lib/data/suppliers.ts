@@ -17,6 +17,7 @@ export const supplierCategories = [
   { id: "resin", name: "树脂供应商", nameEn: "Resin supplier" },
   { id: "fiber", name: "纤维供应商", nameEn: "Fiber supplier" },
   { id: "equipment", name: "设备供应商", nameEn: "Equipment supplier" },
+  { id: "tooling", name: "工装/检测装备", nameEn: "Tooling / NDT equipment" },
   { id: "mold", name: "模具制造商", nameEn: "Mold maker" },
   { id: "service", name: "检测/认证服务", nameEn: "Testing / certification" },
 ];
@@ -105,3 +106,24 @@ export const suppliers: Supplier[] = [
 export const provinces = [
   "全国", "江苏", "浙江", "山东", "河北", "广东", "四川", "湖北", "安徽", "河南",
 ];
+
+// Bilingual labels for region filter. The supplier row stores `province` as
+// the Chinese token; this map renders the locale-appropriate label.
+export const provincesEn: Record<string, string> = {
+  "全国": "All regions",
+  "江苏": "Jiangsu",
+  "浙江": "Zhejiang",
+  "山东": "Shandong",
+  "河北": "Hebei",
+  "广东": "Guangdong",
+  "四川": "Sichuan",
+  "湖北": "Hubei",
+  "安徽": "Anhui",
+  "河南": "Henan",
+  "上海": "Shanghai",
+  "北京": "Beijing",
+  "天津": "Tianjin",
+  "辽宁": "Liaoning",
+  "湖南": "Hunan",
+  "福建": "Fujian",
+};

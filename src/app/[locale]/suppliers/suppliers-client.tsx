@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SupplierClaimButton } from "@/components/supplier-claim-button";
+import { provincesEn } from "@/lib/data/suppliers";
 
 export type SerializedSupplier = {
   id: string;
@@ -126,7 +127,7 @@ export function SuppliersClient({
               className="cursor-pointer px-3 py-1"
               onClick={() => setRegion(p)}
             >
-              {p}
+              {isEn ? (provincesEn[p] ?? p) : p}
             </Badge>
           ))}
         </div>

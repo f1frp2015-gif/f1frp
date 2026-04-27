@@ -367,7 +367,8 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* ─────────── Price + News ─────────── */}
+      {/* ─────────── Price + News (zh only — priceData is Chinese) ─────────── */}
+      {locale === "zh" && (
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-12 lg:grid-cols-5">
@@ -447,6 +448,7 @@ export default async function HomePage({
           </div>
         </div>
       </section>
+      )}
 
       {/* ─────────── Composite Matrix Teaser ─────────── */}
       <section className="border-t border-border/80 py-16 sm:py-20">
