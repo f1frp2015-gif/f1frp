@@ -29,6 +29,7 @@ import {
 } from "@/lib/db/schema";
 import { priceData } from "@/lib/data/materials";
 import { newsList } from "@/lib/data/news";
+import { ValueChainSection } from "@/components/value-chain-section";
 
 // Homepage live stats re-query DB on this cadence. DB count queries hit
 // indexed tables so 60s is safe even under traffic.
@@ -138,19 +139,21 @@ export default async function HomePage({
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link
-                href="/ai"
+                href={(locale === "en" ? "/rfq" : "/ai") as never}
                 className={buttonVariants({ size: "lg", variant: "default" })}
               >
                 {t("ctaAi")}
               </Link>
               <Link
-                href="/materials"
+                href={(locale === "en" ? "/suppliers" : "/materials") as never}
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
                 {t("ctaMaterials")}
               </Link>
               <Link
-                href="/papers"
+                href={
+                  (locale === "en" ? "/source-from-china" : "/papers") as never
+                }
                 className="ml-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Badge variant="signal" className="font-mono">
@@ -165,6 +168,9 @@ export default async function HomePage({
           </div>
         </div>
       </section>
+
+      {/* ─────────── Full Value Chain (en only) ─────────── */}
+      {locale === "en" && <ValueChainSection />}
 
       {/* ─────────── Three-layer stack ─────────── */}
       <section className="border-b border-border/80">

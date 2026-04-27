@@ -21,15 +21,15 @@
     "signInOrUp": "Sign in / up"
   },
   "Home": {
-    "eyebrow": "AI-NATIVE · ADVANCED COMPOSITES ACCELERATOR",
-    "heroLine1": "The AI-Native",
-    "heroLine2": "accelerator for advanced composites",
-    "heroDescription": "AI Agent × structured data × engineering delivery. From load-case to material, formula, standard, supplier, RFQ and report — one loop. Glass, carbon, basalt, aramid, bio-based: full coverage.",
-    "ctaAi": "Ask the AI →",
-    "ctaMaterials": "Browse the database",
-    "ctaPapers": "Latest papers & commentary",
+    "eyebrow": "CHINA COMPOSITES · END-TO-END SOURCING",
+    "heroLine1": "Source the Full Composites",
+    "heroLine2": "Value Chain from China",
+    "heroDescription": "Raw materials, equipment, tooling, molds, and finished parts — one specialist platform, verified Chinese manufacturers, end-to-end RFQ to delivery.",
+    "ctaAi": "Submit RFQ",
+    "ctaMaterials": "Browse Suppliers",
+    "ctaPapers": "How sourcing works",
     "badgeNew": "NEW",
-    "aiPromptPreview": "Describe your load case — stress, environment, temperature, chemistry…",
+    "aiPromptPreview": "Tell us what you need — fiber type, quantity, target country…",
     "stackLabel": "STACK",
     "stackTitle": "AI on top, data in the middle, engineering at the base",
     "stackAiTitle": "① AI Agent layer",
@@ -97,7 +97,34 @@
     "hpRtmLabel": "HP-RTM SPOTLIGHT",
     "hpRtmTitle": "HP-RTM vertical is live",
     "hpRtmBody": "Automotive carbon-fiber lightweighting and EV structural parts are pushing HP-RTM into mass production. The vertical aggregates papers and patents on injection equipment, mold sealing, fast-cure resins, and preforming specific to high-pressure RTM.",
-    "hpRtmCta": "Enter the HP-RTM vertical →"
+    "hpRtmCta": "Enter the HP-RTM vertical →",
+    "valueChainEyebrow": "FULL VALUE CHAIN · ONE PLATFORM",
+    "valueChainTitle": "From raw materials to finished parts — sourced direct from China",
+    "valueChainSubtitle": "Verified Chinese manufacturers across every layer of the composites value chain. Live counts below; we expand coverage continuously.",
+    "valueChainComing": "Coming soon",
+    "valueChainCta": "Browse all suppliers →",
+    "valueChain": {
+      "raw": {
+        "title": "Raw Materials",
+        "desc": "Fibers (glass · carbon · basalt · aramid · bio), resins, prepregs, gelcoats, cores, auxiliaries"
+      },
+      "equipment": {
+        "title": "Equipment",
+        "desc": "Pultrusion, RTM / HP-RTM, AFP, filament winding, autoclaves, hot presses"
+      },
+      "tooling": {
+        "title": "Tooling",
+        "desc": "Cutting & layup tools, NDT, lab instruments, jigs, fixtures"
+      },
+      "molds": {
+        "title": "Molds",
+        "desc": "Composite molds, pultrusion dies, RTM tooling, autoclave bags"
+      },
+      "finished": {
+        "title": "Finished Parts",
+        "desc": "OEM components, structural profiles, wind blade parts, EV body panels, gratings, frames"
+      }
+    }
   },
   "Footer": {
     "tagline": "AI-Native Advanced Composites Accelerator",
