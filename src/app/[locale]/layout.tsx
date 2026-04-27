@@ -27,6 +27,7 @@ const geistMono = Geist_Mono({
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://f1frp.com";
 const brandOverride = process.env.NEXT_PUBLIC_SITE_NAME;
 const taglineOverride = process.env.NEXT_PUBLIC_SITE_TAGLINE;
+const descOverride = process.env.NEXT_PUBLIC_SITE_DESCRIPTION;
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -42,6 +43,7 @@ export async function generateMetadata({
 
   const brand = brandOverride ?? t("name");
   const tagline = taglineOverride ?? t("tagline");
+  const description = descOverride ?? t("description");
 
   const isDefault = locale === routing.defaultLocale;
   const canonical = isDefault ? siteUrl : `${siteUrl}/${locale}`;
@@ -54,7 +56,7 @@ export async function generateMetadata({
       default: title,
       template: `%s | ${brand}`,
     },
-    description: t("description"),
+    description,
     keywords:
       locale === "zh"
         ? [
@@ -116,13 +118,13 @@ export async function generateMetadata({
       url: canonical,
       siteName: brand,
       title,
-      description: t("description"),
+      description,
       images: [{ url: "/og-icon.png", width: 512, height: 512, alt: brand }],
     },
     twitter: {
       card: "summary",
       title,
-      description: t("description"),
+      description,
     },
     robots: {
       index: true,
@@ -177,6 +179,7 @@ export default async function LocaleLayout({
 
   const t = await getTranslations({ locale, namespace: "Site" });
   const brand = brandOverride ?? t("name");
+  const description = descOverride ?? t("description");
   const htmlLang = locale === "zh" ? "zh-CN" : "en";
 
   return (
@@ -198,7 +201,7 @@ export default async function LocaleLayout({
                 ),
                 url: siteUrl,
                 logo: `${siteUrl}/og-icon.png`,
-                description: t("description"),
+                description,
                 sameAs: [],
                 contactPoint: {
                   "@type": "ContactPoint",
