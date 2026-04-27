@@ -1,5 +1,5 @@
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { getChatModel, isChatConfigured } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
 
@@ -51,15 +51,11 @@ function citationGuidance(locale: string): string {
 }
 
 export async function POST(req: Request) {
-  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+  if (!isChatConfigured()) {
     return Response.json({ error: "AI not configured" }, { status: 503 });
   }
 
   try {
-    const google = createGoogleGenerativeAI({
-      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-    });
-
     const body = await req.json();
     const uiMessages = normalizeMessages(body.messages || []);
     const locale: "zh" | "en" = body.locale === "en" ? "en" : "zh";
@@ -127,7 +123,7 @@ export async function POST(req: Request) {
     }
 
     const result = streamText({
-      model: google("gemini-2.5-flash"),
+      model: getChatModel(),
       system: systemParts.join("\n\n"),
       messages: await convertToModelMessages(uiMessages),
       maxOutputTokens: 2000,

@@ -1,23 +1,15 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { embed, embedMany } from "ai";
-
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-});
-
-const MODEL = "gemini-embedding-001";
+import { getEmbeddingModel, EMBED_DIMS } from "./provider";
 
 // 768 matches pgvector column + stays under HNSW 2000-dim limit; Matryoshka
 // truncation on gemini-embedding-001 is safe per model card.
-const DIMS = 768;
-
 const providerOptions = {
-  google: { outputDimensionality: DIMS },
+  google: { outputDimensionality: EMBED_DIMS },
 };
 
 export async function embedText(text: string): Promise<number[]> {
   const { embedding } = await embed({
-    model: google.textEmbeddingModel(MODEL),
+    model: getEmbeddingModel(),
     value: text,
     providerOptions,
   });
@@ -31,7 +23,7 @@ export async function embedBatch(texts: string[]): Promise<number[][]> {
   for (let i = 0; i < texts.length; i += CHUNK) {
     const slice = texts.slice(i, i + CHUNK);
     const { embeddings } = await embedMany({
-      model: google.textEmbeddingModel(MODEL),
+      model: getEmbeddingModel(),
       values: slice,
       providerOptions,
     });

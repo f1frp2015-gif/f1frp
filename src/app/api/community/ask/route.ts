@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
+import { getChatModel, isChatConfigured } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext } from "@/lib/ai/retrieve";
 import { db } from "@/lib/db";
@@ -33,8 +33,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "question too long" }, { status: 400 });
   }
 
-  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!apiKey) {
+  if (!isChatConfigured()) {
     return NextResponse.json({ error: "AI not configured" }, { status: 503 });
   }
 
@@ -49,8 +48,6 @@ export async function POST(req: Request) {
     .map((c, i) => ({ index: i + 1, title: c.title, url: c.url as string }));
 
   // ── Generate answer ────────────────────────────────────────
-  const google = createGoogleGenerativeAI({ apiKey });
-
   const systemForAsk =
     SYSTEM_PROMPT +
     (ragCtx
@@ -67,7 +64,7 @@ export async function POST(req: Request) {
   let answer = "";
   try {
     const { text } = await generateText({
-      model: google("gemini-2.5-flash"),
+      model: getChatModel(),
       system: systemForAsk,
       prompt,
       maxOutputTokens: 800,
