@@ -240,23 +240,25 @@ export function SuppliersClient({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between border-t pt-3">
-                  {s.enterpriseId ? (
-                    <Badge variant="secondary" className="text-[10px]">
-                      {t("claimed")}
-                    </Badge>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground">
-                      {t("areYouOwner")}
-                    </span>
-                  )}
-                  {!s.enterpriseId && (
-                    <SupplierClaimButton
-                      supplierId={s.id}
-                      supplierName={s.name}
-                    />
-                  )}
-                </div>
+                {(s.enterpriseId || !isEn) && (
+                  <div className="flex items-center justify-between border-t pt-3">
+                    {s.enterpriseId ? (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {t("claimed")}
+                      </Badge>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">
+                        {t("areYouOwner")}
+                      </span>
+                    )}
+                    {!s.enterpriseId && !isEn && (
+                      <SupplierClaimButton
+                        supplierId={s.id}
+                        supplierName={s.name}
+                      />
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
