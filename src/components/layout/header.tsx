@@ -93,6 +93,7 @@ export function Header() {
   const t = useTranslations("Nav");
   const locale = useLocale();
   const showSourcing = locale === "en";
+  const showOverseas = locale === "zh";
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -148,6 +149,16 @@ export function Header() {
               )}
             </Link>
           )}
+          {showOverseas && (
+            <a
+              href="https://getfrp.com"
+              target="_blank"
+              rel="noopener"
+              className="px-2.5 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:text-foreground/80"
+            >
+              出海 →
+            </a>
+          )}
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -191,6 +202,17 @@ export function Header() {
                 >
                   Source from China
                 </Link>
+              )}
+              {showOverseas && (
+                <a
+                  href="https://getfrp.com"
+                  target="_blank"
+                  rel="noopener"
+                  onClick={() => setOpen(false)}
+                  className="border-b py-3 text-sm font-medium text-foreground transition-colors hover:text-foreground"
+                >
+                  出海 →
+                </a>
               )}
               <div className="mt-4 border-b pb-3">
                 <LanguageSwitcher variant="full" />

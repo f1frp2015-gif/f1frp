@@ -17,6 +17,10 @@ export function LanguageSwitcher({
   const [isPending, startTransition] = useTransition();
   const t = useTranslations("LanguageSwitcher");
 
+  // Single-locale deployments (f1frp.com=zh-only, getfrp.com=en-only) hide
+  // the switcher entirely.
+  if (routing.locales.length < 2) return null;
+
   // Routes that only exist on /en/** — switching to zh on these would 404,
   // so fall back to the home page instead.
   const EN_ONLY_PREFIXES = ["/source-from-china"];
