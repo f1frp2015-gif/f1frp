@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
-import { personalPlans, supplierPlans, formatPrice, type Plan } from "@/lib/pricing";
+import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { personalPlans, formatPrice, type Plan } from "@/lib/pricing";
 import { CONTACT } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "套餐价格 / Pricing | f1frp",
-  description: "f1frp 复材平台收费方案：免费版、学生版、专业版、团队版；供应商 Verified / Featured。",
+  description:
+    "复材站对个人 100% 免费，AI 重度用户可选 ¥29/月 高频版；供应商出海变现走 /overseas 按有效 RFQ 付费方案，无任何企业年费。",
   alternates: {
     canonical: "https://f1frp.com/pricing",
     languages: {
@@ -25,37 +27,33 @@ function PlanCard({ plan, lang }: { plan: Plan; lang: "zh" | "en" }) {
 
   const ctaLabel =
     plan.id === "free"
-      ? lang === "zh" ? "立即注册" : "Sign up free"
-      : plan.id === "student"
-      ? lang === "zh" ? "学生认证" : "Verify student"
-      : plan.audience === "supplier"
-      ? lang === "zh" ? "申请升级" : "Request upgrade"
+      ? lang === "zh"
+        ? "立即注册"
+        : "Sign up free"
       : plan.trialDays
-      ? lang === "zh" ? `免费试用 ${plan.trialDays} 天` : `Try ${plan.trialDays} days free`
-      : lang === "zh" ? "立即订阅" : "Subscribe";
+        ? lang === "zh"
+          ? `免费试用 ${plan.trialDays} 天`
+          : `Try ${plan.trialDays} days free`
+        : lang === "zh"
+          ? "立即订阅"
+          : "Subscribe";
 
   const ctaHref =
-    plan.id === "free"
-      ? "/sign-up"
-      : plan.id === "student"
-      ? "/dashboard/verify-student"
-      : plan.audience === "supplier"
-      ? "/dashboard/supplier-upgrade"
-      : `/api/checkout?plan=${plan.id}`;
+    plan.id === "free" ? "/sign-up" : `/api/checkout?plan=${plan.id}`;
 
   const highlight = plan.badgeZh === "推荐" || plan.id === "pro_yearly";
 
   return (
     <div
-      className={`relative rounded-2xl border p-6 flex flex-col ${
+      className={`relative flex flex-col rounded-2xl border p-6 ${
         highlight
-          ? "border-emerald-400 dark:border-emerald-500 ring-2 ring-emerald-300/50 shadow-lg"
+          ? "border-emerald-400 ring-2 ring-emerald-300/50 shadow-lg dark:border-emerald-500"
           : "border-zinc-200 dark:border-zinc-800"
       }`}
     >
       {badge ? (
         <div
-          className={`absolute -top-3 left-6 px-2 py-0.5 text-xs font-medium rounded-full ${
+          className={`absolute -top-3 left-6 rounded-full px-2 py-0.5 text-xs font-medium ${
             highlight
               ? "bg-emerald-500 text-white"
               : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
@@ -66,30 +64,32 @@ function PlanCard({ plan, lang }: { plan: Plan; lang: "zh" | "en" }) {
       ) : null}
       <div className="mb-4">
         <h3 className="text-xl font-semibold">{name}</h3>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{tagline}</p>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{tagline}</p>
       </div>
       <div className="mb-6 flex items-baseline gap-1">
         <span className="text-3xl font-bold">{price}</span>
         {plan.trialDays ? (
-          <span className="text-sm text-emerald-600 dark:text-emerald-400 ml-2">
-            {lang === "zh" ? `首 ${plan.trialDays} 天免费` : `${plan.trialDays}-day free trial`}
+          <span className="ml-2 text-sm text-emerald-600 dark:text-emerald-400">
+            {lang === "zh"
+              ? `首 ${plan.trialDays} 天免费`
+              : `${plan.trialDays}-day free trial`}
           </span>
         ) : null}
       </div>
-      <ul className="space-y-2 text-sm flex-1 mb-6">
+      <ul className="mb-6 flex-1 space-y-2 text-sm">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2">
-            <span className="text-emerald-500 mt-0.5">✓</span>
+            <span className="mt-0.5 text-emerald-500">✓</span>
             <span>{f}</span>
           </li>
         ))}
       </ul>
       <Link
         href={ctaHref}
-        className={`text-center px-4 py-2.5 rounded-lg font-medium transition ${
+        className={`rounded-lg px-4 py-2.5 text-center font-medium transition ${
           highlight
-            ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-            : "bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-white"
+            ? "bg-emerald-500 text-white hover:bg-emerald-600"
+            : "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
         }`}
       >
         {ctaLabel}
@@ -103,59 +103,135 @@ export default async function PricingPage() {
   const lang: "zh" | "en" = locale === "en" ? "en" : "zh";
 
   const personal = personalPlans();
-  const supplier = supplierPlans();
 
   return (
-    <main className="container max-w-7xl mx-auto px-4 py-12">
-      <header className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold mb-3">
-          {lang === "zh" ? "选择最适合你的方案" : "Choose your plan"}
-        </h1>
-        <p className="text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto">
+    <main className="container mx-auto max-w-7xl px-4 py-12">
+      <header className="mb-12 text-center">
+        <h1 className="mb-3 text-4xl font-bold md:text-5xl">
           {lang === "zh"
-            ? "学生免费、工程师一杯奶茶钱、供应商按价值付费 —— 三档分明。"
-            : "Free for students, affordable for engineers, value-priced for suppliers."}
+            ? "复材站对个人永久免费"
+            : "f1frp is free for individuals — forever"}
+        </h1>
+        <p className="mx-auto max-w-2xl text-lg text-zinc-500 dark:text-zinc-400">
+          {lang === "zh"
+            ? "全部 DB / 论文 / 专利 / 标准 / 供应商资料免费访问。仅高频使用 AI 助手的工程师 / 设计师可选一档付费版。供应商出海变现走 /overseas 按有效 RFQ 付费方案，无任何企业年费。"
+            : "Full database access is free. Only heavy AI users opt into a single Pro tier. Supplier monetization happens at /overseas via pay-per-verified-RFQ — no enterprise annual fees."}
         </p>
       </header>
 
+      {/* ─────────── Overseas spotlight banner — main supplier monetization ─────────── */}
+      <section className="mb-16 rounded-2xl border-2 border-foreground/20 bg-foreground/[0.03] p-6 sm:p-8">
+        <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-2xl">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {lang === "zh"
+                ? "供应商 / 复材厂家 — 出海变现"
+                : "Suppliers — Overseas monetization"}
+            </div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              {lang === "zh"
+                ? "想接海外订单？看 /overseas 出海方案"
+                : "Want overseas orders? See /overseas"}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              {lang === "zh"
+                ? "0 元入驻 + 按有效 RFQ 付费（¥300-500/条）+ 可选全链路代理（成交 1-3% GMV）。无会员费、无最低消费、不合格 RFQ 不收钱。"
+                : "Free signup + pay-per-verified-RFQ (¥300-500/RFQ) + optional full-service agency (1-3% of order GMV). No membership fee, no minimum spend."}
+            </p>
+            <ul className="mt-4 grid grid-cols-1 gap-1.5 text-[13px] text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
+              <li>· {lang === "zh" ? "AI 自动生成英文站资产" : "AI-generated English site"}</li>
+              <li>· {lang === "zh" ? "SEO + GEO 双轨获流" : "SEO + GEO traffic"}</li>
+              <li>· {lang === "zh" ? "AI 询盘助手 24/7 英文回复" : "24/7 AI inquiry assistant"}</li>
+              <li>· {lang === "zh" ? "曜一全链路代理（合同/报关/CBAM/退税）" : "Yaoyi full-chain agency (contract / customs / CBAM)"}</li>
+            </ul>
+          </div>
+          <div className="flex flex-col gap-3 sm:items-end">
+            <Link
+              href="/overseas"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-5 py-3 text-base font-semibold text-background transition-colors hover:bg-foreground/90"
+            >
+              {lang === "zh" ? "查看出海方案" : "See overseas plan"}
+              <ArrowRight size={18} />
+            </Link>
+            <a
+              href="https://getfrp.com"
+              target="_blank"
+              rel="noopener"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {lang === "zh" ? "或直接访问 getfrp.com" : "Or visit getfrp.com"}
+              <ArrowUpRight size={14} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────── Personal plans ─────────── */}
       <section className="mb-16">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
-          {lang === "zh" ? "个人 — 工程师 / 设计师 / 学生" : "Personal — Engineers / Designers / Students"}
+        <h2 className="mb-2 text-center text-2xl font-semibold">
+          {lang === "zh"
+            ? "个人 — 工程师 / 设计师 / 学生 / 研究员"
+            : "Personal — Engineers / Designers / Students / Researchers"}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+        <p className="mx-auto mb-8 max-w-2xl text-center text-sm text-zinc-500 dark:text-zinc-400">
+          {lang === "zh"
+            ? "免费版 = 完整数据访问 + AI 助手 10 次/天，覆盖 95% 的日常使用。仅当你每天 AI 问答超过 10 次（典型为做研究 / 投标的工程师）时再考虑付费。"
+            : "Free = full data + 10 AI Q&A/day, covering 95% of usage. Upgrade only if you hit the daily AI cap (typical for research-heavy engineers)."}
+        </p>
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
           {personal.map((p) => (
             <PlanCard key={p.id} plan={p} lang={lang} />
           ))}
         </div>
       </section>
 
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
-          {lang === "zh" ? "供应商 — 复材生产 / 贸易企业" : "Suppliers — Manufacturers & Traders"}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-          {supplier.map((p) => (
-            <PlanCard key={p.id} plan={p} lang={lang} />
-          ))}
+      {/* ─────────── No supplier annual fees notice ─────────── */}
+      <section className="mb-12 rounded-lg border border-border/70 bg-zinc-50 p-6 dark:bg-zinc-900/50">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {lang === "zh" ? "重要变更 — 2026-04 起" : "Important — Updated 2026-04"}
         </div>
-        <p className="text-center text-sm text-zinc-500 mt-4">
+        <h3 className="mt-2 text-base font-semibold tracking-tight">
           {lang === "zh"
-            ? "Featured 每个品类前 10 名限额。已认领企业请到「控制台 → 升级供应商版」申请。"
-            : "Featured: 10 slots per category. Claimed enterprises: apply via Dashboard → Supplier Upgrade."}
+            ? "我们已下架所有企业 / 供应商年费套餐"
+            : "All enterprise / supplier annual fees have been retired"}
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          {lang === "zh" ? (
+            <>
+              原 Verified（¥3,800/年）、Featured（¥18,800/年）、团队版（¥1,288/年/席）已统一并入{" "}
+              <Link href="/overseas" className="text-foreground underline underline-offset-2">
+                /overseas 出海方案
+              </Link>
+              ，改为按有效 RFQ 付费。我们认为，按结果付费比按时间付费更符合中小企业的现金流和决策习惯。已订阅老套餐的客户继续享受到期为止，不影响。
+            </>
+          ) : (
+            <>
+              Old Verified (¥3,800/yr), Featured (¥18,800/yr), and Team (¥1,288/yr/seat) plans
+              have been consolidated into the{" "}
+              <Link href="/overseas" className="text-foreground underline underline-offset-2">
+                /overseas plan
+              </Link>{" "}
+              with a pay-per-verified-RFQ model. Existing subscriptions remain valid until their
+              renewal date.
+            </>
+          )}
         </p>
       </section>
 
-      <section className="text-center text-sm text-zinc-500 dark:text-zinc-400 max-w-3xl mx-auto space-y-2">
+      <section className="mx-auto max-w-3xl space-y-2 text-center text-sm text-zinc-500 dark:text-zinc-400">
         <p>
           {lang === "zh"
-            ? "支持微信支付 / 支付宝 / Stripe（境外卡）。年付可开企业增值税普通发票。"
-            : "Pay via WeChat Pay / Alipay / Stripe. Annual plans get VAT invoice on request."}
+            ? "支持微信支付 / 支付宝 / Stripe（境外卡）。AI 高频版可开企业增值税普通发票。"
+            : "Pay via WeChat Pay / Alipay / Stripe. VAT invoice on request."}
         </p>
         <p>
           {lang === "zh" ? "联系销售：" : "Contact sales: "}
-          <span className="text-zinc-700 dark:text-zinc-300 font-medium">{CONTACT.name}</span>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">{CONTACT.name}</span>
           {" · "}
-          <a className="text-emerald-600 hover:underline" href={`tel:+86${CONTACT.phoneRaw}`}>
+          <a
+            className="text-emerald-600 hover:underline"
+            href={`tel:+86${CONTACT.phoneRaw}`}
+          >
             {CONTACT.phone}
           </a>
           {" · "}

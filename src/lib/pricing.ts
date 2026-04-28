@@ -8,9 +8,11 @@ import type { MembershipTier } from "./membership";
 
 export type PlanId =
   | "free"
-  | "student"
   | "pro_monthly"
   | "pro_yearly"
+  // Deprecated 2026-04-27: kept in type so historic subscriptions still
+  // resolve, but removed from PLANS array — never offered on /pricing.
+  | "student"
   | "team_yearly"
   | "supplier_verified"
   | "supplier_featured";
@@ -40,6 +42,10 @@ export type Plan = {
   perCategoryLimit?: number;
 };
 
+// 2026-04-27 strategy update — f1frp.com 中文站走免费平台路线，仅对高频
+// AI 用户保留一档付费（pro 月/年）。供应商端一切年费废除，企业出海变现走
+// /overseas 的「按有效 RFQ 付费 + 可选代理分成」路径。Student / Team /
+// Supplier verified / Supplier featured 套餐已下架。
 export const PLANS: Plan[] = [
   {
     id: "free",
@@ -47,76 +53,49 @@ export const PLANS: Plan[] = [
     tier: "free",
     nameZh: "免费版",
     nameEn: "Free",
-    taglineZh: "试一试，不要钱",
-    taglineEn: "Try it, no payment needed",
+    taglineZh: "复材站基础访问 — 永久免费",
+    taglineEn: "Full base access — free forever",
     priceCents: 0,
     period: "free",
     featuresZh: [
       "全部 DB 浏览（材料 / 配方 / 标准 / 论文 / 专利 / 供应商）",
-      "AI 问答 5 次/天",
-      "下载 5 次/月",
-      "论文/专利只看翻译标题，不看 AI 中文摘录",
+      "AI 问答 10 次/天",
+      "下载 10 次/月",
+      "社区问答、新内容订阅",
     ],
     featuresEn: [
       "Full DB browsing",
-      "AI Q&A 5/day",
-      "Downloads 5/month",
-      "Papers/patents: titles only, no AI commentary",
-    ],
-  },
-  {
-    id: "student",
-    audience: "personal",
-    tier: "basic",
-    nameZh: "学生版",
-    nameEn: "Student",
-    taglineZh: "在校生免费用",
-    taglineEn: "Free for verified students",
-    priceCents: 0,
-    period: "free",
-    badgeZh: "学校邮箱验证",
-    badgeEn: "School email required",
-    featuresZh: [
-      "AI 问答 30 次/天",
-      "下载 50 次/月",
-      "论文/专利完整 AI 中文摘录",
-      "选材推荐器",
-      "毕业论文友好：CCS/MLA 一键引用",
-    ],
-    featuresEn: [
-      "AI Q&A 30/day",
-      "Downloads 50/month",
-      "Full AI Chinese commentary",
-      "Material recommender",
-      "Citation export (CCS/MLA)",
+      "AI Q&A 10/day",
+      "Downloads 10/month",
+      "Community Q&A and content subscription",
     ],
   },
   {
     id: "pro_monthly",
     audience: "personal",
     tier: "pro",
-    nameZh: "专业版（月付）",
-    nameEn: "Pro (Monthly)",
-    taglineZh: "工程师 / 设计师专享",
-    taglineEn: "For engineers & designers",
+    nameZh: "AI 高频版（月付）",
+    nameEn: "AI Pro (Monthly)",
+    taglineZh: "AI 重度用户专享 — 工程师 / 设计师 / 研究员",
+    taglineEn: "For heavy AI users — engineers, designers, researchers",
     priceCents: 2900,
     period: "month",
     trialDays: 7,
     featuresZh: [
-      "AI 问答无限",
+      "AI 问答无限次",
       "下载无限（PDF / CAD / TDS）",
-      "1:1 RFQ 询盘（直达供应商）",
+      "完整论文/专利 AI 中文摘录",
       "选材推荐器 + 替代材料分析",
-      "完整 AI 中文摘录 + 工程落地建议",
       "新增论文 / 专利 即时推送",
+      "1:1 RFQ 询盘直达供应商",
     ],
     featuresEn: [
-      "Unlimited AI",
+      "Unlimited AI Q&A",
       "Unlimited downloads",
-      "1:1 RFQ to suppliers",
+      "Full AI commentary on papers/patents",
       "Material recommender + alternatives",
-      "Full AI Chinese commentary",
       "Real-time alerts on new papers/patents",
+      "1:1 RFQ to suppliers",
     ],
     stripePriceEnvKey: "STRIPE_PRICE_PRO_MONTHLY",
   },
@@ -124,8 +103,8 @@ export const PLANS: Plan[] = [
     id: "pro_yearly",
     audience: "personal",
     tier: "pro",
-    nameZh: "专业版（年付）",
-    nameEn: "Pro (Yearly)",
+    nameZh: "AI 高频版（年付）",
+    nameEn: "AI Pro (Yearly)",
     taglineZh: "省 17%，一年一次省心",
     taglineEn: "Save 17% with annual billing",
     priceCents: 28800,
@@ -134,100 +113,16 @@ export const PLANS: Plan[] = [
     badgeZh: "推荐",
     badgeEn: "Recommended",
     featuresZh: [
-      "包含专业版（月付）全部权益",
+      "包含 AI 高频版（月付）全部权益",
       "年付立省 ¥60",
       "可随时退订，按比例退款",
     ],
     featuresEn: [
-      "All Pro Monthly features",
+      "All AI Pro Monthly features",
       "Save ¥60/year",
       "Cancel anytime, prorated refund",
     ],
     stripePriceEnvKey: "STRIPE_PRICE_PRO_YEARLY",
-  },
-  {
-    id: "team_yearly",
-    audience: "personal",
-    tier: "enterprise",
-    nameZh: "团队版（年付/席位）",
-    nameEn: "Team (Yearly/Seat)",
-    taglineZh: "≥3 席，设计院 / 工程公司团队",
-    taglineEn: "≥3 seats, for engineering teams",
-    priceCents: 128800,
-    period: "year",
-    featuresZh: [
-      "包含专业版全部权益",
-      "团队工作区（共享 RFQ / 收藏 / 比对）",
-      "私有材料库（上传内部 spec）",
-      "REST API 调用",
-      "月度行业报告（团队版独家）",
-      "管理员后台 + 席位管理",
-    ],
-    featuresEn: [
-      "All Pro features",
-      "Team workspace (shared RFQ/saves/compare)",
-      "Private material library",
-      "REST API access",
-      "Monthly industry report",
-      "Admin dashboard + seat management",
-    ],
-    stripePriceEnvKey: "STRIPE_PRICE_TEAM_YEARLY",
-  },
-  // ── Supplier ──
-  {
-    id: "supplier_verified",
-    audience: "supplier",
-    tier: "basic",
-    nameZh: "Verified 蓝标版",
-    nameEn: "Verified",
-    taglineZh: "中小企业首选",
-    taglineEn: "For SMB suppliers",
-    priceCents: 380000,
-    period: "year",
-    featuresZh: [
-      "蓝标认证（页面 + 列表均显示）",
-      "查看完整询盘 + 联系方式",
-      "自然搜索排名加权",
-      "月度数据洞察（曝光 / 点击 / 询盘）",
-      "认证商家 PDF 证书",
-    ],
-    featuresEn: [
-      "Verified blue badge",
-      "Full inquiry details + contacts",
-      "Boosted search ranking",
-      "Monthly insights dashboard",
-      "Certified supplier PDF",
-    ],
-  },
-  {
-    id: "supplier_featured",
-    audience: "supplier",
-    tier: "pro",
-    nameZh: "Featured 头部版",
-    nameEn: "Featured",
-    taglineZh: "行业头部，每品类前 10 名",
-    taglineEn: "Top 10 per category, capped",
-    priceCents: 1880000,
-    period: "year",
-    perCategoryLimit: 10,
-    badgeZh: "限名额",
-    badgeEn: "Limited",
-    featuresZh: [
-      "包含 Verified 全部权益",
-      "品类顶部曝光位（首屏前 10 名）",
-      "1:N RFQ 优先派发（先得潜在订单）",
-      "横幅广告位（材料 / 标准 / 论文页）",
-      "专属客户经理 + 半年度行业报告",
-      "Featured 标识 + 品类徽章",
-    ],
-    featuresEn: [
-      "All Verified benefits",
-      "Top-of-category placement (first 10)",
-      "1:N RFQ priority routing",
-      "Banner placements",
-      "Dedicated success manager + bi-annual report",
-      "Featured badge + category emblem",
-    ],
   },
 ];
 
