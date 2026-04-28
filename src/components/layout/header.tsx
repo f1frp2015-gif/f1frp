@@ -15,6 +15,7 @@ const NAV_KEYS = [
   "standards",
   "papers",
   "patents",
+  "reports",
   "suppliers",
   "tech",
   "downloads",
@@ -30,12 +31,16 @@ const NAV_HREFS: Record<NavKey, string> = {
   standards: "/standards",
   papers: "/papers",
   patents: "/patents",
+  reports: "/reports",
   suppliers: "/suppliers",
   tech: "/tech",
   downloads: "/downloads",
   articles: "/articles",
   ai: "/ai",
 };
+
+// 仅国内侧（zh）显示的导航项 — 研报库是中文付费产品，海外侧 getfrp.com 隐藏
+const ZH_ONLY_NAV: ReadonlySet<NavKey> = new Set(["reports"]);
 
 function AuthButtons() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -109,7 +114,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-px md:flex">
-          {NAV_KEYS.map((key) => {
+          {NAV_KEYS.filter((k) => locale === "zh" || !ZH_ONLY_NAV.has(k)).map((key) => {
             const href = NAV_HREFS[key];
             const active = isActive(href);
             const isAi = key === "ai";
@@ -191,7 +196,7 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="right" className="w-64 p-0">
             <nav className="flex flex-col p-4 pt-12">
-              {NAV_KEYS.map((key) => (
+              {NAV_KEYS.filter((k) => locale === "zh" || !ZH_ONLY_NAV.has(k)).map((key) => (
                 <Link
                   key={key}
                   href={NAV_HREFS[key]}
