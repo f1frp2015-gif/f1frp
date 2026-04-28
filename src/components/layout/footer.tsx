@@ -95,7 +95,7 @@ export async function Footer() {
             {t("copyright", { year: new Date().getFullYear() })}
           </div>
           <div className="font-mono">
-            built in Shanghai · deployed globally on Vercel
+            built in Shanghai · deployed globally
           </div>
         </div>
       </div>
