@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -36,6 +37,8 @@ export default async function ReportsPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  // 研报库仅国内侧（f1frp.com / zh）。getfrp.com 海外侧（locales=en）一律 404。
+  if (locale !== "zh") notFound();
   setRequestLocale(locale);
 
   const [rows, viewer] = await Promise.all([

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { desc, eq, inArray } from "drizzle-orm";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -26,6 +27,7 @@ export default async function DashboardReportsPage({
   searchParams: Promise<{ order?: string }>;
 }) {
   const { locale } = await params;
+  if (locale !== "zh") notFound();
   setRequestLocale(locale);
   const { order: highlightOrder } = await searchParams;
 

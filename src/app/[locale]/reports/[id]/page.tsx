@@ -49,6 +49,7 @@ export default async function ReportDetailPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id: raw } = await params;
+  if (locale !== "zh") notFound();
   setRequestLocale(locale);
 
   const id = safeDecode(raw);
