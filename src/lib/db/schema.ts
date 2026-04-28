@@ -307,6 +307,83 @@ export const papers = pgTable(
 );
 
 // ═══════════════════════════════════════════
+// Reports — 行业研报库（付费）
+// ═══════════════════════════════════════════
+
+export const reportCategoryEnum = pgEnum("report_category", [
+  "industry",
+  "application",
+  "single_customer",
+  "full_chain",
+]);
+
+export const reportPurchaseStatusEnum = pgEnum("report_purchase_status", [
+  "pending",
+  "paid",
+  "refunded",
+  "failed",
+]);
+
+export const reports = pgTable(
+  "reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slug: varchar("slug", { length: 200 }).unique().notNull(),
+    title: text("title").notNull(),
+    subtitle: text("subtitle"),
+    category: reportCategoryEnum("category").notNull(),
+    summary: text("summary").notNull(),
+    tableOfContents: jsonb("table_of_contents").$type<string[]>(),
+    coverUrl: text("cover_url"),
+    pageCount: integer("page_count"),
+    publishedAt: timestamp("published_at").defaultNow().notNull(),
+    priceCents: integer("price_cents").notNull(),
+    proDiscountBps: integer("pro_discount_bps").default(7000).notNull(),
+    pdfPath: text("pdf_path").notNull(),
+    pdfSizeBytes: integer("pdf_size_bytes"),
+    previewPdfPath: text("preview_pdf_path"),
+    tags: jsonb("tags").$type<string[]>(),
+    keywords: jsonb("keywords").$type<string[]>(),
+    isPublished: boolean("is_published").default(false).notNull(),
+    viewCount: integer("view_count").default(0).notNull(),
+    purchaseCount: integer("purchase_count").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("reports_category_idx").on(table.category),
+    index("reports_published_idx").on(table.isPublished, table.publishedAt),
+  ]
+);
+
+export const reportPurchases = pgTable(
+  "report_purchases",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    reportId: uuid("report_id").references(() => reports.id).notNull(),
+    priceCentsOriginal: integer("price_cents_original").notNull(),
+    priceCentsPaid: integer("price_cents_paid").notNull(),
+    discountApplied: varchar("discount_applied", { length: 32 }),
+    userTierAtPurchase: membershipTierEnum("user_tier_at_purchase").notNull(),
+    paymentProvider: varchar("payment_provider", { length: 32 }),
+    providerOrderId: varchar("provider_order_id", { length: 200 }),
+    providerTradeNo: varchar("provider_trade_no", { length: 200 }),
+    status: reportPurchaseStatusEnum("status").default("pending").notNull(),
+    paidAt: timestamp("paid_at"),
+    downloadCount: integer("download_count").default(0).notNull(),
+    lastDownloadedAt: timestamp("last_downloaded_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("report_purchases_user_idx").on(table.userId),
+    index("report_purchases_report_idx").on(table.reportId),
+    index("report_purchases_status_idx").on(table.status),
+    index("report_purchases_order_idx").on(table.providerOrderId),
+  ]
+);
+
+// ═══════════════════════════════════════════
 // Patents — 专利库
 // ═══════════════════════════════════════════
 
@@ -426,6 +503,7 @@ export const supplierListings = pgTable(
     descriptionEn: text("description_en"),
     certifications: jsonb("certifications").$type<string[]>(),
     certificationsEn: jsonb("certifications_en").$type<string[]>(),
+    website: varchar("website", { length: 255 }),
     enterpriseId: uuid("enterprise_id").references(() => enterprises.id),
     viewCount: integer("view_count").default(0).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -786,6 +864,10 @@ export type Formula = typeof formulas.$inferSelect;
 export type NewFormula = typeof formulas.$inferInsert;
 export type Paper = typeof papers.$inferSelect;
 export type NewPaper = typeof papers.$inferInsert;
+export type Report = typeof reports.$inferSelect;
+export type NewReport = typeof reports.$inferInsert;
+export type ReportPurchase = typeof reportPurchases.$inferSelect;
+export type NewReportPurchase = typeof reportPurchases.$inferInsert;
 export type Patent = typeof patents.$inferSelect;
 export type NewPatent = typeof patents.$inferInsert;
 export type StandardSection = typeof standardSections.$inferSelect;

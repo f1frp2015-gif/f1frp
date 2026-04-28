@@ -138,6 +138,62 @@ export function supplierPlans(): Plan[] {
   return PLANS.filter((p) => p.audience === "supplier");
 }
 
+// ═══════════════════════════════════════════
+// 研报库定价
+// ═══════════════════════════════════════════
+
+export const REPORT_DEFAULT_PRICE_CENTS = 29900; // ¥299/篇
+export const REPORT_PRO_DISCOUNT_BPS = 7000; // pro/enterprise 7 折（万分位）
+
+export type ReportCategory = "industry" | "application" | "single_customer" | "full_chain";
+
+export const REPORT_CATEGORY_LABELS: Record<ReportCategory, { zh: string; en: string }> = {
+  industry: { zh: "行业研报", en: "Industry" },
+  application: { zh: "应用领域", en: "Application" },
+  single_customer: { zh: "单客户研报", en: "Single Customer" },
+  full_chain: { zh: "全产业链", en: "Full Value Chain" },
+};
+
+export type ReportPriceQuote = {
+  priceCents: number;
+  originalCents: number;
+  discountApplied: "pro_member" | null;
+  savedCents: number;
+};
+
+// 计算用户实际应付金额。pro / enterprise 享 7 折（折后金额取整到分）。
+export function quoteReportPrice(
+  basePriceCents: number,
+  proDiscountBps: number,
+  tier: MembershipTier
+): ReportPriceQuote {
+  if (tier === "pro" || tier === "enterprise") {
+    const discounted = Math.round((basePriceCents * proDiscountBps) / 10000);
+    return {
+      priceCents: discounted,
+      originalCents: basePriceCents,
+      discountApplied: "pro_member",
+      savedCents: basePriceCents - discounted,
+    };
+  }
+  return {
+    priceCents: basePriceCents,
+    originalCents: basePriceCents,
+    discountApplied: null,
+    savedCents: 0,
+  };
+}
+
+// 显示用：¥299 / ¥209.30，整数元省略小数。
+export function formatYuan(cents: number, lang: "zh" | "en" = "zh"): string {
+  const yuan = cents / 100;
+  const isWhole = cents % 100 === 0;
+  const opts: Intl.NumberFormatOptions = isWhole
+    ? { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+    : { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  return `¥${yuan.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", opts)}`;
+}
+
 export function formatPrice(cents: number, period: Plan["period"], lang: "zh" | "en" = "zh"): string {
   if (cents === 0 || period === "free") return lang === "zh" ? "免费" : "Free";
   const yuan = cents / 100;
