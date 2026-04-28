@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -18,13 +18,15 @@ export type SerializedPaper = {
   journal: string;
   year: number | null;
   doi: string;
-  abstract: string;
   keywords: string[];
   category: string;
   language: "zh" | "en" | null;
   citationCount: number;
   sourceUrl: string;
 };
+
+// Render in chunks so DOM stays small even with 3.5k papers.
+const PAGE_SIZE = 50;
 
 type CategoryOption = { id: string; name: string; nameEn?: string };
 
@@ -42,6 +44,7 @@ export function PapersClient({
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState("all");
   const [activeLang, setActiveLang] = useState<"all" | "zh" | "en">("all");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -58,6 +61,16 @@ export function PapersClient({
       return hitSearch && hitCat && hitLang;
     });
   }, [papers, search, activeCat, activeLang]);
+
+  // Reset pagination when filters change.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [search, activeCat, activeLang]);
+
+  const visiblePapers = useMemo(
+    () => filtered.slice(0, visibleCount),
+    [filtered, visibleCount],
+  );
 
   const catStats = useMemo(() => {
     const m: Record<string, number> = {};
@@ -152,7 +165,7 @@ export function PapersClient({
       </div>
 
       <div className="grid gap-4">
-        {filtered.map((p) => (
+        {visiblePapers.map((p) => (
           <Link key={p.id} href={`/papers/${encodeURIComponent(p.id)}` as never} className="block">
             <Card className="transition-colors hover:border-primary/50">
               <CardContent className="p-5">
@@ -194,11 +207,6 @@ export function PapersClient({
                   {p.journal ? ` · ${p.journal}` : ""}
                   {p.year ? ` · ${p.year}` : ""}
                 </div>
-                {p.abstract && (
-                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-foreground/80">
-                    {p.abstract}
-                  </p>
-                )}
               </CardContent>
             </Card>
           </Link>
@@ -212,6 +220,20 @@ export function PapersClient({
           </Card>
         )}
       </div>
+
+      {visiblePapers.length < filtered.length && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="rounded-md border border-border/70 bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+          >
+            {isEn
+              ? `Load ${Math.min(PAGE_SIZE, filtered.length - visiblePapers.length)} more (${visiblePapers.length} / ${filtered.length})`
+              : `加载更多 ${Math.min(PAGE_SIZE, filtered.length - visiblePapers.length)} 条（已显示 ${visiblePapers.length} / ${filtered.length}）`}
+          </button>
+        </div>
+      )}
 
       <Separator className="my-10" />
       <CurationNotice scope={t("h1")} />

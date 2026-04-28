@@ -6,10 +6,11 @@ import { papers as papersTable } from "@/lib/db/schema";
 import { paperCategories } from "@/lib/data/papers";
 import { PapersClient, type SerializedPaper } from "./papers-client";
 
-// TODO: papers page generates >19MB ISR fallback (entire papers table serialized).
-// Switched to force-dynamic to unblock deploy. Proper fix: paginate + lazy-load
-// abstracts client-side, then restore ISR with revalidate.
-export const dynamic = "force-dynamic";
+// 2026-04-27: list query now skips the heavy `abstract` field (only loaded
+// on detail pages). Pre-fix the page was force-dynamic with full-row select,
+// shipping ~20MB of JSON for 3.5k papers. Post-fix the response is ~2MB
+// gzipped — fast enough to restore 10-min ISR.
+export const revalidate = 600;
 
 export async function generateMetadata({
   params,
@@ -29,7 +30,23 @@ export default async function PapersPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const rows = await db
-    .select()
+    .select({
+      id: papersTable.id,
+      slug: papersTable.slug,
+      title: papersTable.title,
+      titleEn: papersTable.titleEn,
+      authors: papersTable.authors,
+      affiliation: papersTable.affiliation,
+      journal: papersTable.journal,
+      year: papersTable.year,
+      doi: papersTable.doi,
+      keywords: papersTable.keywords,
+      category: papersTable.category,
+      language: papersTable.language,
+      citationCount: papersTable.citationCount,
+      sourceUrl: papersTable.sourceUrl,
+      // abstract excluded — heavy field, only loaded on /papers/[id]
+    })
     .from(papersTable)
     .orderBy(desc(papersTable.year), desc(papersTable.citationCount));
 
@@ -42,7 +59,6 @@ export default async function PapersPage({
     journal: r.journal ?? "",
     year: r.year ?? null,
     doi: r.doi ?? "",
-    abstract: r.abstract ?? "",
     keywords: (r.keywords ?? []) as string[],
     category: r.category ?? "",
     language: (r.language as "zh" | "en" | null) ?? null,
