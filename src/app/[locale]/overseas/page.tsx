@@ -136,7 +136,7 @@ export default async function OverseasPage({
               <span className="text-muted-foreground">被全世界采购商找到。</span>
             </h1>
             <p className="mt-6 max-w-2xl text-[15px] leading-[1.75] text-muted-foreground sm:text-base">
-              <span className="font-semibold text-foreground">getfrp.com</span> 是 f1frp 的英文海外版。我们用 AI-native 获客平台技术，帮中国中小复材厂家以接近零成本、可持续累积资产的方式获取海外真实订单 — 从英文站到 SEO，从 24 小时询盘响应到合同物流退税，一条龙打通。
+              <span className="font-semibold text-foreground">getfrp.com</span> 是 f1frp 的英文海外版。我们用 AI-native 获客平台技术，帮中国中小复材厂家**按结果付费**地获取海外真实订单 — 入驻免费、按有效询盘计费、可选全链路代理。从英文站到 SEO/GEO，从 AI 询盘助手到合同物流退税，一条龙打通。
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <a
@@ -149,10 +149,16 @@ export default async function OverseasPage({
                 <ArrowUpRight size={16} className="ml-1.5" />
               </a>
               <a
-                href="#pain-points"
+                href="#pricing"
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
-                先了解痛点和方案
+                看定价方案
+              </a>
+              <a
+                href="#pain-points"
+                className="ml-1 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                先了解痛点和方案 →
               </a>
             </div>
           </div>
@@ -299,6 +305,234 @@ export default async function OverseasPage({
         </div>
       </section>
 
+      {/* ─────────────── Pricing / Business Model ─────────────── */}
+      <section id="pricing" className="border-b border-border/80">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="border-b border-border/70 pb-3">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              商业模式 / 定价
+            </div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              入驻免费，按结果付费
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              我们不收一次性会员费、不卖竞价排名、不锁定包年合同。只在送出真实询盘 / 真实订单时收费 — 激励对齐，门槛为零。
+            </p>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-3">
+            {/* Tier 1 */}
+            <div className="flex flex-col rounded-lg border border-border/70 bg-background p-6">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                ① 入驻档
+              </div>
+              <h3 className="mt-2 text-lg font-semibold tracking-tight">永久免费</h3>
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="text-3xl font-semibold tabular-nums tracking-tight">¥0</span>
+                <span className="text-sm text-muted-foreground">/ 永久</span>
+              </div>
+              <ul className="mt-4 space-y-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                <li>· 上传企业资料 → AI 自动生成英文档案</li>
+                <li>· 列入 getfrp.com 公开供应商池</li>
+                <li>· 进入 AI 助手匹配候选名单</li>
+                <li>· 月报：访问量 / 收录情况 / 关键词排名</li>
+              </ul>
+              <div className="mt-6 border-t border-border/70 pt-4 text-[12px] text-muted-foreground">
+                适合：刚开始尝试出海的工厂，先看效果再决定下一步
+              </div>
+            </div>
+
+            {/* Tier 2 — primary */}
+            <div className="flex flex-col rounded-lg border-2 border-foreground bg-background p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  ② 询盘档
+                </div>
+                <span className="rounded-sm border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider">
+                  推荐
+                </span>
+              </div>
+              <h3 className="mt-2 text-lg font-semibold tracking-tight">按有效 RFQ 付费</h3>
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="text-3xl font-semibold tabular-nums tracking-tight">¥300-500</span>
+                <span className="text-sm text-muted-foreground">/ 条</span>
+              </div>
+              <ul className="mt-4 space-y-1.5 text-[13px] leading-relaxed">
+                <li className="text-foreground">· 仅"有效 RFQ"才计费（定义见下）</li>
+                <li className="text-muted-foreground">· AI 助手 24/7 英文回复 + 智能预筛</li>
+                <li className="text-muted-foreground">· 不合格询盘 0 元（不抵扣额度）</li>
+                <li className="text-muted-foreground">· 月结、postpaid，发票合规</li>
+                <li className="text-muted-foreground">· 同一询盘可由 1-3 家厂同时跟进</li>
+              </ul>
+              <div className="mt-6 border-t border-border/70 pt-4 text-[12px] text-muted-foreground">
+                适合：中小复材厂主力档，单笔订单 ¥10 万以上即覆盖成本
+              </div>
+            </div>
+
+            {/* Tier 3 */}
+            <div className="flex flex-col rounded-lg border border-border/70 bg-background p-6">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                ③ 代理档（可选）
+              </div>
+              <h3 className="mt-2 text-lg font-semibold tracking-tight">全链路代理服务</h3>
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="text-3xl font-semibold tabular-nums tracking-tight">1-3%</span>
+                <span className="text-sm text-muted-foreground">/ 成交订单 GMV</span>
+              </div>
+              <ul className="mt-4 space-y-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                <li>· 曜一新材料以出口实体身份接单</li>
+                <li>· 商务谈判 / Incoterms / 信用证</li>
+                <li>· 出口报关 / CBAM 申报 / 退税</li>
+                <li>· 海运 / 保险 / 海外仓（可选）</li>
+                <li>· 您只负责按图生产、按时交付</li>
+              </ul>
+              <div className="mt-6 border-t border-border/70 pt-4 text-[12px] text-muted-foreground">
+                适合：第一次走出口、或不想自建外贸团队的工厂
+              </div>
+            </div>
+          </div>
+
+          {/* "Effective RFQ" definition */}
+          <div className="mt-10 rounded-lg border border-foreground/30 bg-foreground/[0.03] p-6">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              「有效 RFQ」严格定义 — 任一缺失不收费
+            </div>
+            <h3 className="mt-2 text-base font-semibold tracking-tight">
+              我们公开承诺这 4 条标准，纠纷由曜一团队 24 小时内裁定
+            </h3>
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {[
+                {
+                  no: "①",
+                  title: "目的国 / 应用场景明确",
+                  body: "买家明确说明产品发往哪个国家，用于什么应用（不接受『多国通用』『暂时调研』）",
+                },
+                {
+                  no: "②",
+                  title: "产品规格 / 数量明确",
+                  body: "牌号 / 规格 / 数量 / 交期至少满足 3 项；不接受『请发产品目录』式空泛询价",
+                },
+                {
+                  no: "③",
+                  title: "联系方式真实可达",
+                  body: "邮箱发件可达 + 公司可在 LinkedIn / 工商系统验证；公司邮箱（非 gmail/qq）优先",
+                },
+                {
+                  no: "④",
+                  title: "完成至少 1 次往返沟通",
+                  body: "买家收到您的报价后有进一步问询或样品请求；single-shot 询盘到此为止不计费",
+                },
+              ].map((c) => (
+                <div key={c.no} className="rounded-md border border-border/70 bg-background p-4">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-mono text-base font-semibold">{c.no}</span>
+                    <span className="text-sm font-semibold">{c.title}</span>
+                  </div>
+                  <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
+                    {c.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-[12px] text-muted-foreground">
+              · 单条询盘最多分发给 3 家匹配厂家；先抢先得，每家独立计费 · 同一买家同一产品 30 天内重复询盘只计费一次
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────── Cost Transparency ─────────────── */}
+      <section className="border-b border-border/80 bg-foreground/[0.02]">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="border-b border-border/70 pb-3">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              关于成本透明
+            </div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              我们不是"零成本"，是"高效"
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              很多平台宣传"零成本出海"。我们不会。getfrp 同样有真实成本 — 按结果付费的可行性来自 AI-native 架构带来的效率提升，不是魔法。
+            </p>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                getfrp 真实成本结构
+              </div>
+              <h3 className="mt-2 text-base font-semibold tracking-tight">
+                这些钱我们每月在花
+              </h3>
+              <ul className="mt-4 space-y-3 text-[13px] leading-relaxed">
+                <li className="flex gap-3">
+                  <span className="font-mono text-muted-foreground/70">01</span>
+                  <div>
+                    <div className="font-medium">基础设施</div>
+                    <div className="text-muted-foreground">
+                      Vercel 全球 CDN + Neon 跨境数据库 + AI Gateway + 海外/国内双轨部署
+                    </div>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-mono text-muted-foreground/70">02</span>
+                  <div>
+                    <div className="font-medium">AI 算力</div>
+                    <div className="text-muted-foreground">
+                      Anthropic Claude / Google Gemini / DeepSeek 三路模型 token 消耗 — 每条 RFQ 回复、每篇 SEO 内容都在烧 token
+                    </div>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-mono text-muted-foreground/70">03</span>
+                  <div>
+                    <div className="font-medium">内容资产</div>
+                    <div className="text-muted-foreground">
+                      每月数百篇 AI 生成的英文行业内容 + GEO 优化（让 ChatGPT/Perplexity 引用）— 创作 + 校对成本不低
+                    </div>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-mono text-muted-foreground/70">04</span>
+                  <div>
+                    <div className="font-medium">合规与人力</div>
+                    <div className="text-muted-foreground">
+                      CBAM / GDPR / 多国关税合规咨询 + BD 团队 + 技术团队 + 客服
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                为什么 ¥300-500/RFQ 能跑得通
+              </div>
+              <h3 className="mt-2 text-base font-semibold tracking-tight">
+                AI-native 架构带来 10-30× 效率提升
+              </h3>
+              <div className="mt-4 space-y-4 text-[13px] leading-relaxed">
+                <div className="rounded-md border border-border/70 bg-background p-4">
+                  <div className="font-medium">传统外贸代理</div>
+                  <div className="mt-1 text-muted-foreground">
+                    1 BD 服务 1-3 家工厂，年人力成本 ¥30-50 万 — 必须靠包年合同 / 高佣金平摊
+                  </div>
+                </div>
+                <div className="rounded-md border border-foreground/40 bg-foreground/[0.04] p-4">
+                  <div className="font-medium">getfrp AI-native</div>
+                  <div className="mt-1 text-muted-foreground">
+                    1 BD + AI 服务 30-50 家工厂 — 英文内容、SEO、询盘预筛、RFQ 结构化全部由 AI 自动化，BD 只处理高价值环节
+                  </div>
+                </div>
+                <p className="text-muted-foreground">
+                  效率优势让我们能把成本拆细，按"每条有效 RFQ"分摊给客户，而不是把成本转嫁成动辄数十万的会员费。<span className="font-medium text-foreground">真实成本由所有客户共担，分摊后单位边际成本远低于传统模式</span> — 这才是 AI 时代外贸基础设施的正确形态。
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ─────────────── Live AI Capability Stats ─────────────── */}
       <section className="border-b border-border/80">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
@@ -412,7 +646,7 @@ export default async function OverseasPage({
                     alibaba: "¥10-30 万/年会员 + 运营人力",
                     site: "¥5-20 万建站 + 长期 SEO 运营",
                     ads: "¥20-100 万/年 CPC 烧钱",
-                    getfrp: "0 元入驻，按订单分成",
+                    getfrp: "免费入驻，按有效 RFQ 付费",
                   },
                   {
                     dim: "流量类型",
