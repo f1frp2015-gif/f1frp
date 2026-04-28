@@ -150,14 +150,21 @@ export function Header() {
             </Link>
           )}
           {showOverseas && (
-            <a
-              href="https://getfrp.com"
-              target="_blank"
-              rel="noopener"
-              className="px-2.5 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:text-foreground/80"
+            <Link
+              href={"/overseas" as never}
+              className={[
+                "relative px-2.5 py-1.5 text-[13px] transition-colors",
+                isActive("/overseas")
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+                "font-medium",
+              ].join(" ")}
             >
-              出海 →
-            </a>
+              出海
+              {isActive("/overseas") && (
+                <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
+              )}
+            </Link>
           )}
         </nav>
 
@@ -204,15 +211,13 @@ export function Header() {
                 </Link>
               )}
               {showOverseas && (
-                <a
-                  href="https://getfrp.com"
-                  target="_blank"
-                  rel="noopener"
+                <Link
+                  href={"/overseas" as never}
                   onClick={() => setOpen(false)}
                   className="border-b py-3 text-sm font-medium text-foreground transition-colors hover:text-foreground"
                 >
-                  出海 →
-                </a>
+                  出海
+                </Link>
               )}
               <div className="mt-4 border-b pb-3">
                 <LanguageSwitcher variant="full" />
