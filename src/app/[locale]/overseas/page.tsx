@@ -248,13 +248,13 @@ export default async function OverseasPage({
                 no: "01",
                 title: "AI 自动生成英文站资产",
                 pain: "对应痛点 ① 英文资产从零开始",
-                body: "上传中文产品资料 + 工厂照片，AI 自动产出英文产品页、datasheet、工艺规范、行业洞察。Claude / Gemini 多模型保证术语准确（ASTM、CE、CBAM 标准号原样保留），术语不一致 AI 自检。每月增量内容由 AI 持续维护，不用养英文运营团队。",
+                body: "上传中文产品资料 + 工厂照片，AI 自动产出英文产品页、datasheet、工艺规范、行业洞察。多模型 AI 引擎保证术语准确（ASTM、CE、CBAM 标准号原样保留），术语不一致自动校对。每月增量内容由 AI 持续维护，不用养英文运营团队。",
               },
               {
                 no: "02",
                 title: "SEO + GEO 双轨获流",
                 pain: "对应痛点 ② Google Ads 成本高",
-                body: "传统 SEO（Google / Bing）+ 生成式引擎优化 GEO（让 ChatGPT / Perplexity / 豆包搜索时引用我们的内容）。海外采购商用 AI 搜索『拉挤型材中国供应商』时，引用源直接是 getfrp.com 的产品页 — 这是越用越值钱的资产，不是越用越贵的广告。",
+                body: "传统 SEO（搜索引擎）+ 生成式引擎优化 GEO（让主流 AI 答案引擎引用我们的内容）。海外采购商用 AI 搜索『拉挤型材中国供应商』时，引用源直接是 getfrp.com 的产品页 — 这是越用越值钱的资产，不是越用越贵的广告。",
               },
               {
                 no: "03",
@@ -470,7 +470,7 @@ export default async function OverseasPage({
                   <div>
                     <div className="font-medium">基础设施</div>
                     <div className="text-muted-foreground">
-                      Vercel 全球 CDN + Neon 跨境数据库 + AI Gateway + 海外/国内双轨部署
+                      全球 CDN + 跨境数据库 + AI 网关 + 海外/国内双部署架构
                     </div>
                   </div>
                 </li>
@@ -479,7 +479,7 @@ export default async function OverseasPage({
                   <div>
                     <div className="font-medium">AI 算力</div>
                     <div className="text-muted-foreground">
-                      Anthropic Claude / Google Gemini / DeepSeek 三路模型 token 消耗 — 每条 RFQ 回复、每篇 SEO 内容都在烧 token
+                      多路 AI 模型 token 消耗 — 每条 RFQ 回复、每篇 SEO 内容都在烧 token
                     </div>
                   </div>
                 </li>
@@ -488,7 +488,7 @@ export default async function OverseasPage({
                   <div>
                     <div className="font-medium">内容资产</div>
                     <div className="text-muted-foreground">
-                      每月数百篇 AI 生成的英文行业内容 + GEO 优化（让 ChatGPT/Perplexity 引用）— 创作 + 校对成本不低
+                      每月数百篇 AI 生成的英文行业内容 + GEO 优化（让 AI 答案引擎引用）— 创作 + 校对成本不低
                     </div>
                   </div>
                 </li>
@@ -577,7 +577,7 @@ export default async function OverseasPage({
                 结构化的复材产业数据
               </h3>
               <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                牌号库 + 标准库 + 论文/专利索引 + 供应商池 + 工艺库 + 入驻企业。所有数据中英双轨字段化，pgvector 向量索引支持 AI 语义检索。海外询盘进来时，AI 在 200ms 内匹配最相关的牌号、工艺、供应商。
+                牌号库 + 标准库 + 论文/专利索引 + 供应商池 + 工艺库 + 入驻企业。所有数据中英双轨字段化，向量索引支持 AI 语义检索。海外询盘进来时，AI 在 200ms 内匹配最相关的牌号、工艺、供应商。
               </p>
             </div>
             <div className="rounded-lg border border-border/70 bg-background p-6">
@@ -588,7 +588,7 @@ export default async function OverseasPage({
                 AI 持续生成英文 SEO 内容
               </h3>
               <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                每月数百篇 AI 生成的英文行业洞察、产品对比、应用案例文章，全部经过术语校对和事实引用。为 getfrp.com 在 Google / Bing / ChatGPT / Perplexity 上累积持续可见性 — 关键词排名是越用越靠前的资产。
+                每月数百篇 AI 生成的英文行业洞察、产品对比、应用案例文章，全部经过术语校对和事实引用。为 getfrp.com 在主流搜索引擎和 AI 答案引擎上累积持续可见性 — 关键词排名是越用越靠前的资产。
               </p>
             </div>
             <div className="rounded-lg border border-border/70 bg-background p-6">
@@ -599,7 +599,7 @@ export default async function OverseasPage({
                 多模型路由 + 双轨部署
               </h3>
               <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                Anthropic Claude（推理与写作）+ Google Gemini（嵌入与检索）+ DeepSeek（国内合规备选），AI Gateway 智能路由。海外侧（getfrp.com / Vercel）+ 国内侧（f1frp.com / 阿里云）双部署，全球访问无障碍。
+                多模型分工协作（推理写作模型 + 嵌入检索模型 + 国内合规备选模型），AI 网关智能路由。海外侧（getfrp.com）+ 国内侧（f1frp.com）双部署架构，全球访问无障碍。
               </p>
             </div>
           </div>
