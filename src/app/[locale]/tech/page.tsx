@@ -31,7 +31,7 @@ export async function generateMetadata({
   return { title: t("metaTitle"), description: t("metaDescription") };
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 600;
 
 export default async function TechPage({
   params,

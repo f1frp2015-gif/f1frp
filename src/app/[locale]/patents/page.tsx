@@ -35,7 +35,26 @@ export default async function PatentsPage({
   setRequestLocale(locale);
 
   const rows = await db
-    .select()
+    .select({
+      id: patentsTable.id,
+      slug: patentsTable.slug,
+      title: patentsTable.title,
+      titleEn: patentsTable.titleEn,
+      applicationNo: patentsTable.applicationNo,
+      publicationNo: patentsTable.publicationNo,
+      grantNo: patentsTable.grantNo,
+      applicant: patentsTable.applicant,
+      filingDate: patentsTable.filingDate,
+      publicationDate: patentsTable.publicationDate,
+      grantDate: patentsTable.grantDate,
+      classification: patentsTable.classification,
+      status: patentsTable.status,
+      country: patentsTable.country,
+      countryCode: patentsTable.countryCode,
+      category: patentsTable.category,
+      abstract: patentsTable.abstract,
+      // claims/inventors excluded — only loaded on /patents/[id]
+    })
     .from(patentsTable)
     .orderBy(desc(patentsTable.filingDate));
 
@@ -47,7 +66,7 @@ export default async function PatentsPage({
     publicationNo: r.publicationNo ?? "",
     grantNo: r.grantNo ?? "",
     applicant: r.applicant ?? "",
-    inventors: (r.inventors ?? []) as string[],
+    inventors: [],
     filingDate: r.filingDate ?? "",
     publicationDate: r.publicationDate ?? "",
     grantDate: r.grantDate ?? "",
