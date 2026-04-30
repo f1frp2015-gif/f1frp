@@ -304,7 +304,7 @@
     "disclaimer": "* Formula data is for reference only. Adjust for raw-material batch, environmental conditions and equipment before production. Run a small trial first.",
     "contribute": "Contribute a formula",
     "contributeSub": "Have a validated FRP formula to share? The database grows with industry contributions.",
-    "contributeContact": "Submit: formula@f1frp.com · WeChat: f1frp_com",
+    "contributeContact": "Submit: f1frp2015@gmail.com · WeChat: f1frp_com",
     "difficulty": {
       "beginner": "Beginner",
       "intermediate": "Intermediate",
@@ -343,7 +343,7 @@
     "euStdDesc": "<b>EN 13706</b> — Core pultrusion standard<br/><b>EN 13121</b> — GRP tanks and vessels<br/><b>EN 1796 / 14364</b> — GRP pipes",
     "updateTitle": "Continuously updated",
     "updateSub": "The standards database is updated regularly to include the latest published and revised FRP-related standards. Found an error or omission? Let us know.",
-    "updateEmail": "Feedback: standards@f1frp.com",
+    "updateEmail": "Feedback: f1frp2015@gmail.com",
     "detail": {
       "breadcrumb": "Standards",
       "notFound": "Standard not found",
@@ -641,9 +641,9 @@
       "breadcrumb": "Articles",
       "hot": "Hot",
       "readTime": "{time} read",
-      "disclaimer": "This article was compiled by the f1frp editorial team from publicly available sources for informational purposes only. Facts and data are sourced from public channels. If you believe content infringes on copyright or other rights, contact f1frp2015@gmail.com and we will remove or correct it promptly.",
+      "disclaimer": "This article was compiled by the f1frp editorial team from publicly available sources for informational purposes only. Facts and data are sourced from public channels. If you believe content infringes on copyright or other rights, contact doris.li@f1composite.com and we will remove or correct it promptly.",
       "disclaimerLabel": "Disclaimer:",
-      "disclaimerEmail": "f1frp2015@gmail.com",
+      "disclaimerEmail": "doris.li@f1composite.com",
       "back": "← Back to list",
       "editorial": "Compiled by f1frp editorial"
     }
@@ -1646,7 +1646,7 @@
       "r8Body": "Instrument every AI answer with OpenTelemetry and user-feedback loops; build an AI citation-quality score + hallucination monitor; every AI commentary flows into a human-review channel. Trust becomes the product.",
       "r8When": "From Q2 2026 onward",
       "cta": "Have suggestions, want to partner, want beta access?",
-      "ctaEmail": "f1frp2015@gmail.com"
+      "ctaEmail": "doris.li@f1composite.com"
     }
   },
   "HpRtm": {

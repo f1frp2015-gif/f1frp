@@ -207,7 +207,7 @@ export default async function LocaleLayout({
                   "@type": "ContactPoint",
                   contactType: "customer support",
                   name: "Doris Li",
-                  email: "f1frp2015@gmail.com",
+                  email: "doris.li@f1composite.com",
                   telephone: "+86-138-8333-8993",
                   availableLanguage: ["zh-CN", "en"],
                 },

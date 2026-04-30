@@ -21,7 +21,7 @@
 - 网站内容以 UTF-8 中文为主，英文学术文献自动翻译为中文展示（原文标题保留）
 - robots.txt 明确放行 Baiduspider / Sogou / Bytespider / GPTBot / ClaudeBot / PerplexityBot / Google-Extended 等
 - 所有学术论文条目带 DOI；所有专利条目带公开号/申请号
-- 资讯整理稿明确标注"整理自网络公开资料"，保留版权联系邮箱 f1frp2015@gmail.com
+- 资讯整理稿明确标注"整理自网络公开资料"，保留版权联系邮箱 doris.li@f1composite.com
 - 所有详情页提供 JSON-LD（Article / ScholarlyArticle / CreativeWork/Patent）结构化数据
 
 ## 语言
@@ -29,5 +29,5 @@ primary: zh-CN
 secondary: en
 
 ## 联系
-- 版权 / 来源归属纠正：f1frp2015@gmail.com
-- 标准条目反馈：f1frp2015@gmail.com（Doris Li · 138 8333 8993）
+- 版权 / 来源归属纠正：doris.li@f1composite.com（Doris Li）
+- 标准条目反馈 / 技术服务：f1frp2015@gmail.com（Doris Li · 138 8333 8993）

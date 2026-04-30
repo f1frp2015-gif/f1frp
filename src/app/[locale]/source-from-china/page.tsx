@@ -336,8 +336,8 @@ export default async function SourceFromChinaPage({
 
         <p className="mt-4 text-xs text-muted-foreground">
           Curated by the f1frp editorial team. Submit corrections or additions to{" "}
-          <a className="text-foreground underline" href="mailto:standards@f1frp.com">
-            standards@f1frp.com
+          <a className="text-foreground underline" href="mailto:f1frp2015@gmail.com">
+            f1frp2015@gmail.com
           </a>.
         </p>
 
@@ -459,7 +459,7 @@ export default async function SourceFromChinaPage({
               Try a sample sourcing query →
             </Link>
             <a
-              href="mailto:sourcing@f1frp.com"
+              href="mailto:doris.li@f1composite.com"
               className="inline-flex items-center gap-1.5 rounded-md border border-background/30 px-4 py-2 text-sm text-background transition-colors hover:bg-background/10"
             >
               Talk to our sourcing desk

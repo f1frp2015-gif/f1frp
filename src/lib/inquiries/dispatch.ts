@@ -33,7 +33,7 @@ export interface RfqPayload {
 }
 
 const FALLBACK_RECIPIENT = "f1frp2015@gmail.com";
-const CC_DORIS = "f1frp2015@gmail.com";
+const CC_DORIS = "doris.li@f1composite.com";
 const FROM = "f1frp RFQ <noreply@f1frp.com>";
 
 const CATEGORY_TO_SUPPLIER: Record<string, string[]> = {

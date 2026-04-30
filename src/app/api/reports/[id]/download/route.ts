@@ -65,7 +65,7 @@ export async function GET(
     {
       ok: false,
       reason: "storage-not-configured",
-      message: "PDF 存储与下发通道接入中，请联系 service@f1frp.com 由人工发送。",
+      message: "PDF 存储与下发通道接入中，请联系 doris.li@f1composite.com 由人工发送。",
       reportSlug: report.slug,
       orderId: paid.providerOrderId,
     },

@@ -243,7 +243,7 @@ export default async function ReportDetailPage({
           ← 返回研报库
         </Link>
         <span className="text-xs text-muted-foreground">
-          电子发票请购买后联系 service@f1frp.com
+          电子发票请购买后联系 doris.li@f1composite.com
         </span>
       </div>
     </article>

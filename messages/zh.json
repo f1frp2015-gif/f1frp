@@ -277,7 +277,7 @@
     "disclaimer": "* 配方数据仅供参考，实际生产请根据原材料批次、环境条件和设备参数进行调整。建议先做小样试验验证。",
     "contribute": "贡献配方",
     "contributeSub": "您有经过验证的 FRP 配方愿意分享吗？配方数据库持续扩充，欢迎行业专家投稿。",
-    "contributeContact": "投稿邮箱: formula@f1frp.com · 微信: f1frp_com",
+    "contributeContact": "投稿邮箱: f1frp2015@gmail.com · 微信: f1frp_com",
     "difficulty": {
       "beginner": "入门",
       "intermediate": "中级",
@@ -316,7 +316,7 @@
     "euStdDesc": "<b>EN 13706</b> — 拉挤型材核心标准<br/><b>EN 13121</b> — GRP 储罐和容器<br/><b>EN 1796 / 14364</b> — GRP 管道",
     "updateTitle": "标准持续更新中",
     "updateSub": "标准数据库定期更新，收录最新发布和修订的 FRP 相关标准。如发现遗漏或信息有误，欢迎反馈。",
-    "updateEmail": "反馈邮箱: standards@f1frp.com",
+    "updateEmail": "反馈邮箱: f1frp2015@gmail.com",
     "detail": {
       "breadcrumb": "标准数据库",
       "notFound": "标准未找到",
@@ -614,9 +614,9 @@
       "breadcrumb": "文章",
       "hot": "热门",
       "readTime": "阅读 {time}",
-      "disclaimer": "本文由复材站编辑部整理自网络公开资料，目的在于向行业从业者传递信息、辅助决策参考，并非原创资讯报道。所引用事实、数据均来自公开渠道。如内容涉及版权、来源归属或其他合法权益问题，请联系网站客服（邮箱：f1frp2015@gmail.com），我们将在核实后及时删除或更正。",
+      "disclaimer": "本文由复材站编辑部整理自网络公开资料，目的在于向行业从业者传递信息、辅助决策参考，并非原创资讯报道。所引用事实、数据均来自公开渠道。如内容涉及版权、来源归属或其他合法权益问题，请联系网站客服（邮箱：doris.li@f1composite.com），我们将在核实后及时删除或更正。",
       "disclaimerLabel": "声明：",
-      "disclaimerEmail": "f1frp2015@gmail.com",
+      "disclaimerEmail": "doris.li@f1composite.com",
       "back": "← 返回列表",
       "editorial": "整理：复材站编辑部"
     }
@@ -1595,7 +1595,7 @@
       "r8Body": "为所有 AI 回答接入 OpenTelemetry 和用户反馈闭环；建立 AI 引用质量评分 + 幻觉监测；把 AI 产出的每条解读加入人工抽查通道。让可信度本身成为产品。",
       "r8When": "Q2 2026 起持续",
       "cta": "有建议、想合作、想内测某个功能？",
-      "ctaEmail": "f1frp2015@gmail.com"
+      "ctaEmail": "doris.li@f1composite.com"
     }
   },
   "HpRtm": {
