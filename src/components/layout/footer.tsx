@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/logo";
-import { CONTACT } from "@/lib/contact";
+import { CONTACT, CONTACT_TECH } from "@/lib/contact";
 
 export async function Footer() {
   const t = await getTranslations("Footer");
@@ -42,9 +42,6 @@ export async function Footer() {
             <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">
               {t("tagline")}
             </p>
-            <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-              {CONTACT.email}
-            </p>
           </div>
           {columns.map((col) => (
             <div key={col.title}>
@@ -69,24 +66,42 @@ export async function Footer() {
             <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               {t("contact")}
             </h4>
-            <div className="mt-4 space-y-1.5 text-[13px] text-muted-foreground">
-              <p className="font-medium text-foreground">{CONTACT.name}</p>
-              <p>
-                <a
-                  href={`tel:+86${CONTACT.phoneRaw}`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  {CONTACT.phone}
-                </a>
-              </p>
-              <p>
-                <a
-                  href={`mailto:${CONTACT.email}`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  {CONTACT.email}
-                </a>
-              </p>
+            <div className="mt-4 space-y-4 text-[13px] text-muted-foreground">
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
+                  {t("bizLabel")}
+                </p>
+                <p className="font-medium text-foreground">{CONTACT.name}</p>
+                <p>
+                  <a
+                    href={`tel:+86${CONTACT.phoneRaw}`}
+                    className="transition-colors hover:text-foreground"
+                  >
+                    {CONTACT.phone}
+                  </a>
+                </p>
+                <p>
+                  <a
+                    href={`mailto:${CONTACT.email}`}
+                    className="transition-colors hover:text-foreground"
+                  >
+                    {CONTACT.email}
+                  </a>
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
+                  {t("techLabel")}
+                </p>
+                <p>
+                  <a
+                    href={`mailto:${CONTACT_TECH.email}`}
+                    className="transition-colors hover:text-foreground"
+                  >
+                    {CONTACT_TECH.email}
+                  </a>
+                </p>
+              </div>
             </div>
           </div>
         </div>

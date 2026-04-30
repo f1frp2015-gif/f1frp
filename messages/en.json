@@ -134,6 +134,8 @@
     "about": "About",
     "contact": "Contact",
     "contactEmail": "Support email",
+    "bizLabel": "Business",
+    "techLabel": "Tech support",
     "copyright": "© {year} f1frp · All Rights Reserved"
   },
   "LanguageSwitcher": {

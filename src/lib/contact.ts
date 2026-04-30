@@ -10,3 +10,9 @@ export const CONTACT = {
   // WeChat handle is same as phone for most Chinese suppliers.
   wechat: "13883338993",
 } as const;
+
+// Technical / editorial channel — standards feedback, formula contributions,
+// RFQ dispatch fallback. Surfaced alongside CONTACT in user-facing contact blocks.
+export const CONTACT_TECH = {
+  email: "f1frp2015@gmail.com",
+} as const;
