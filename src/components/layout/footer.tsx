@@ -106,12 +106,22 @@ export async function Footer() {
           </div>
         </div>
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-border/80 pt-6 text-[11px] text-muted-foreground sm:flex-row sm:items-center">
-          <div>
-            {t("copyright", { year: new Date().getFullYear() })}
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <span>{t("copyright", { year: new Date().getFullYear() })}</span>
+            {process.env.NEXT_PUBLIC_ICP_BEIAN && (
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors hover:text-foreground"
+              >
+                {process.env.NEXT_PUBLIC_ICP_BEIAN}
+              </a>
+            )}
           </div>
-          <div className="font-mono">
-            built in Shanghai · deployed globally
-          </div>
+          {t("signature") && (
+            <div className="font-mono">{t("signature")}</div>
+          )}
         </div>
       </div>
     </footer>

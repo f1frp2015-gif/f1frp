@@ -109,7 +109,8 @@
     "contactEmail": "客服邮箱",
     "bizLabel": "业务负责人",
     "techLabel": "技术咨询",
-    "copyright": "© {year} 复材站 · All Rights Reserved"
+    "copyright": "© {year} 复材站 · All Rights Reserved",
+    "signature": ""
   },
   "LanguageSwitcher": {
     "label": "语言",

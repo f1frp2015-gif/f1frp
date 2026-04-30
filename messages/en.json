@@ -136,7 +136,8 @@
     "contactEmail": "Support email",
     "bizLabel": "Business",
     "techLabel": "Tech support",
-    "copyright": "© {year} f1frp · All Rights Reserved"
+    "copyright": "© {year} f1frp · All Rights Reserved",
+    "signature": "built in Shanghai · deployed globally"
   },
   "LanguageSwitcher": {
     "label": "Language",
