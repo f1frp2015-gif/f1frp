@@ -791,7 +791,7 @@ export default async function OverseasPage({
               </Link>
             </div>
             <p className="mt-6 font-mono text-[11px] uppercase tracking-wider text-muted-foreground/80">
-              入驻 / 服务咨询 · standards@f1frp.com · +86-138-8333-8993
+              入驻 / 服务咨询 · f1frp2015@gmail.com · +86-138-8333-8993
             </p>
           </div>
         </div>
