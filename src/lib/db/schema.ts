@@ -505,6 +505,8 @@ export const supplierListings = pgTable(
     certificationsEn: jsonb("certifications_en").$type<string[]>(),
     website: varchar("website", { length: 255 }),
     enterpriseId: uuid("enterprise_id").references(() => enterprises.id),
+    scaleTier: varchar("scale_tier", { length: 10 }),
+    brandPriority: integer("brand_priority").default(0).notNull(),
     viewCount: integer("view_count").default(0).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -513,6 +515,8 @@ export const supplierListings = pgTable(
     index("supplier_listings_category_idx").on(table.category),
     index("supplier_listings_province_idx").on(table.province),
     index("supplier_listings_name_en_idx").on(table.nameEn),
+    index("supplier_listings_brand_priority_idx").on(table.brandPriority),
+    index("supplier_listings_scale_tier_idx").on(table.scaleTier),
   ]
 );
 

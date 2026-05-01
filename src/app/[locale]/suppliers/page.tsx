@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { desc, asc, isNotNull } from "drizzle-orm";
+import { desc, asc, isNotNull, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -38,12 +38,22 @@ export default async function SuppliersPage({
   // Existing Chinese-only rows stay on f1frp.com (zh) until backfilled.
   const isEn = locale === "en";
   const baseQuery = db.select().from(supplierListings);
+  const tierRank = sql`CASE ${supplierListings.scaleTier} WHEN 'XL' THEN 4 WHEN 'L' THEN 3 WHEN 'M' THEN 2 WHEN 'S' THEN 1 ELSE 0 END`;
   const rows = await (isEn
     ? baseQuery
         .where(isNotNull(supplierListings.nameEn))
-        .orderBy(desc(supplierListings.verified), asc(supplierListings.nameEn))
+        .orderBy(
+          desc(supplierListings.verified),
+          desc(supplierListings.brandPriority),
+          desc(tierRank),
+          desc(supplierListings.viewCount),
+          asc(supplierListings.nameEn),
+        )
     : baseQuery.orderBy(
         desc(supplierListings.verified),
+        desc(supplierListings.brandPriority),
+        desc(tierRank),
+        desc(supplierListings.viewCount),
         asc(supplierListings.name),
       ));
 

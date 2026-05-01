@@ -19,14 +19,17 @@ cd "$ROOT"
 ./deploy/build-standalone.sh
 
 # 2. 同步到 ECS
-echo "==> rsync → $ECS_HOST:$ECS_PATH …"
+# 排除运行时秘密文件（.env.production.local 等），但保留 .env.production.example 模板
+echo "==> rsync → $ECS_HOST:$ECS_PATH ..."
 rsync -avz --delete \
-  --exclude=".env*" \
+  --exclude=".env.local" \
+  --exclude=".env.*.local" \
+  --exclude=".env" \
   ./deploy/dist/ \
   "$ECS_HOST:$ECS_PATH/"
 
 # 3. 远程重启 PM2
-echo "==> Restarting PM2 on remote …"
+echo "==> Restarting PM2 on remote ..."
 ssh "$ECS_HOST" "cd $ECS_PATH && pm2 reload ecosystem.config.cjs --update-env || pm2 start ecosystem.config.cjs"
 
 echo "==> Deploy complete."

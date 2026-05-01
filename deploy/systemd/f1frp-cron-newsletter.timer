@@ -1,0 +1,11 @@
+# 触发：每周五北京时间 09:00（= UTC 周五 01:00，与 vercel.json 一致）
+[Unit]
+Description=f1frp newsletter cron timer
+
+[Timer]
+OnCalendar=Fri *-*-* 09:00:00 Asia/Shanghai
+Persistent=true
+Unit=f1frp-cron-newsletter.service
+
+[Install]
+WantedBy=timers.target

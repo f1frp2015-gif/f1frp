@@ -1,0 +1,11 @@
+# 触发：每天北京时间 14:00（= UTC 06:00，与 vercel.json 一致）
+[Unit]
+Description=f1frp RSS news cron timer
+
+[Timer]
+OnCalendar=*-*-* 14:00:00 Asia/Shanghai
+Persistent=true
+Unit=f1frp-cron-rss-news.service
+
+[Install]
+WantedBy=timers.target

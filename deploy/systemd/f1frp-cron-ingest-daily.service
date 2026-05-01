@@ -1,0 +1,15 @@
+# ECS 端 cron service：每日 ingest CrossRef/OpenAlex/PatentsView
+# 对应 vercel.json：{ "path": "/api/cron/ingest-daily", "schedule": "0 2 * * *" }（UTC）
+# 部署位置：/etc/systemd/system/f1frp-cron-ingest-daily.service
+[Unit]
+Description=f1frp daily research ingest cron
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/var/www/f1frp/.env.production.local
+ExecStart=/usr/bin/bash -c 'curl -fsS --max-time 600 -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3000/api/cron/ingest-daily'
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=900

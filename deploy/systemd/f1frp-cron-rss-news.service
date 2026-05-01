@@ -1,0 +1,15 @@
+# ECS 端 cron service：每日 RSS 行业新闻翻译入库
+# 对应 vercel.json：{ "path": "/api/cron/rss-news", "schedule": "0 6 * * *" }（UTC）
+# 部署位置：/etc/systemd/system/f1frp-cron-rss-news.service
+[Unit]
+Description=f1frp RSS industry news cron
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/var/www/f1frp/.env.production.local
+ExecStart=/usr/bin/bash -c 'curl -fsS --max-time 600 -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3000/api/cron/rss-news'
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=900

@@ -10,6 +10,10 @@ import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { AiChatWidget } from "@/components/ai-chat";
+
+// Vercel client tracking 请求 vitals.vercel-insights.com，国内 ECS 上会被墙拖慢首屏 →
+// 仅在 AI_PROFILE !== 'domestic'（即海外 Vercel 侧）启用
+const isDomestic = process.env.AI_PROFILE === "domestic";
 import { JsonLd } from "@/components/json-ld";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
@@ -239,8 +243,8 @@ export default async function LocaleLayout({
             <AiChatWidget />
           </Providers>
         </NextIntlClientProvider>
-        <SpeedInsights />
-        <Analytics />
+        {!isDomestic && <SpeedInsights />}
+        {!isDomestic && <Analytics />}
         {locale === "zh" && (
           <Script id="baidu-push" strategy="afterInteractive">
             {`(function(){

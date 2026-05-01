@@ -42,3 +42,6 @@ next-env.d.ts
 
 # claude code local settings (per-machine permission overrides)
 .claude/settings.local.json
+
+# Local build artifact for ECS deploy
+deploy/dist/

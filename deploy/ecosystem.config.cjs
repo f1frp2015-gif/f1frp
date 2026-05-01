@@ -6,7 +6,8 @@ module.exports = {
   apps: [
     {
       name: "f1frp",
-      script: "./.next/standalone/server.js",
+      // build-standalone.sh 把 .next/standalone/. 拷贝到 dist 根，所以 server.js 在 cwd 下
+      script: "./server.js",
       cwd: "/var/www/f1frp",
       instances: 1, // 2c4g 单实例够用，跑满后改成 "max" cluster mode
       exec_mode: "fork",
