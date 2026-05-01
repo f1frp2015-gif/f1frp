@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { offlinePayments } from "@/lib/db/schema";
 import { generateOrderNo, getOfflineChannels } from "@/lib/payment/bank-info";
+import { sendOrderInitEmail } from "@/lib/email/notify";
 
 export const runtime = "nodejs";
 
@@ -93,6 +94,21 @@ export async function POST(req: Request) {
   } else if (paymentMethod === "wechat") {
     channelInfo.qrUrl = channels.wechat.qrUrl;
     channelInfo.note = `扫码后在备注里填订单号：${orderNo}`;
+  }
+
+  // 发"订单已建立 + 收款信息"邮件（best-effort，不阻塞）
+  try {
+    await sendOrderInitEmail(payerEmail, {
+      orderType,
+      orderNo,
+      payerName,
+      amountCents: amountCents!,
+      expiresAt,
+      bank: paymentMethod === "bank_transfer" ? channels.bankTransfer : undefined,
+      qrUrl: paymentMethod === "alipay" ? channels.alipay.qrUrl : paymentMethod === "wechat" ? channels.wechat.qrUrl : undefined,
+    });
+  } catch (err) {
+    console.error("[bank-transfer/init] email failed", err);
   }
 
   return NextResponse.json({

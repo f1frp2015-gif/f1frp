@@ -104,6 +104,76 @@ export async function sendOrderConfirmedEmail(
   });
 }
 
+// 用户刚建单（init）— 发"订单已建立 + 收款信息"邮件，方便用户保存
+interface InitCtx {
+  orderType: "rfq" | "report" | "pro_membership" | "agency_deposit" | "other";
+  orderNo: string;
+  payerName: string;
+  amountCents: number;
+  expiresAt: Date;
+  bank?: { payeeName: string; bankName: string; account: string; branch?: string };
+  qrUrl?: string;
+}
+
+const ORDER_TYPE_LABEL: Record<InitCtx["orderType"], string> = {
+  rfq: "付费询盘",
+  report: "研报购买",
+  pro_membership: "Pro 会员",
+  agency_deposit: "代理保证金",
+  other: "订单",
+};
+
+export async function sendOrderInitEmail(to: string, ctx: InitCtx): Promise<void> {
+  const yuan = (ctx.amountCents / 100).toFixed(2);
+  const subject = `订单已建立 ${ctx.orderNo} — 请按以下信息转账`;
+  const exp = ctx.expiresAt.toISOString().slice(0, 16).replace("T", " ");
+  const bankBlock = ctx.bank
+    ? `<table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:13px"><tbody>
+        <tr><td style="padding:6px 8px;background:#f5f5f5;width:30%">收款方</td><td style="padding:6px 8px;border-bottom:1px solid #eee"><strong>${escapeHtml(ctx.bank.payeeName)}</strong></td></tr>
+        <tr><td style="padding:6px 8px;background:#f5f5f5">开户行</td><td style="padding:6px 8px;border-bottom:1px solid #eee">${escapeHtml(ctx.bank.bankName)}</td></tr>
+        <tr><td style="padding:6px 8px;background:#f5f5f5">账号</td><td style="padding:6px 8px;border-bottom:1px solid #eee;font-family:monospace">${escapeHtml(ctx.bank.account)}</td></tr>
+        ${ctx.bank.branch ? `<tr><td style="padding:6px 8px;background:#f5f5f5">支行</td><td style="padding:6px 8px;border-bottom:1px solid #eee">${escapeHtml(ctx.bank.branch)}</td></tr>` : ""}
+      </tbody></table>`
+    : "";
+  const body = `
+    <p>您好 ${escapeHtml(ctx.payerName)}，</p>
+    <p>您的 <strong>${ORDER_TYPE_LABEL[ctx.orderType]}</strong> 订单已建立：</p>
+    <ul>
+      <li>订单号：<code>${ctx.orderNo}</code></li>
+      <li>金额：<strong>¥ ${yuan}</strong></li>
+      <li>有效期至：${exp}</li>
+    </ul>
+    <p><strong>转账到以下对公账户，并在备注栏填订单号 <code>${ctx.orderNo}</code></strong>：</p>
+    ${bankBlock}
+    <p>转账完成后，请回到 f1frp.com 提交转账凭证（金额、时间、付款方账号后 4 位等），便于我们 1 个工作日内对账。</p>
+    <p style="color:#888;font-size:12px">紧急问题：doris.li@f1composite.com / 138 8333 8993</p>
+  `;
+  await sendEmail({ to, subject, html: wrapHtml(subject, body) });
+}
+
+// 用户已提交转账凭证（confirm）— "我们已收到，1 工作日内对账"
+interface EvidenceCtx {
+  orderNo: string;
+  payerName: string;
+  amountCents: number;
+  payerTransferAmountCents?: number | null;
+}
+
+export async function sendEvidenceReceivedEmail(to: string, ctx: EvidenceCtx): Promise<void> {
+  const yuan = (ctx.amountCents / 100).toFixed(2);
+  const transferred = ctx.payerTransferAmountCents != null
+    ? `（您填写的实付：¥ ${(ctx.payerTransferAmountCents / 100).toFixed(2)}${ctx.payerTransferAmountCents !== ctx.amountCents ? "，与应付金额不一致，对账时会重点核对" : ""}）`
+    : "";
+  const subject = `转账凭证已收到 ${ctx.orderNo} — 等待对账`;
+  const body = `
+    <p>您好 ${escapeHtml(ctx.payerName)}，</p>
+    <p>我们已收到您的转账凭证，订单 <code>${ctx.orderNo}</code>（应付 ¥ ${yuan}）${transferred}进入对账队列。</p>
+    <p>预计 <strong>1 个工作日</strong>内核对完成，对账成功后您会收到一封"权益已开通"的邮件；如有金额或备注不符的问题，我们会通过邮件与您沟通。</p>
+    <p style="color:#888;font-size:12px">紧急问题：doris.li@f1composite.com / 138 8333 8993</p>
+  `;
+  await sendEmail({ to, subject, html: wrapHtml(subject, body) });
+}
+
 interface RejectCtx {
   orderNo: string;
   payerName: string;

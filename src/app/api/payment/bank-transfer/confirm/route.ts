@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { offlinePayments } from "@/lib/db/schema";
+import { sendEvidenceReceivedEmail } from "@/lib/email/notify";
 
 export const runtime = "nodejs";
 
@@ -79,6 +80,18 @@ export async function POST(req: Request) {
       updatedAt: new Date(),
     })
     .where(eq(offlinePayments.orderNo, orderNo));
+
+  // 发"凭证已收到，等对账"邮件（best-effort，不阻塞）
+  try {
+    await sendEvidenceReceivedEmail(existing.payerEmail, {
+      orderNo,
+      payerName: existing.payerName,
+      amountCents: existing.amountCents,
+      payerTransferAmountCents: payerTransferAmountCents!,
+    });
+  } catch (err) {
+    console.error("[bank-transfer/confirm] email failed", err);
+  }
 
   return NextResponse.json({
     ok: true,
