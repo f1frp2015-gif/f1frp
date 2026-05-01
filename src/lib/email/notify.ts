@@ -2,7 +2,8 @@
 // 用于支付订单状态变更通知 / 后续其它系统邮件
 
 const FROM = "f1frp <noreply@f1frp.com>";
-const CC_OPS = "doris.li@f1composite.com";
+// 所有系统邮件默认 CC 给运营 + 平台账号（运营可见 + 平台监控所有出站）
+const CC_OPS = ["doris.li@f1composite.com", "f1frp2015@gmail.com"];
 
 interface SendOpts {
   to: string;
@@ -27,7 +28,7 @@ export async function sendEmail({ to, subject, html, cc }: SendOpts): Promise<bo
       body: JSON.stringify({
         from: FROM,
         to,
-        cc: cc ?? [CC_OPS],
+        cc: cc ?? CC_OPS,
         subject,
         html,
       }),

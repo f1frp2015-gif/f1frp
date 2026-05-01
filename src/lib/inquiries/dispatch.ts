@@ -33,7 +33,8 @@ export interface RfqPayload {
 }
 
 const FALLBACK_RECIPIENT = "f1frp2015@gmail.com";
-const CC_DORIS = "doris.li@f1composite.com";
+// CC 给运营 + 平台账号（运营对接 + 平台留底；fallback 自身就是 f1frp2015，不重复 CC）
+const CC_OPS = ["doris.li@f1composite.com", "f1frp2015@gmail.com"];
 const FROM = "f1frp RFQ <noreply@f1frp.com>";
 
 const CATEGORY_TO_SUPPLIER: Record<string, string[]> = {
@@ -147,8 +148,9 @@ export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
           },
           body: JSON.stringify({
             from: FROM,
+            // 收件人若已是 f1frp2015 fallback，避免重复，把 CC 中相同地址过滤掉
             to: r.email,
-            cc: [CC_DORIS],
+            cc: CC_OPS.filter((c) => c.toLowerCase() !== r.email.toLowerCase()),
             subject,
             html,
           }),
