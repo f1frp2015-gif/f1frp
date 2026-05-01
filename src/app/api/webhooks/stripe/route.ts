@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, subscriptions } from "@/lib/db/schema";
+import { users, subscriptions, rfqBilling } from "@/lib/db/schema";
 import { getPlan, type PlanId } from "@/lib/pricing";
 import type { MembershipTier } from "@/lib/membership";
 
@@ -40,7 +40,16 @@ type StripeCheckoutSession = {
   id: string;
   customer: string;
   subscription: string;
-  metadata?: { planId?: string; clerkId?: string; userId?: string };
+  mode?: "subscription" | "payment" | "setup";
+  payment_intent?: string;
+  payment_status?: string;
+  metadata?: {
+    planId?: string;
+    clerkId?: string;
+    userId?: string;
+    rfqId?: string;
+    payerType?: "buyer" | "supplier";
+  };
 };
 
 type StripeEvent = {
@@ -117,7 +126,22 @@ export async function POST(req: Request) {
     switch (evt.type) {
       case "checkout.session.completed": {
         const s = evt.data.object as StripeCheckoutSession;
-        // Fetch subscription details to get period end.
+
+        // P0-② RFQ payment branch: mode=payment + metadata.rfqId
+        if (s.mode === "payment" && s.metadata?.rfqId) {
+          await db
+            .update(rfqBilling)
+            .set({
+              status: "paid",
+              stripePaymentIntentId: s.payment_intent ?? null,
+              paidAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(rfqBilling.rfqId, s.metadata.rfqId));
+          break;
+        }
+
+        // Subscription branch (existing Pro membership flow)
         const stripeKey = process.env.STRIPE_SECRET_KEY;
         if (!stripeKey || !s.subscription) break;
         const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${s.subscription}`, {

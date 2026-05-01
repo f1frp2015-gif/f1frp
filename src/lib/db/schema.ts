@@ -617,6 +617,12 @@ export const articles = pgTable(
     tags: jsonb("tags").$type<string[]>(),
     readTime: varchar("read_time", { length: 20 }),
     hot: boolean("hot").default(false),
+    // P2-⑥ geo flags — default both true (existing content visible everywhere).
+    // Set forZh=false to hide from f1frp.com (国内站); forEn=false to hide from getfrp.com.
+    // Use this for articles like 国内补贴/地方政策 解读 that shouldn't surface to overseas buyers,
+    // or English-only buyer guides that shouldn't surface to domestic suppliers.
+    forZh: boolean("for_zh").default(true).notNull(),
+    forEn: boolean("for_en").default(true).notNull(),
     publishedAt: timestamp("published_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -851,6 +857,83 @@ export const supplierUpgradeRequests = pgTable(
 );
 
 // ═══════════════════════════════════════════
+// RFQ dispatches — log which suppliers got each RFQ + delivery state
+// (P0-① flywheel: real supplier reach + foundation for P0-② billing)
+// ═══════════════════════════════════════════
+
+export const rfqDispatchStatusEnum = pgEnum("rfq_dispatch_status", [
+  "pending",
+  "sent",
+  "failed",
+  "fallback",
+]);
+
+export const rfqDispatches = pgTable(
+  "rfq_dispatches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    rfqId: varchar("rfq_id", { length: 80 }).notNull(),
+    materialId: varchar("material_id", { length: 80 }),
+    category: varchar("category", { length: 50 }),
+    supplierListingId: varchar("supplier_listing_id", { length: 50 }).references(
+      () => supplierListings.id,
+      { onDelete: "set null" },
+    ),
+    enterpriseId: uuid("enterprise_id").references(() => enterprises.id, {
+      onDelete: "set null",
+    }),
+    recipientEmail: varchar("recipient_email", { length: 255 }).notNull(),
+    isFallback: boolean("is_fallback").default(false).notNull(),
+    status: rfqDispatchStatusEnum("status").default("pending").notNull(),
+    errorMessage: text("error_message"),
+    sentAt: timestamp("sent_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("rfq_dispatches_rfq_idx").on(table.rfqId),
+    index("rfq_dispatches_supplier_idx").on(table.supplierListingId),
+    index("rfq_dispatches_enterprise_idx").on(table.enterpriseId),
+    index("rfq_dispatches_status_idx").on(table.status),
+  ],
+);
+
+// ═══════════════════════════════════════════
+// RFQ billing — P0-② skeleton (Stripe wired but not enabled in production yet)
+// One row per Stripe Checkout Session created for a given RFQ.
+// ═══════════════════════════════════════════
+
+export const rfqBillingStatusEnum = pgEnum("rfq_billing_status", [
+  "pending",
+  "paid",
+  "expired",
+  "refunded",
+  "voided",
+]);
+
+export const rfqBilling = pgTable(
+  "rfq_billing",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    rfqId: varchar("rfq_id", { length: 80 }).notNull().unique(),
+    payerEmail: varchar("payer_email", { length: 255 }).notNull(),
+    payerType: varchar("payer_type", { length: 20 }).notNull(), // 'buyer' | 'supplier'
+    amountCents: integer("amount_cents").notNull(),
+    currency: varchar("currency", { length: 8 }).default("usd").notNull(),
+    stripeSessionId: varchar("stripe_session_id", { length: 200 }),
+    stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 200 }),
+    status: rfqBillingStatusEnum("status").default("pending").notNull(),
+    paidAt: timestamp("paid_at"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("rfq_billing_rfq_idx").on(table.rfqId),
+    index("rfq_billing_status_idx").on(table.status),
+    index("rfq_billing_session_idx").on(table.stripeSessionId),
+  ],
+);
+
+// ═══════════════════════════════════════════
 // Type exports
 // ═══════════════════════════════════════════
 
@@ -893,3 +976,7 @@ export type Post = typeof posts.$inferSelect;
 export type NewPost = typeof posts.$inferInsert;
 export type Comment = typeof comments.$inferSelect;
 export type Inquiry = typeof inquiries.$inferSelect;
+export type RfqDispatch = typeof rfqDispatches.$inferSelect;
+export type NewRfqDispatch = typeof rfqDispatches.$inferInsert;
+export type RfqBilling = typeof rfqBilling.$inferSelect;
+export type NewRfqBilling = typeof rfqBilling.$inferInsert;

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -39,9 +39,16 @@ export default async function ArticlesPage({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Articles" });
 
+  // P2-⑥ geo filter: hide articles flagged for the OTHER side
+  // (e.g. 国内补贴解读 with forEn=false won't surface on getfrp.com)
+  const geoFilter = locale === "en"
+    ? eq(articles.forEn, true)
+    : eq(articles.forZh, true);
+
   const rows = await db
     .select()
     .from(articles)
+    .where(geoFilter)
     .orderBy(desc(articles.publishedAt), desc(articles.createdAt));
 
   return (

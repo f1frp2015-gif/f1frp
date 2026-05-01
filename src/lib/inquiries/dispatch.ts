@@ -1,22 +1,22 @@
 /**
  * dispatchToSuppliers — send RFQ notification emails to relevant suppliers.
  *
- * Strategy:
- * 1. Match the material's subCategory/category against supplierListings.category
- * 2. Take top-3 verified suppliers by that category (or fall back to f1frp2015@gmail.com)
- * 3. Send a bilingual Resend email to each supplier contact
+ * Strategy (P0-① implementation):
+ * 1. Map material category → supplier categories
+ * 2. SELECT top 3 verified, claimed suppliers (enterprise_id NOT NULL + enterprises.contact_email NOT NULL)
+ *    ordered by brand_priority DESC, scale_tier (XL>L>M>S) DESC, view_count DESC
+ * 3. Send Resend email to each claimed supplier's enterprise.contact_email; CC Doris
+ * 4. Always also send to FALLBACK_RECIPIENT (operator visibility)
+ * 5. Log every dispatch attempt to rfq_dispatches (status: sent / failed / fallback)
  *
- * Best-effort: errors are logged but not re-thrown so the caller always succeeds.
- *
- * TODO (next iteration):
- * - Use pgvector cosine similarity on knowledgeChunks to find semantically similar suppliers
- * - Add dashboard view at /dashboard/inquiries for admins to review all RFQs
- * - Track supplierId in a junction table for analytics
+ * If no claimed supplier matches, only the fallback gets the email — operator
+ * routes manually until more suppliers claim. This preserves the past behavior
+ * while enabling the real flywheel as suppliers come online.
  */
 
 import { db } from "@/lib/db";
-import { supplierListings } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { supplierListings, enterprises, rfqDispatches } from "@/lib/db/schema";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 
 export interface RfqPayload {
   id: string;
@@ -37,78 +37,155 @@ const CC_DORIS = "doris.li@f1composite.com";
 const FROM = "f1frp RFQ <noreply@f1frp.com>";
 
 const CATEGORY_TO_SUPPLIER: Record<string, string[]> = {
-  resin: ["resin"],
+  resin: ["resin", "additive"],
   fiber: ["fiber"],
   "fiber-yarn": ["fiber"],
   "fiber-mat": ["fiber"],
   "fiber-fabric": ["fiber"],
   core: ["manufacturer"],
   gelcoat: ["resin"],
-  auxiliary: ["resin", "manufacturer"],
+  auxiliary: ["additive", "resin"],
   composite: ["manufacturer"],
 };
 
+interface MatchedSupplier {
+  supplierId: string;
+  enterpriseId: string;
+  email: string;
+  name: string;
+}
+
+async function findClaimedSuppliers(supplierCats: string[]): Promise<MatchedSupplier[]> {
+  if (supplierCats.length === 0) return [];
+
+  const tierRank = sql`CASE ${supplierListings.scaleTier} WHEN 'XL' THEN 4 WHEN 'L' THEN 3 WHEN 'M' THEN 2 WHEN 'S' THEN 1 ELSE 0 END`;
+
+  const rows = await db
+    .select({
+      supplierId: supplierListings.id,
+      enterpriseId: enterprises.id,
+      email: enterprises.contactEmail,
+      name: supplierListings.name,
+    })
+    .from(supplierListings)
+    .innerJoin(enterprises, eq(supplierListings.enterpriseId, enterprises.id))
+    .where(
+      and(
+        eq(supplierListings.verified, true),
+        isNotNull(supplierListings.enterpriseId),
+        isNotNull(enterprises.contactEmail),
+        sql`${supplierListings.category} = ANY(${supplierCats})`,
+      ),
+    )
+    .orderBy(
+      desc(supplierListings.brandPriority),
+      desc(tierRank),
+      desc(supplierListings.viewCount),
+    )
+    .limit(3);
+
+  return rows
+    .filter((r): r is MatchedSupplier =>
+      r.enterpriseId != null && r.email != null && r.email.length > 0,
+    );
+}
+
 export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn("[dispatch] RESEND_API_KEY not set — skipping email dispatch");
-    return;
-  }
-
   const supplierCats = CATEGORY_TO_SUPPLIER[rfq.category] ?? ["manufacturer"];
-  let recipients: string[] = [];
 
+  // 1. Look up claimed suppliers (best-effort)
+  let matches: MatchedSupplier[] = [];
   try {
-    // Find up to 3 verified suppliers in matching categories
-    const matches = await db
-      .select({ name: supplierListings.name })
-      .from(supplierListings)
-      .where(
-        and(
-          eq(supplierListings.verified, true),
-          // Use the first matching category for simplicity; extend with inArray for multi-cat
-          eq(supplierListings.category, supplierCats[0])
-        )
-      )
-      .limit(3);
-
-    // supplierListings has no contactEmail — we use fallback for now
-    // TODO: join enterprises table to get contactEmail once supplier claim is approved
-    if (matches.length === 0) {
-      recipients = [FALLBACK_RECIPIENT];
-    } else {
-      recipients = [FALLBACK_RECIPIENT]; // placeholder; swap for real supplier emails when available
-    }
+    matches = await findClaimedSuppliers(supplierCats);
   } catch (err) {
-    console.error("[dispatch] DB lookup failed:", err);
-    recipients = [FALLBACK_RECIPIENT];
+    console.error("[dispatch] supplier lookup failed:", err);
   }
+
+  // 2. Build recipient list — always include fallback for operator visibility
+  type Recipient = {
+    email: string;
+    isFallback: boolean;
+    supplierId: string | null;
+    enterpriseId: string | null;
+    name: string | null;
+  };
+  const recipients: Recipient[] = matches.map((m) => ({
+    email: m.email,
+    isFallback: false,
+    supplierId: m.supplierId,
+    enterpriseId: m.enterpriseId,
+    name: m.name,
+  }));
+  recipients.push({
+    email: FALLBACK_RECIPIENT,
+    isFallback: true,
+    supplierId: null,
+    enterpriseId: null,
+    name: null,
+  });
+
+  console.info(
+    `[dispatch] rfq=${rfq.id} cats=${supplierCats.join(",")} matched=${matches.length} → recipients=${recipients.length}`,
+  );
 
   const subject = `New RFQ from f1frp.com — ${rfq.materialName}`;
   const html = buildEmailHtml(rfq);
 
-  for (const to of recipients) {
-    try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          from: FROM,
-          to,
-          cc: [CC_DORIS],
-          subject,
-          html,
-        }),
-      });
-      if (!res.ok) {
-        const body = await res.text();
-        console.error(`[dispatch] Resend error ${res.status}:`, body);
+  // 3. Dispatch + log each
+  for (const r of recipients) {
+    let status: "pending" | "sent" | "failed" | "fallback" = "pending";
+    let errorMessage: string | null = null;
+
+    if (apiKey) {
+      try {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            from: FROM,
+            to: r.email,
+            cc: [CC_DORIS],
+            subject,
+            html,
+          }),
+        });
+        if (res.ok) {
+          status = r.isFallback ? "fallback" : "sent";
+        } else {
+          status = "failed";
+          errorMessage = `Resend ${res.status}: ${await res.text()}`;
+          console.error(`[dispatch] ${errorMessage}`);
+        }
+      } catch (err) {
+        status = "failed";
+        errorMessage = err instanceof Error ? err.message : String(err);
+        console.error("[dispatch] fetch failed:", err);
       }
-    } catch (err) {
-      console.error("[dispatch] Resend fetch failed:", err);
+    } else {
+      console.warn("[dispatch] RESEND_API_KEY not set — logging only");
+      status = "failed";
+      errorMessage = "RESEND_API_KEY missing";
+    }
+
+    // Log every attempt (best-effort; do not block on log failures)
+    try {
+      await db.insert(rfqDispatches).values({
+        rfqId: rfq.id,
+        materialId: rfq.materialId,
+        category: rfq.category,
+        supplierListingId: r.supplierId,
+        enterpriseId: r.enterpriseId,
+        recipientEmail: r.email,
+        isFallback: r.isFallback,
+        status,
+        errorMessage,
+      });
+    } catch (logErr) {
+      console.error("[dispatch] log insert failed:", logErr);
     }
   }
 }
@@ -159,13 +236,11 @@ function buildEmailHtml(rfq: RfqPayload): string {
       查看材料详情 / View Material
     </a>
   </p>
-
-  <hr style="margin-top:32px;border:none;border-top:1px solid #eee">
-  <p style="font-size:12px;color:#888">
-    此邮件由 f1frp.com 自动发送 | Sent automatically by f1frp.com<br>
-    RFQ ID: ${rfq.id}
+  <p style="color:#888;font-size:12px;margin-top:32px">
+    此邮件由 f1frp.com 自动发出。如需回复，请直接回复采购方邮箱。<br>
+    Sent by f1frp.com. Reply directly to the buyer&apos;s email.
   </p>
 </body>
 </html>
-  `.trim();
+`;
 }
