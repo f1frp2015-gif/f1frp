@@ -1,4 +1,4 @@
-// 收款方信息 — 重庆曜一新材料有限公司对公账户。
+// 收款方信息 — 重庆曜一新材料科技有限公司对公账户。
 // 真实银行账号通过环境变量注入（不写死代码、不进 git）。
 // ECS 上的 .env.production.local 设置：
 //   F1FRP_BANK_PAYEE_NAME / F1FRP_BANK_NAME / F1FRP_BANK_ACCOUNT / F1FRP_ALIPAY_QR_URL / F1FRP_WECHAT_QR_URL
@@ -20,7 +20,7 @@ export interface OfflineChannelsConfig {
 }
 
 const PLACEHOLDER_BANK: BankInfo = {
-  payeeName: "重庆曜一新材料有限公司",
+  payeeName: "重庆曜一新材料科技有限公司",
   bankName: "（请联系客服获取银行信息）",
   account: "（请联系客服获取账号）",
 };

@@ -936,7 +936,7 @@ export const rfqBilling = pgTable(
 // ═══════════════════════════════════════════
 // Offline payments — 国内支付通道（银行对公转账 / 支付宝 / 微信）
 // 复用一张表覆盖 RFQ / 研报 / Pro 会员 / 代理保证金等多种 order_type。
-// 收款方：重庆曜一新材料对公账户。
+// 收款方：重庆曜一新材料科技对公账户。
 // ═══════════════════════════════════════════
 
 export const offlinePaymentMethodEnum = pgEnum("offline_payment_method", [
