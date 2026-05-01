@@ -934,6 +934,68 @@ export const rfqBilling = pgTable(
 );
 
 // ═══════════════════════════════════════════
+// Offline payments — 国内支付通道（银行对公转账 / 支付宝 / 微信）
+// 复用一张表覆盖 RFQ / 研报 / Pro 会员 / 代理保证金等多种 order_type。
+// 收款方：重庆曜一新材料对公账户。
+// ═══════════════════════════════════════════
+
+export const offlinePaymentMethodEnum = pgEnum("offline_payment_method", [
+  "bank_transfer",
+  "alipay",
+  "wechat",
+]);
+
+export const offlinePaymentStatusEnum = pgEnum("offline_payment_status", [
+  "pending_transfer", // 订单已建，等待用户实际转账
+  "awaiting_review",  // 用户已提交转账凭证，等待人工核对
+  "confirmed",        // 已对账，订单生效
+  "rejected",         // 转账金额/信息不符，驳回
+  "refunded",         // 已退款
+  "expired",          // 超时未支付
+]);
+
+export const offlineOrderTypeEnum = pgEnum("offline_order_type", [
+  "rfq",
+  "report",
+  "pro_membership",
+  "agency_deposit",
+  "other",
+]);
+
+export const offlinePayments = pgTable(
+  "offline_payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orderNo: varchar("order_no", { length: 40 }).unique().notNull(),
+    orderType: offlineOrderTypeEnum("order_type").notNull(),
+    relatedId: varchar("related_id", { length: 120 }), // rfqId / reportId / clerkId 等
+    payerName: varchar("payer_name", { length: 100 }).notNull(),
+    payerEmail: varchar("payer_email", { length: 255 }).notNull(),
+    payerPhone: varchar("payer_phone", { length: 40 }),
+    payerCompany: varchar("payer_company", { length: 200 }),
+    amountCents: integer("amount_cents").notNull(),
+    currency: varchar("currency", { length: 8 }).default("CNY").notNull(),
+    paymentMethod: offlinePaymentMethodEnum("payment_method").notNull(),
+    payerTransferNote: text("payer_transfer_note"),
+    payerTransferAmountCents: integer("payer_transfer_amount_cents"),
+    payerTransferAt: timestamp("payer_transfer_at"),
+    status: offlinePaymentStatusEnum("status").default("pending_transfer").notNull(),
+    reviewerId: uuid("reviewer_id").references(() => users.id),
+    reviewNote: text("review_note"),
+    reviewedAt: timestamp("reviewed_at"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("offline_payments_order_no_idx").on(table.orderNo),
+    index("offline_payments_status_idx").on(table.status),
+    index("offline_payments_order_type_idx").on(table.orderType),
+    index("offline_payments_payer_email_idx").on(table.payerEmail),
+  ],
+);
+
+// ═══════════════════════════════════════════
 // Type exports
 // ═══════════════════════════════════════════
 
@@ -980,3 +1042,5 @@ export type RfqDispatch = typeof rfqDispatches.$inferSelect;
 export type NewRfqDispatch = typeof rfqDispatches.$inferInsert;
 export type RfqBilling = typeof rfqBilling.$inferSelect;
 export type NewRfqBilling = typeof rfqBilling.$inferInsert;
+export type OfflinePayment = typeof offlinePayments.$inferSelect;
+export type NewOfflinePayment = typeof offlinePayments.$inferInsert;
