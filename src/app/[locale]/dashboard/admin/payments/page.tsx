@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { AdminPaymentsTable, type AdminPaymentRow } from "./admin-payments-table
 
 export const metadata: Metadata = { title: "对账中心 — Admin" };
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type StatusFilter = OfflinePayment["status"] | "all";
 const ALLOWED: ReadonlyArray<StatusFilter> = [
@@ -33,6 +34,7 @@ export default async function AdminPaymentsPage({
   setRequestLocale(locale);
 
   const gate = await gateAdmin();
+  console.info(`[admin/payments] gate result: ok=${gate.ok}` + (gate.ok ? ` user=${gate.user.email}` : ` reason=${gate.reason} status=${gate.status}`));
   if (!gate.ok) {
     if (gate.status === 401) redirect("/sign-in?redirect_url=/dashboard/admin/payments");
     return (
@@ -40,14 +42,17 @@ export default async function AdminPaymentsPage({
         <CardContent className="py-12 text-center">
           <div className="text-lg font-semibold">无管理员权限</div>
           <p className="mt-2 text-sm text-muted-foreground">{gate.reason}</p>
+          <p className="mt-4 text-xs text-muted-foreground">
+            如果你是管理员、看到这条信息：请确认登录的邮箱在 ADMIN_EMAILS 环境变量中，或 users.role=&apos;admin&apos;。
+          </p>
         </CardContent>
       </Card>
     );
   }
 
   const sp = await searchParams;
-  const requested = (sp.status ?? "awaiting_review") as StatusFilter;
-  const statusFilter: StatusFilter = ALLOWED.includes(requested) ? requested : "awaiting_review";
+  const requested = (sp.status ?? "all") as StatusFilter;
+  const statusFilter: StatusFilter = ALLOWED.includes(requested) ? requested : "all";
 
   const base = db.select().from(offlinePayments).orderBy(desc(offlinePayments.createdAt));
   const rowsRaw = await (statusFilter === "all"
@@ -84,6 +89,8 @@ export default async function AdminPaymentsPage({
     expired: all.filter((r) => r.status === "expired").length,
     refunded: all.filter((r) => r.status === "refunded").length,
   };
+  const totalCount = all.length;
+  console.info(`[admin/payments] rendering: filter=${statusFilter} rowsForView=${rows.length} totalInDB=${totalCount}`);
 
   return (
     <div className="space-y-6">
@@ -91,6 +98,9 @@ export default async function AdminPaymentsPage({
         <h1 className="text-2xl font-bold">支付对账中心</h1>
         <p className="text-sm text-muted-foreground">
           国内对公转账 / 支付宝 / 微信线下支付订单审核 — 确认后自动开通业务侧权益（研报 / 会员 / RFQ）。
+        </p>
+        <p className="mt-1 text-[12px] text-muted-foreground">
+          登录身份：<code>{gate.user.email}</code> · 角色：<code>{gate.user.role}</code> · 数据库共有 <strong>{totalCount}</strong> 笔订单
         </p>
       </div>
 
