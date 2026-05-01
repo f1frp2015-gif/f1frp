@@ -4,6 +4,7 @@ import { getLocale } from "next-intl/server";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { personalPlans, formatPrice, type Plan } from "@/lib/pricing";
 import { CONTACT } from "@/lib/contact";
+import { PaymentDialog } from "@/components/payment/payment-dialog";
 
 export const metadata: Metadata = {
   title: "套餐价格 / Pricing | f1frp",
@@ -42,6 +43,17 @@ function PlanCard({ plan, lang }: { plan: Plan; lang: "zh" | "en" }) {
     plan.id === "free" ? "/sign-up" : `/api/checkout?plan=${plan.id}`;
 
   const highlight = plan.badgeZh === "推荐" || plan.id === "pro_yearly";
+
+  const ctaClass = `rounded-lg px-4 py-2.5 text-center font-medium transition ${
+    highlight
+      ? "bg-emerald-500 text-white hover:bg-emerald-600"
+      : "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+  }`;
+
+  // 国内 zh + 付费 plan：走对公转账（一次性付一个周期的费用，admin 对账后开通会员）
+  // 海外 en + 付费 plan：走 Stripe 订阅（已有，自动续订）
+  // 免费档：直接 /sign-up
+  const useDomesticPay = lang === "zh" && plan.id !== "free" && plan.priceCents > 0;
 
   return (
     <div
@@ -84,16 +96,21 @@ function PlanCard({ plan, lang }: { plan: Plan; lang: "zh" | "en" }) {
           </li>
         ))}
       </ul>
-      <Link
-        href={ctaHref}
-        className={`rounded-lg px-4 py-2.5 text-center font-medium transition ${
-          highlight
-            ? "bg-emerald-500 text-white hover:bg-emerald-600"
-            : "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
-        }`}
-      >
-        {ctaLabel}
-      </Link>
+      {useDomesticPay ? (
+        <PaymentDialog
+          orderType="pro_membership"
+          amountCents={plan.priceCents}
+          relatedId={plan.id}
+          triggerLabel={ctaLabel}
+          triggerClassName={ctaClass}
+          dialogTitle={`开通 ${name}`}
+          dialogDescription={`¥${(plan.priceCents / 100).toFixed(2)} · ${plan.period === "year" ? "1 年期" : "1 个月"} · 银行对公转账，对账后自动开通会员权益`}
+        />
+      ) : (
+        <Link href={ctaHref} className={ctaClass}>
+          {ctaLabel}
+        </Link>
+      )}
     </div>
   );
 }

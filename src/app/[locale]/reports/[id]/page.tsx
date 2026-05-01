@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { buttonVariants } from "@/components/ui/button";
 import { JsonLd } from "@/components/json-ld";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import { PaymentDialog } from "@/components/payment/payment-dialog";
 import {
   REPORT_CATEGORY_LABELS,
   formatYuan,
@@ -175,12 +176,15 @@ export default async function ReportDetailPage({
                 )}
               </div>
               {viewer.signedIn ? (
-                <a
-                  href={`/api/reports/${report.slug}/checkout`}
-                  className={buttonVariants({ size: "lg" })}
-                >
-                  立即购买
-                </a>
+                <PaymentDialog
+                  orderType="report"
+                  amountCents={quote.priceCents}
+                  relatedId={report.id}
+                  triggerLabel="立即购买"
+                  triggerClassName={buttonVariants({ size: "lg" })}
+                  dialogTitle={`购买研报 — ${report.title}`}
+                  dialogDescription={`¥${(quote.priceCents / 100).toFixed(2)} · 银行对公转账，1 个工作日对账后开通访问权限`}
+                />
               ) : (
                 <Link
                   href={`/sign-in?redirect_url=/reports/${report.slug}`}
