@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
+import { RfqCheckoutButton } from "./rfq-checkout-button";
 import { db } from "@/lib/db";
 import {
   enterprises,
@@ -364,6 +365,7 @@ export default async function OverseasPage({
                 <li className="text-muted-foreground">· 月结、postpaid，发票合规</li>
                 <li className="text-muted-foreground">· 同一询盘可由 1-3 家厂同时跟进</li>
               </ul>
+              <RfqCheckoutButton locale={locale === "en" ? "en" : "zh"} />
               <div className="mt-6 border-t border-border/70 pt-4 text-[12px] text-muted-foreground">
                 适合：中小复材厂主力档，单笔订单 ¥10 万以上即覆盖成本
               </div>
