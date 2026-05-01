@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SupplierClaimButton } from "@/components/supplier-claim-button";
+import { ProgressiveCollapse } from "@/components/progressive-collapse";
 import { provincesEn } from "@/lib/data/suppliers";
 
 export type SerializedSupplier = {
@@ -144,7 +145,7 @@ export function SuppliersClient({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <ProgressiveCollapse className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" pageSize={50}>
           {filtered.map((s) => (
             <Card
               key={s.id}
@@ -262,7 +263,7 @@ export function SuppliersClient({
               </CardContent>
             </Card>
           ))}
-        </div>
+        </ProgressiveCollapse>
       )}
     </>
   );

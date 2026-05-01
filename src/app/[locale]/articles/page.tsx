@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { articles } from "@/lib/db/schema";
+import { ProgressiveCollapse } from "@/components/progressive-collapse";
 
 export const revalidate = 600;
 
@@ -67,7 +68,7 @@ export default async function ArticlesPage({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <ProgressiveCollapse className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" pageSize={50}>
           {rows.map((a) => (
             <Link
               key={a.id}
@@ -104,7 +105,7 @@ export default async function ArticlesPage({
               </Card>
             </Link>
           ))}
-        </div>
+        </ProgressiveCollapse>
       )}
     </div>
   );

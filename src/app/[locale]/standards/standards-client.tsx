@@ -4,8 +4,10 @@ import { useState, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useProgressiveList } from "@/lib/hooks/use-progressive-list";
 import {
   Table,
   TableBody,
@@ -78,6 +80,8 @@ export function StandardsClient({
       return matchSearch && matchCountry && matchCategory && matchProcess;
     });
   }, [standards, search, activeCountry, activeCategory, activeProcess]);
+
+  const { visible: visibleFiltered, remaining, expand } = useProgressiveList(filtered, 50);
 
   const countryStats = useMemo(() => {
     const map: Record<string, number> = {};
@@ -221,7 +225,7 @@ export function StandardsClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((std) => (
+                {visibleFiltered.map((std) => (
                   <TableRow
                     key={std.id}
                     className="cursor-pointer hover:bg-muted/40"
@@ -298,6 +302,13 @@ export function StandardsClient({
               </TableBody>
             </Table>
           </div>
+          {remaining > 0 && (
+            <div className="mt-6 flex justify-center border-t pt-4">
+              <Button variant="outline" onClick={expand}>
+                展开剩余 {remaining} 条
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

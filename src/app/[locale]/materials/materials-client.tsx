@@ -23,6 +23,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Icon } from "@/components/icon";
+import { useProgressiveList } from "@/lib/hooks/use-progressive-list";
 
 export type SerializedMaterial = {
   id: string;
@@ -97,6 +98,8 @@ export function MaterialsClient({
       return matchesSearch && matchesCategory;
     });
   }, [materials, search, activeCategory]);
+
+  const { visible: visibleFiltered, remaining, expand } = useProgressiveList(filtered, 50);
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
@@ -200,7 +203,7 @@ export function MaterialsClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((m) => {
+                {visibleFiltered.map((m) => {
                   const checked = selectedIds.includes(m.id);
                   const disabled =
                     !checked && selectedIds.length >= COMPARE_MAX;
@@ -270,6 +273,13 @@ export function MaterialsClient({
               </TableBody>
             </Table>
           </div>
+          {remaining > 0 && (
+            <div className="mt-6 flex justify-center border-t pt-4">
+              <Button variant="outline" onClick={expand}>
+                展开剩余 {remaining} 条
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

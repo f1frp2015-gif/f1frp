@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { CurationNotice } from "@/components/curation-notice";
+import { useProgressiveList } from "@/lib/hooks/use-progressive-list";
 
 export type SerializedPatent = {
   id: string;
@@ -71,6 +73,8 @@ export function PatentsClient({
       return hitSearch && hitCat && hitCountry && hitStatus;
     });
   }, [patents, search, cat, country, status]);
+
+  const { visible: visibleFiltered, remaining, expand } = useProgressiveList(filtered, 50);
 
   const catStats = useMemo(() => {
     const m: Record<string, number> = {};
@@ -201,7 +205,7 @@ export function PatentsClient({
       </div>
 
       <div className="grid gap-4">
-        {filtered.map((p) => (
+        {visibleFiltered.map((p) => (
           <Link
             key={p.id}
             href={`/patents/${encodeURIComponent(p.id)}` as never}
@@ -272,6 +276,14 @@ export function PatentsClient({
             </Card>
           </Link>
         ))}
+
+        {remaining > 0 && (
+          <div className="mt-2 flex justify-center">
+            <Button variant="outline" onClick={expand}>
+              展开剩余 {remaining} 条
+            </Button>
+          </div>
+        )}
 
         {filtered.length === 0 && (
           <Card>
