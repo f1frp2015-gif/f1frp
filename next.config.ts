@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": ["./messages/**/*.json"],
   },
+  // ali-oss has dynamic optional require('proxy-agent') that breaks bundling.
+  // Mark as external so it's resolved at runtime (server-only anyway).
+  serverExternalPackages: ["ali-oss"],
 };
 
 export default withNextIntl(nextConfig);
