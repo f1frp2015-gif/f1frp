@@ -97,6 +97,7 @@ export default async function SuppliersPage({
     certifications: ((isEn ? s.certificationsEn : s.certifications) ?? []) as string[],
     verified: Boolean(s.verified),
     enterpriseId: s.enterpriseId ?? null,
+    website: s.website ?? null,
   }));
 
   return (
