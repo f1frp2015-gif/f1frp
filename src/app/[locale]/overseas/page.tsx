@@ -5,6 +5,7 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { PaymentDialog } from "./payment-dialog";
+import { PaymentDialog as DomesticPaymentDialog } from "@/components/payment/payment-dialog";
 import { db } from "@/lib/db";
 import {
   enterprises,
@@ -22,7 +23,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "出海方案 — getfrp 是 f1frp 的海外版 | 复材站",
   description:
-    "getfrp.com 是 f1frp 的英文海外版，专为中国中小复材企业出海设计。AI-native 获客平台用一套技术解决英文站、SEO、询盘响应、海外信任和全链路代理 5 大出海痛点。",
+    "getfrp.com 是 f1frp 的英文海外版，专为中国中小复材企业出海设计。¥4,999 启动包一次性激活 + 按有效 RFQ 付费 + 可选全链路代理，把英文站、SEO、询盘响应、海外信任和全链路代理 5 大出海痛点一次打通。",
 };
 
 async function countOne(
@@ -137,7 +138,7 @@ export default async function OverseasPage({
               <span className="text-muted-foreground">被全世界采购商找到。</span>
             </h1>
             <p className="mt-6 max-w-2xl text-[15px] leading-[1.75] text-muted-foreground sm:text-base">
-              <span className="font-semibold text-foreground">getfrp.com</span> 是 f1frp 的英文海外版。我们用 AI-native 获客平台技术，帮中国中小复材厂家**按结果付费**地获取海外真实订单 — 入驻免费、按有效询盘计费、可选全链路代理。从英文站到 SEO/GEO，从 AI 询盘助手到合同物流退税，一条龙打通。
+              <span className="font-semibold text-foreground">getfrp.com</span> 是 f1frp 的英文海外版。我们用 AI-native 获客平台技术，帮中国中小复材厂家获取海外真实订单 — <span className="font-semibold text-foreground">¥4,999 启动包</span>一次性激活英文出海资产，之后<span className="font-semibold text-foreground">按有效 RFQ 付费</span>、可选全链路代理分成。100 天拿不到第一条有效 RFQ 全额退款。
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <a
@@ -314,32 +315,42 @@ export default async function OverseasPage({
               商业模式 / 定价
             </div>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              入驻免费，按结果付费
+              先一次性激活，再按结果付费
             </h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              我们不收一次性会员费、不卖竞价排名、不锁定包年合同。只在送出真实询盘 / 真实订单时收费 — 激励对齐，门槛为零。
+              不收年费、不卖竞价排名、不锁定包年合同。¥4,999 启动包一次性激活英文出海资产 — 不满意 100 天全额退；之后按有效询盘 / 成交订单付费，激励完全对齐。
             </p>
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-3">
-            {/* Tier 1 */}
+            {/* Tier 1 — Startup Pack */}
             <div className="flex flex-col rounded-lg border border-border/70 bg-background p-6">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                ① 入驻档
+                ① 启动档
               </div>
-              <h3 className="mt-2 text-lg font-semibold tracking-tight">永久免费</h3>
+              <h3 className="mt-2 text-lg font-semibold tracking-tight">AI 出海启动包</h3>
               <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-3xl font-semibold tabular-nums tracking-tight">¥0</span>
-                <span className="text-sm text-muted-foreground">/ 永久</span>
+                <span className="text-3xl font-semibold tabular-nums tracking-tight">¥4,999</span>
+                <span className="text-sm text-muted-foreground">/ 一次性</span>
               </div>
               <ul className="mt-4 space-y-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                <li>· 上传企业资料 → AI 自动生成英文档案</li>
-                <li>· 列入 getfrp.com 公开供应商池</li>
-                <li>· 进入 AI 助手匹配候选名单</li>
-                <li>· 月报：访问量 / 收录情况 / 关键词排名</li>
+                <li>· 6 小时一对一深度访谈 + 工厂资料数字化</li>
+                <li>· AI 生成 8-15 页英文产品矩阵 + 单品 datasheet</li>
+                <li>· GB ⇄ ASTM/ISO/EN 标准对照表自动生成</li>
+                <li>· schema.org 结构化数据 + GEO（生成式 AI 引擎）优化</li>
+                <li>· 首月 RFQ 通道开通 + 1 次海外采购方匹配预演</li>
+                <li className="font-medium text-foreground">· 100 天保证：拿不到第一条有效 RFQ 全额退款</li>
               </ul>
+              <DomesticPaymentDialog
+                orderType="other"
+                amountCents={499900}
+                triggerLabel="申请启动包（¥4,999）"
+                triggerClassName={buttonVariants({ variant: "outline" }) + " mt-6 w-full"}
+                dialogTitle="AI 出海启动包 — ¥4,999 一次性"
+                dialogDescription="对公转账 / 支付宝 / 微信均可。我们 1 个工作日内对账，对账后 2 个工作日内联系您预约访谈。100 天保证条款详见服务合同。"
+              />
               <div className="mt-6 border-t border-border/70 pt-4 text-[12px] text-muted-foreground">
-                适合：刚开始尝试出海的工厂，先看效果再决定下一步
+                适合：第一次出海、希望一次性把英文资产做扎实的中小复材厂
               </div>
             </div>
 
@@ -648,7 +659,7 @@ export default async function OverseasPage({
                     alibaba: "¥10-30 万/年会员 + 运营人力",
                     site: "¥5-20 万建站 + 长期 SEO 运营",
                     ads: "¥20-100 万/年 CPC 烧钱",
-                    getfrp: "免费入驻，按有效 RFQ 付费",
+                    getfrp: "¥4,999 启动包 + 按有效 RFQ 付费",
                   },
                   {
                     dim: "流量类型",
