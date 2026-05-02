@@ -2,6 +2,7 @@ import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { getChatModel, isChatConfigured } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
+import { resolveServerLocale } from "@/lib/i18n/server-locale";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -58,7 +59,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const uiMessages = normalizeMessages(body.messages || []);
-    const locale: "zh" | "en" = body.locale === "en" ? "en" : "zh";
+    // Host wins: getfrp.com → en, f1frp.com → zh, ignoring stale client locale.
+    const locale = resolveServerLocale(req, body.locale);
 
     const ctx = body.context as
       | {

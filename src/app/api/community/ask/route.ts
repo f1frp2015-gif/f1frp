@@ -5,6 +5,7 @@ import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext } from "@/lib/ai/retrieve";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
+import { resolveServerLocale } from "@/lib/i18n/server-locale";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +25,8 @@ export async function POST(req: Request) {
   }
 
   const question = (body.question ?? "").trim();
-  const locale = body.locale === "en" ? "en" : "zh";
+  // Host wins: getfrp.com → en, f1frp.com → zh, ignoring stale client locale.
+  const locale = resolveServerLocale(req, body.locale);
 
   if (!question || question.length < 5) {
     return NextResponse.json({ error: "question too short" }, { status: 400 });
@@ -48,18 +50,23 @@ export async function POST(req: Request) {
     .map((c, i) => ({ index: i + 1, title: c.title, url: c.url as string }));
 
   // ── Generate answer ────────────────────────────────────────
+  const citationCue =
+    locale === "en"
+      ? `Cite retrieved sources with the inline marker [#N] where N is the source index.`
+      : `请在回答末尾用格式"[#N]"标注引用来源编号。`;
+
   const systemForAsk =
-    SYSTEM_PROMPT +
-    (ragCtx
-      ? `\n\n---\n\n${ragCtx}\n\n---\n\n请在回答末尾用格式"[#N]"标注引用来源编号。`
-      : "");
+    SYSTEM_PROMPT + (ragCtx ? `\n\n---\n\n${ragCtx}\n\n---\n\n${citationCue}` : "");
 
   const langInstruction =
     locale === "en"
-      ? "Please answer in English (but keep technical terms in Chinese if appropriate)."
+      ? "You MUST respond entirely in English regardless of the language of retrieved sources. Translate Chinese source material to English. Keep standard numbers (e.g. ASTM D3039), proper nouns, and technical acronyms unchanged."
       : "请用中文回答。";
 
-  const prompt = `${langInstruction}\n\n用户问题：${question}\n\n请给出专业、简明、有引用的回答（约 400-600 字）。`;
+  const prompt =
+    locale === "en"
+      ? `${langInstruction}\n\nUser question: ${question}\n\nProvide a professional, concise, well-cited answer (≈ 400-600 words).`
+      : `${langInstruction}\n\n用户问题：${question}\n\n请给出专业、简明、有引用的回答（约 400-600 字）。`;
 
   let answer = "";
   try {
