@@ -948,6 +948,8 @@ export const offlinePayments = pgTable(
     payerTransferNote: text("payer_transfer_note"),
     payerTransferAmountCents: integer("payer_transfer_amount_cents"),
     payerTransferAt: timestamp("payer_transfer_at"),
+    proofImagePath: varchar("proof_image_path", { length: 500 }), // OSS object key, e.g. payment-proofs/{orderNo}/{ts}-{file}
+    proofImageContentType: varchar("proof_image_content_type", { length: 100 }),
     status: offlinePaymentStatusEnum("status").default("pending_transfer").notNull(),
     reviewerId: uuid("reviewer_id").references(() => users.id),
     reviewNote: text("review_note"),

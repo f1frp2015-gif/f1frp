@@ -73,6 +73,8 @@ export default async function AdminPaymentsPage({
     payerTransferAmountCents: p.payerTransferAmountCents,
     payerTransferAt: p.payerTransferAt?.toISOString() ?? null,
     payerTransferNote: p.payerTransferNote,
+    proofImagePath: p.proofImagePath,
+    proofImageContentType: p.proofImageContentType,
     status: p.status,
     reviewNote: p.reviewNote,
     reviewedAt: p.reviewedAt?.toISOString() ?? null,

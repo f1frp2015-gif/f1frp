@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Local build artifact for ECS deploy
 deploy/dist/
+
+# Drizzle migrations are not used (we use db:push)
+drizzle/

@@ -20,6 +20,8 @@ interface ConfirmBody {
   payerTransferAmountCents?: number;
   payerTransferAt?: string; // ISO date
   payerTransferNote?: string;
+  proofImagePath?: string; // OSS object key from /upload-url response
+  proofImageContentType?: string;
 }
 
 function bad(reason: string, status = 400) {
@@ -34,13 +36,23 @@ export async function POST(req: Request) {
     return bad("bad-json");
   }
 
-  const { orderNo, payerTransferAmountCents, payerTransferAt, payerTransferNote } = body;
+  const {
+    orderNo,
+    payerTransferAmountCents,
+    payerTransferAt,
+    payerTransferNote,
+    proofImagePath,
+    proofImageContentType,
+  } = body;
   if (!orderNo) return bad("missing-order-no");
   if (!Number.isInteger(payerTransferAmountCents) || (payerTransferAmountCents ?? 0) < 100) {
     return bad("bad-transfer-amount");
   }
   if (!payerTransferNote || payerTransferNote.length < 4) {
     return bad("missing-transfer-note");
+  }
+  if (proofImagePath && !proofImagePath.startsWith(`payment-proofs/${orderNo}/`)) {
+    return bad("bad-proof-path");
   }
 
   const [existing] = await db
@@ -76,6 +88,8 @@ export async function POST(req: Request) {
       payerTransferAmountCents: payerTransferAmountCents!,
       payerTransferAt: transferAt,
       payerTransferNote,
+      proofImagePath: proofImagePath ?? null,
+      proofImageContentType: proofImageContentType ?? null,
       status: "awaiting_review",
       updatedAt: new Date(),
     })

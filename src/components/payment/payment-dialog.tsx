@@ -88,6 +88,7 @@ export function PaymentDialog({
   const [transferAmount, setTransferAmount] = useState("");
   const [transferAt, setTransferAt] = useState("");
   const [transferNote, setTransferNote] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
 
   function reset() {
     setStep("form");
@@ -100,7 +101,33 @@ export function PaymentDialog({
     setTransferAmount("");
     setTransferAt("");
     setTransferNote("");
+    setProofFile(null);
     setError(null);
+  }
+
+  async function uploadProof(orderNo: string, payerEmail: string, file: File): Promise<string> {
+    const sigRes = await fetch("/api/payment/bank-transfer/upload-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderNo,
+        payerEmail,
+        filename: file.name,
+        contentType: file.type,
+        fileSize: file.size,
+      }),
+    });
+    const sig = (await sigRes.json()) as { ok?: boolean; url?: string; key?: string; reason?: string };
+    if (!sig.ok || !sig.url || !sig.key) {
+      throw new Error(sig.reason ?? "upload-url-failed");
+    }
+    const putRes = await fetch(sig.url, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    if (!putRes.ok) throw new Error(`oss-put-${putRes.status}`);
+    return sig.key;
   }
 
   async function init(e: React.FormEvent) {
@@ -150,8 +177,20 @@ export function PaymentDialog({
     const amt = Number(transferAmount);
     if (!Number.isFinite(amt) || amt <= 0) return setError("请填转账金额（元）");
     if (transferNote.trim().length < 4) return setError("请填转账备注或付款方账号后 4 位（≥4 字符）");
+    if (!proofFile) return setError("请上传转账凭证截图（jpg/png/pdf，≤10MB）");
     setSubmitting(true);
     try {
+      let proofImagePath: string | null = null;
+      let proofImageContentType: string | null = null;
+      try {
+        proofImagePath = await uploadProof(order.orderNo, email, proofFile);
+        proofImageContentType = proofFile.type;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "upload-failed";
+        setError(`凭证上传失败：${msg}`);
+        return;
+      }
+
       const res = await fetch("/api/payment/bank-transfer/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -160,6 +199,8 @@ export function PaymentDialog({
           payerTransferAmountCents: Math.round(amt * 100),
           payerTransferAt: transferAt ? new Date(transferAt).toISOString() : null,
           payerTransferNote: transferNote,
+          proofImagePath,
+          proofImageContentType,
         }),
       });
       const data = (await res.json()) as { ok?: boolean; reason?: string };
@@ -291,6 +332,20 @@ export function PaymentDialog({
               <div>
                 <label className="text-[11px] font-medium text-muted-foreground">备注（订单号、付款方账号后 4 位）*</label>
                 <Textarea value={transferNote} onChange={(e) => setTransferNote(e.target.value)} placeholder={`如：订单 ${order.orderNo} · 卡号尾号 6789 · 付款方 张三 / 某公司`} required rows={2} />
+              </div>
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground">转账凭证截图 *（jpg/png/webp/pdf，≤10MB）</label>
+                <Input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+                  onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+                  required
+                />
+                {proofFile && (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    已选：{proofFile.name} · {(proofFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                )}
               </div>
 
               {error && (

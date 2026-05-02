@@ -21,6 +21,8 @@ export interface AdminPaymentRow {
   payerTransferAmountCents: number | null;
   payerTransferAt: string | null;
   payerTransferNote: string | null;
+  proofImagePath: string | null;
+  proofImageContentType: string | null;
   status: string;
   reviewNote: string | null;
   reviewedAt: string | null;
@@ -147,6 +149,10 @@ function PaymentCard({ row }: { row: AdminPaymentRow }) {
           </div>
         )}
 
+        {row.proofImagePath && (
+          <ProofViewer orderNo={row.orderNo} contentType={row.proofImageContentType} />
+        )}
+
         {row.reviewNote && (
           <div className="rounded border border-border bg-muted/20 p-2 text-[12px]">
             <span className="text-muted-foreground">审核备注：</span>{row.reviewNote}
@@ -204,5 +210,49 @@ function PaymentCard({ row }: { row: AdminPaymentRow }) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function ProofViewer({ orderNo, contentType }: { orderNo: string; contentType: string | null }) {
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function fetchUrl() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/admin/payments/${orderNo}/proof-url`);
+      const data = (await res.json()) as { ok?: boolean; url?: string; reason?: string };
+      if (!data.ok || !data.url) {
+        setErr(data.reason ?? "fetch-failed");
+        return;
+      }
+      setSignedUrl(data.url);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const isImage = contentType?.startsWith("image/");
+  return (
+    <div className="rounded border border-border bg-muted/20 p-2 text-[12px]">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground">转账凭证：</span>
+        {!signedUrl ? (
+          <Button size="sm" variant="outline" disabled={loading} onClick={fetchUrl}>
+            {loading ? "签发中…" : "查看凭证"}
+          </Button>
+        ) : (
+          <a className="text-primary underline" href={signedUrl} target="_blank" rel="noopener">
+            在新标签页打开
+          </a>
+        )}
+        {err && <span className="text-destructive">{err}</span>}
+      </div>
+      {signedUrl && isImage && (
+        <img src={signedUrl} alt={`${orderNo} 凭证`} className="mt-2 max-h-80 rounded border" />
+      )}
+    </div>
   );
 }
