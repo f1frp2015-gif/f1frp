@@ -139,27 +139,27 @@ export default async function HomePage({
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link
-                href={(locale === "en" ? "/rfq" : "/ai") as never}
+                href={(locale === "en" ? "/source-from-china" : "/ai") as never}
                 className={buttonVariants({ size: "lg", variant: "default" })}
               >
-                {t("ctaAi")}
+                {locale === "en" ? "Source from China" : t("ctaAi")}
               </Link>
               <Link
-                href={(locale === "en" ? "/suppliers" : "/materials") as never}
+                href={(locale === "en" ? "/rfq" : "/materials") as never}
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
-                {t("ctaMaterials")}
+                {locale === "en" ? t("ctaAi") : t("ctaMaterials")}
               </Link>
               <Link
                 href={
-                  (locale === "en" ? "/source-from-china" : "/papers") as never
+                  (locale === "en" ? "/suppliers" : "/papers") as never
                 }
                 className="ml-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Badge variant="signal" className="font-mono">
                   {t("badgeNew")}
                 </Badge>
-                {t("ctaPapers")}
+                {locale === "en" ? t("ctaMaterials") : t("ctaPapers")}
               </Link>
             </div>
 
