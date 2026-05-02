@@ -40,13 +40,11 @@ export default async function DashboardLayout({
     { href: "/dashboard/claims" as const, label: t("nav.claims"), iconKey: "claims" },
     { href: "/dashboard/upgrade" as const, label: isEn ? "Upgrade" : "升级订阅", iconKey: "overview" },
     { href: "/dashboard/verify-student" as const, label: isEn ? "Student verify" : "学生认证", iconKey: "overview" },
-    { href: "/dashboard/supplier-upgrade" as const, label: isEn ? "Supplier upgrade" : "供应商升级", iconKey: "enterprise" },
   ];
 
   const adminItems = [
     { href: "/dashboard/admin/claims" as const, label: t("nav.adminClaims"), iconKey: "admin-claims" },
     { href: "/dashboard/admin/subscriptions" as const, label: isEn ? "Subscriptions" : "订阅记录", iconKey: "admin-claims" },
-    { href: "/dashboard/admin/supplier-upgrades" as const, label: isEn ? "Supplier upgrades" : "供应商升级", iconKey: "admin-claims" },
   ];
 
   const { userId: clerkId } = await auth();

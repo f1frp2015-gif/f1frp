@@ -804,7 +804,7 @@ export const subscriptions = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     enterpriseId: uuid("enterprise_id").references(() => enterprises.id, { onDelete: "cascade" }),
-    plan: varchar("plan", { length: 32 }).notNull(), // pro_monthly, pro_yearly, team_yearly, supplier_verified, supplier_featured
+    plan: varchar("plan", { length: 32 }).notNull(), // pro_monthly, pro_yearly
     tier: membershipTierEnum("tier").notNull(),
     provider: varchar("provider", { length: 32 }).notNull(), // stripe, wechat_pay, alipay, manual
     providerSubId: varchar("provider_sub_id", { length: 255 }),
@@ -822,37 +822,6 @@ export const subscriptions = pgTable(
     index("subscriptions_enterprise_idx").on(table.enterpriseId),
     index("subscriptions_status_idx").on(table.status),
     index("subscriptions_provider_sub_idx").on(table.providerSubId),
-  ]
-);
-
-// ═══════════════════════════════════════════
-// Supplier upgrade requests — Verified / Featured 申请
-// ═══════════════════════════════════════════
-
-export const supplierUpgradeRequests = pgTable(
-  "supplier_upgrade_requests",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-    enterpriseId: uuid("enterprise_id").references(() => enterprises.id, { onDelete: "cascade" }).notNull(),
-    targetTier: membershipTierEnum("target_tier").notNull(), // basic=Verified, pro=Featured
-    targetCategory: varchar("target_category", { length: 50 }), // Featured 时指定品类
-    contactName: varchar("contact_name", { length: 100 }).notNull(),
-    contactPhone: varchar("contact_phone", { length: 20 }).notNull(),
-    contactWechat: varchar("contact_wechat", { length: 100 }),
-    note: text("note"),
-    status: varchar("status", { length: 32 }).default("pending").notNull(), // pending, approved, rejected, paid
-    discountApplied: integer("discount_applied"), // 折扣百分比，例 50 = 半价
-    reviewerId: uuid("reviewer_id").references(() => users.id),
-    reviewNote: text("review_note"),
-    reviewedAt: timestamp("reviewed_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  },
-  (table) => [
-    index("supplier_upgrade_status_idx").on(table.status),
-    index("supplier_upgrade_user_idx").on(table.userId),
-    index("supplier_upgrade_ent_idx").on(table.enterpriseId),
   ]
 );
 
@@ -1005,8 +974,6 @@ export type Enterprise = typeof enterprises.$inferSelect;
 export type NewEnterprise = typeof enterprises.$inferInsert;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
-export type SupplierUpgradeRequest = typeof supplierUpgradeRequests.$inferSelect;
-export type NewSupplierUpgradeRequest = typeof supplierUpgradeRequests.$inferInsert;
 export type Material = typeof materials.$inferSelect;
 export type NewMaterial = typeof materials.$inferInsert;
 export type Formula = typeof formulas.$inferSelect;

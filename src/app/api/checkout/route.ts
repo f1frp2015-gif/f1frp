@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 
   const plan = getPlan(planId);
   if (!plan) return fail("unknown plan");
-  if (plan.audience !== "personal" || plan.priceCents === 0) return fail("plan not purchasable");
+  if (plan.priceCents === 0) return fail("plan not purchasable");
 
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   const priceId = plan.stripePriceEnvKey ? process.env[plan.stripePriceEnvKey] : undefined;

@@ -1,5 +1,5 @@
 // Single source of truth for sales / support contact.
-// Used by /pricing, /dashboard/upgrade, /dashboard/supplier-upgrade and emails.
+// Used by /pricing, /dashboard/upgrade and emails.
 
 export const CONTACT = {
   name: "Doris Li",

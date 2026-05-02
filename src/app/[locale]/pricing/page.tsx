@@ -202,34 +202,27 @@ export default async function PricingPage() {
         </div>
       </section>
 
-      {/* ─────────── No supplier annual fees notice ─────────── */}
+      {/* ─────────── Supplier path pointer ─────────── */}
       <section className="mb-12 rounded-lg border border-border/70 bg-zinc-50 p-6 dark:bg-zinc-900/50">
-        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          {lang === "zh" ? "重要变更 — 2026-04 起" : "Important — Updated 2026-04"}
-        </div>
-        <h3 className="mt-2 text-base font-semibold tracking-tight">
-          {lang === "zh"
-            ? "我们已下架所有企业 / 供应商年费套餐"
-            : "All enterprise / supplier annual fees have been retired"}
+        <h3 className="text-base font-semibold tracking-tight">
+          {lang === "zh" ? "面向供应商出海" : "For suppliers going overseas"}
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
           {lang === "zh" ? (
             <>
-              原 Verified（¥3,800/年）、Featured（¥18,800/年）、团队版（¥1,288/年/席）已统一并入{" "}
+              企业出海变现走{" "}
               <Link href="/overseas" className="text-foreground underline underline-offset-2">
                 /overseas 出海方案
               </Link>
-              ，改为按有效 RFQ 付费。我们认为，按结果付费比按时间付费更符合中小企业的现金流和决策习惯。已订阅老套餐的客户继续享受到期为止，不影响。
+              ：免费入驻 + 按有效 RFQ 付费 + 可选全链路代理分成。无任何会员年费。
             </>
           ) : (
             <>
-              Old Verified (¥3,800/yr), Featured (¥18,800/yr), and Team (¥1,288/yr/seat) plans
-              have been consolidated into the{" "}
+              Suppliers monetize via{" "}
               <Link href="/overseas" className="text-foreground underline underline-offset-2">
-                /overseas plan
-              </Link>{" "}
-              with a pay-per-verified-RFQ model. Existing subscriptions remain valid until their
-              renewal date.
+                /overseas
+              </Link>
+              : free signup, pay-per-verified-RFQ, optional full-service agency commission. No annual fees.
             </>
           )}
         </p>

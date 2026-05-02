@@ -6,20 +6,10 @@
 
 import type { MembershipTier } from "./membership";
 
-export type PlanId =
-  | "free"
-  | "pro_monthly"
-  | "pro_yearly"
-  // Deprecated 2026-04-27: kept in type so historic subscriptions still
-  // resolve, but removed from PLANS array — never offered on /pricing.
-  | "student"
-  | "team_yearly"
-  | "supplier_verified"
-  | "supplier_featured";
+export type PlanId = "free" | "pro_monthly" | "pro_yearly";
 
 export type Plan = {
   id: PlanId;
-  audience: "personal" | "supplier";
   tier: MembershipTier;
   // Display
   nameZh: string;
@@ -38,18 +28,11 @@ export type Plan = {
   stripePriceEnvKey?: string;
   // Trial
   trialDays?: number;
-  // Featured 名额限制
-  perCategoryLimit?: number;
 };
 
-// 2026-04-27 strategy update — f1frp.com 中文站走免费平台路线，仅对高频
-// AI 用户保留一档付费（pro 月/年）。供应商端一切年费废除，企业出海变现走
-// /overseas 的「按有效 RFQ 付费 + 可选代理分成」路径。Student / Team /
-// Supplier verified / Supplier featured 套餐已下架。
 export const PLANS: Plan[] = [
   {
     id: "free",
-    audience: "personal",
     tier: "free",
     nameZh: "免费版",
     nameEn: "Free",
@@ -72,7 +55,6 @@ export const PLANS: Plan[] = [
   },
   {
     id: "pro_monthly",
-    audience: "personal",
     tier: "pro",
     nameZh: "AI 高频版（月付）",
     nameEn: "AI Pro (Monthly)",
@@ -101,7 +83,6 @@ export const PLANS: Plan[] = [
   },
   {
     id: "pro_yearly",
-    audience: "personal",
     tier: "pro",
     nameZh: "AI 高频版（年付）",
     nameEn: "AI Pro (Yearly)",
@@ -131,11 +112,7 @@ export function getPlan(id: PlanId): Plan | undefined {
 }
 
 export function personalPlans(): Plan[] {
-  return PLANS.filter((p) => p.audience === "personal");
-}
-
-export function supplierPlans(): Plan[] {
-  return PLANS.filter((p) => p.audience === "supplier");
+  return PLANS;
 }
 
 // ═══════════════════════════════════════════
