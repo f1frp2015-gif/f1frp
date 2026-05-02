@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 const disallow = ["/api/", "/dashboard/", "/sign-in", "/sign-up"];
 
@@ -45,7 +46,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow,
     })),
-    sitemap: "https://f1frp.com/sitemap.xml",
-    host: "https://f1frp.com",
+    sitemap: `${CURRENT_SITE_URL}/sitemap.xml`,
+    host: CURRENT_SITE_URL,
   };
 }

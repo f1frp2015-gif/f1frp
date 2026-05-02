@@ -28,7 +28,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://f1frp.com";
+import { CURRENT_SITE_URL, SITE_ZH, SITE_EN } from "@/lib/sites";
+
+const siteUrl = CURRENT_SITE_URL;
 const brandOverride = process.env.NEXT_PUBLIC_SITE_NAME;
 const taglineOverride = process.env.NEXT_PUBLIC_SITE_TAGLINE;
 const descOverride = process.env.NEXT_PUBLIC_SITE_DESCRIPTION;
@@ -135,12 +137,19 @@ export async function generateMetadata({
       follow: true,
       googleBot: { index: true, follow: true },
     },
+    verification: {
+      google: process.env.GOOGLE_SITE_VERIFICATION,
+    },
     alternates: {
       canonical,
+      // Cross-domain hreflang: zh content is canonical on f1frp.com, en
+      // content on getfrp.com. This signals Google they are language
+      // alternates of the same content, not duplicates.
       languages: {
-        zh: siteUrl,
-        en: `${siteUrl}/en`,
-        "x-default": siteUrl,
+        zh: SITE_ZH,
+        "zh-CN": SITE_ZH,
+        en: SITE_EN,
+        "x-default": SITE_EN,
       },
     },
     other: {
