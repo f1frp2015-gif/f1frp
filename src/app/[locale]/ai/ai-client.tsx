@@ -2,60 +2,45 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { getMessageText } from "@/lib/ai/utils";
-import { AiMessage } from "@/components/ai-message";
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Icon } from "@/components/icon";
+import { AiMessage, type Citation } from "@/components/ai-message";
+import { SourceCards } from "@/components/ai-source-cards";
+import { AiFollowups } from "@/components/ai-followups";
+import { useState, useRef, useEffect, useMemo } from "react";
+import {
+  ArrowUp,
+  Sparkles,
+  Copy,
+  Check,
+  MessagesSquare,
+  Plus,
+} from "lucide-react";
+import { Link } from "@/i18n/navigation";
 
-function CitationList({
-  citations,
-}: {
-  citations: Array<{ n: number; title: string; url: string | null }>;
-}) {
-  const t = useTranslations("AI");
-  if (!citations?.length) return null;
-  return (
-    <div className="mt-3 border-t pt-2">
-      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-        {t("sourcesLabel", { count: citations.length })}
-      </div>
-      <ol className="space-y-1">
-        {citations.map((c) => (
-          <li key={c.n} className="flex items-start gap-1.5 text-[11px] leading-snug">
-            <span className="mt-0.5 inline-flex h-4 min-w-[18px] shrink-0 items-center justify-center rounded-sm border border-signal/30 bg-signal/10 px-1 font-mono text-[10px] text-signal">
-              {c.n}
-            </span>
-            {c.url ? (
-              <a
-                className="text-foreground hover:text-signal hover:underline"
-                href={c.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {c.title}
-              </a>
-            ) : (
-              <span className="text-foreground">{c.title}</span>
-            )}
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
+type UIMsg = {
+  id: string;
+  role: "user" | "assistant" | "system";
+  metadata?: { citations?: Citation[] };
+};
 
-const SCENARIO_KEYS = [
-  { iconKey: "ai-select", key: "select" },
-  { iconKey: "ai-formula", key: "formula" },
-  { iconKey: "ai-process", key: "process" },
-  { iconKey: "ai-standard", key: "standard" },
-  { iconKey: "ai-price", key: "price" },
-  { iconKey: "ai-supplier", key: "supplier" },
-] as const;
+const STARTER_EN: ReadonlyArray<string> = [
+  "Find a verified Chinese FRP grating supplier with CE marking, MOQ 200 m².",
+  "Compare GFRP vs CFRP for a 3 m marine spar — strength, weight, cost.",
+  "What CBAM data do I request from a Chinese FRP profile manufacturer?",
+  "Which GB standard maps to ASTM D3039 tensile?",
+  "Recommend a vinyl ester resin for 30% HCl service at 60 °C.",
+  "ISO 9001 + EN 13706 pultrusion suppliers in Jiangsu, ranked by scale.",
+];
+
+const STARTER_ZH: ReadonlyArray<string> = [
+  "推荐一款耐 30% 盐酸 60℃ 服役的乙烯基酯树脂。",
+  "GB/T 1447 与 ASTM D3039 拉伸试验如何对照？",
+  "国内 ISO 9001 + EN 13706 拉挤厂家，按规模排序给我 5 家。",
+  "为风电叶片选材：玻纤 vs 碳纤的造价与性能对比。",
+  "出口欧洲的 FRP 型材需要哪些合规文件（CBAM / REACH / CE）？",
+  "真空导入工艺常见的孔隙率超标，怎么排查？",
+];
 
 export function AiAssistantClient({
   initialQuery,
@@ -63,18 +48,31 @@ export function AiAssistantClient({
   initialQuery?: string;
 }) {
   const t = useTranslations("AI");
+  const localeRaw = useLocale();
+  const locale: "zh" | "en" = localeRaw === "en" ? "en" : "zh";
+  const isEn = locale === "en";
+
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoSentRef = useRef(false);
 
-  const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
-  });
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        body: { locale },
+      }),
+    [locale],
+  );
+
+  const { messages, sendMessage, setMessages, status } = useChat({ transport });
 
   const busy = status === "streaming" || status === "submitted";
+  const hasMessages = messages.length > 0;
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current)
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
   useEffect(() => {
@@ -86,113 +84,344 @@ export function AiAssistantClient({
   }, [initialQuery]);
 
   async function send(text?: string) {
-    const msg = text || input.trim();
+    const msg = (text ?? input).trim();
     if (!msg || busy) return;
     setInput("");
     await sendMessage({ text: msg });
   }
 
+  function newChat() {
+    setMessages([]);
+    setInput("");
+    autoSentRef.current = false;
+  }
+
+  const starters = isEn ? STARTER_EN : STARTER_ZH;
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="mb-8 text-center">
-        <Badge variant="secondary" className="mb-3">Beta</Badge>
-        <h1 className="text-3xl font-bold">{t("heroTitle")}</h1>
-        <p className="mt-2 text-muted-foreground">{t("heroSubtitle")}</p>
+    <div className="relative mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl flex-col px-4 sm:px-6">
+      {/* Top bar: brand + new-chat */}
+      <div className="flex items-center justify-between border-b border-border/40 py-4">
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className="text-foreground" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {isEn ? "getfrp · sourcing assistant" : "复材 AI · 选材与采购助手"}
+          </span>
+        </div>
+        {hasMessages && (
+          <button
+            type="button"
+            onClick={newChat}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+          >
+            <Plus size={11} />
+            {isEn ? "New chat" : "新对话"}
+          </button>
+        )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <div className="flex flex-col">
-          <div ref={scrollRef} className="min-h-[400px] max-h-[600px] flex-1 overflow-y-auto rounded-lg border bg-muted/20 p-4 space-y-4">
-            {messages.length === 0 && (
-              <div className="flex h-full items-center justify-center py-16">
-                <div className="text-center">
-                  <Icon name="composite-ai" size={56} className="mx-auto text-foreground" />
-                  <h3 className="mt-4 text-lg font-semibold tracking-tight">{t("greeting")}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{t("greetingSub")}</p>
-                </div>
-              </div>
-            )}
-            {messages.map((m) => (
-              <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-relaxed ${m.role === "user" ? "bg-foreground text-background" : "bg-background border"}`}>
-                  {m.role === "assistant" ? (
-                    <>
-                      <AiMessage
-                        content={getMessageText(m)}
-                        citations={
-                          ((m as { metadata?: { citations?: Array<{ n: number; title: string; url: string | null }> } }).metadata?.citations) ?? []
-                        }
-                      />
-                      <CitationList
-                        citations={
-                          ((m as { metadata?: { citations?: Array<{ n: number; title: string; url: string | null }> } }).metadata?.citations) ?? []
-                        }
-                      />
-                    </>
-                  ) : getMessageText(m)}
-                </div>
-              </div>
-            ))}
-            {busy && (
-              <div className="flex justify-start">
-                <div className="rounded-lg border bg-background px-4 py-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="flex gap-1">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-foreground/30" style={{ animationDelay: "0ms" }} />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-foreground/30" style={{ animationDelay: "150ms" }} />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-foreground/30" style={{ animationDelay: "300ms" }} />
-                    </div>
-                    {t("thinking")}
-                  </div>
-                </div>
-              </div>
+      {/* Conversation column. Empty state vs. message stream. */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
+        {!hasMessages ? (
+          <EmptyState
+            isEn={isEn}
+            starters={starters}
+            onAsk={(q) => send(q)}
+            disabled={busy}
+          />
+        ) : (
+          <div className="space-y-10">
+            {messages.map((m, idx) => {
+              if (m.role === "user") {
+                return (
+                  <UserQuery key={m.id} text={getMessageText(m)} />
+                );
+              }
+              if (m.role === "assistant") {
+                const meta = (m as UIMsg).metadata;
+                const citations = meta?.citations ?? [];
+                const text = getMessageText(m);
+                // Find the immediately preceding user question for the
+                // follow-up call. Walk backwards.
+                let prevUser = "";
+                for (let i = idx - 1; i >= 0; i--) {
+                  if (messages[i].role === "user") {
+                    prevUser = getMessageText(messages[i]);
+                    break;
+                  }
+                }
+                const isLast = idx === messages.length - 1;
+                const streaming = isLast && busy;
+                return (
+                  <AssistantAnswer
+                    key={m.id}
+                    id={m.id}
+                    text={text}
+                    citations={citations}
+                    locale={locale}
+                    question={prevUser}
+                    streaming={streaming}
+                    onAsk={(q) => send(q)}
+                    disabled={busy}
+                  />
+                );
+              }
+              return null;
+            })}
+            {busy && messages[messages.length - 1]?.role === "user" && (
+              <ThinkingIndicator label={t("thinking")} />
             )}
           </div>
+        )}
+      </div>
 
-          <div className="mt-3 flex gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={t("placeholder")}
-              className="flex-1 rounded-md border bg-background px-4 py-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            />
-            <Button type="button" size="lg" disabled={busy || !input.trim()} className="shrink-0" onClick={() => send()}>
-              {t("send")}
-            </Button>
-          </div>
-          <p className="mt-2 text-center text-[10px] text-muted-foreground">{t("disclaimer")}</p>
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground">{t("scenariosTitle")}</h3>
-          {SCENARIO_KEYS.map((s) => {
-            const title = t(`scenarios.${s.key}.title`);
-            const prompts = [
-              t(`scenarios.${s.key}.p1`),
-              t(`scenarios.${s.key}.p2`),
-              t(`scenarios.${s.key}.p3`),
-            ];
-            return (
-              <Card key={s.key}>
-                <CardHeader className="p-3 pb-1">
-                  <CardTitle className="flex items-center gap-2 text-sm">
-                    <Icon name={s.iconKey} size={16} className="text-signal" />
-                    {title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 pt-0 space-y-1">
-                  {prompts.map((p) => (
-                    <button key={p} onClick={() => send(p)} className="block w-full rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                      {p}
-                    </button>
-                  ))}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+      {/* Sticky input bar */}
+      <div className="sticky bottom-0 -mx-4 border-t border-border/60 bg-background/95 px-4 pb-5 pt-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+          className="group relative flex items-end gap-2 rounded-2xl border-2 border-border/80 bg-background p-2.5 shadow-sm transition-all focus-within:border-foreground/50"
+        >
+          <Sparkles
+            size={16}
+            className="mb-1.5 ml-1 shrink-0 text-muted-foreground transition-colors group-focus-within:text-foreground"
+          />
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
+            placeholder={
+              isEn
+                ? "Ask anything about sourcing FRP from China…"
+                : "问任何复材选材、配方、标准、供应商问题…"
+            }
+            disabled={busy}
+            rows={1}
+            spellCheck={false}
+            autoComplete="off"
+            className="min-h-[36px] max-h-40 flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 disabled:opacity-60"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || busy}
+            aria-label={isEn ? "Send" : "发送"}
+            className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <ArrowUp size={14} strokeWidth={2.5} />
+          </button>
+        </form>
+        <p className="mt-2 text-center text-[10px] text-muted-foreground">
+          {t("disclaimer")}
+        </p>
       </div>
     </div>
+  );
+}
+
+function EmptyState({
+  isEn,
+  starters,
+  onAsk,
+  disabled,
+}: {
+  isEn: boolean;
+  starters: ReadonlyArray<string>;
+  onAsk: (q: string) => void;
+  disabled: boolean;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center pt-12 pb-16 sm:pt-20">
+      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-background">
+        <Sparkles size={20} />
+      </div>
+      <h1 className="mt-5 text-center text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">
+        {isEn
+          ? "Ask anything about sourcing FRP from China."
+          : "问关于复合材料的任何问题。"}
+      </h1>
+      <p className="mt-3 max-w-xl text-center text-[14px] leading-relaxed text-muted-foreground">
+        {isEn
+          ? "Verified suppliers, ASTM-mapped specs, and CBAM-ready paperwork — in one cited answer."
+          : "从材料、配方、标准到国内供应商的统一回答，每条结论都附引用。"}
+      </p>
+      <div className="mt-8 grid w-full gap-2 sm:grid-cols-2">
+        {starters.map((s) => (
+          <button
+            key={s}
+            type="button"
+            disabled={disabled}
+            onClick={() => onAsk(s)}
+            className="group flex items-start gap-2 rounded-lg border border-border/60 bg-background p-3 text-left text-[13px] leading-snug transition-colors hover:border-foreground/40 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Sparkles
+              size={13}
+              className="mt-1 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-foreground"
+            />
+            <span>{s}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UserQuery({ text }: { text: string }) {
+  return (
+    <div>
+      <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        Question
+      </div>
+      <h2 className="mt-1.5 text-xl font-semibold leading-snug tracking-[-0.01em] sm:text-2xl">
+        {text}
+      </h2>
+    </div>
+  );
+}
+
+function ThinkingIndicator({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+      <div className="flex gap-1">
+        {[0, 150, 300].map((d) => (
+          <span
+            key={d}
+            className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/30"
+            style={{ animationDelay: `${d}ms` }}
+          />
+        ))}
+      </div>
+      {label}
+    </div>
+  );
+}
+
+function AssistantAnswer({
+  id,
+  text,
+  citations,
+  locale,
+  question,
+  streaming,
+  onAsk,
+  disabled,
+}: {
+  id: string;
+  text: string;
+  citations: Citation[];
+  locale: "zh" | "en";
+  question: string;
+  streaming: boolean;
+  onAsk: (q: string) => void;
+  disabled: boolean;
+}) {
+  const isEn = locale === "en";
+  const [copied, setCopied] = useState(false);
+
+  // Detect supplier intent from retrieved citations — surface a "Send to
+  // Doris as RFQ" call to action when the assistant grounded its answer
+  // on the supplier directory.
+  const supplierHits = useMemo(
+    () => citations.filter((c) => c.sourceType === "supplier"),
+    [citations],
+  );
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard access denied — silent
+    }
+  }
+
+  return (
+    <article>
+      {citations.length > 0 && (
+        <SourceCards
+          citations={citations}
+          label={isEn ? "Sources" : "来源"}
+        />
+      )}
+
+      <div className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        <Sparkles size={11} className="text-foreground/70" />
+        {isEn ? "Answer" : "回答"}
+      </div>
+
+      <div className="prose prose-sm dark:prose-invert max-w-none">
+        <AiMessage content={text} citations={citations} />
+      </div>
+
+      {!streaming && (
+        <>
+          {/* Action row: copy + supplier-RFQ escalation */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={copy}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+            >
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied
+                ? isEn
+                  ? "Copied"
+                  : "已复制"
+                : isEn
+                  ? "Copy answer"
+                  : "复制回答"}
+            </button>
+
+            {supplierHits.length > 0 && (
+              <a
+                href={`mailto:doris.li@f1composite.com?subject=${encodeURIComponent(
+                  isEn
+                    ? `RFQ — ${question.slice(0, 80)}`
+                    : `询盘 — ${question.slice(0, 80)}`,
+                )}&body=${encodeURIComponent(
+                  (isEn
+                    ? `Hi Doris,\n\nI saw the following suppliers via the getfrp assistant and would like to RFQ them:\n\n${supplierHits
+                        .map((s) => `- ${s.title}`)
+                        .join("\n")}\n\nMy question was:\n${question}\n\nSpec / volume / target country:\n[fill in]\n\nThanks,`
+                    : `Doris，你好，\n\n通过 复材 AI 看到以下供应商，想发起询盘：\n\n${supplierHits
+                        .map((s) => `- ${s.title}`)
+                        .join("\n")}\n\n我的问题：\n${question}\n\n规格 / 数量 / 目标市场：\n[请补充]\n\n谢谢，`),
+                )}`}
+                className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1 text-[11px] text-background transition-colors hover:bg-foreground/90"
+              >
+                <MessagesSquare size={12} />
+                {isEn
+                  ? `Send these ${supplierHits.length} to Doris as RFQ`
+                  : `把这 ${supplierHits.length} 家发给 Doris 询盘`}
+              </a>
+            )}
+
+            <Link
+              href={"/rfq" as never}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+            >
+              {isEn ? "Structured RFQ" : "结构化询盘"}
+            </Link>
+          </div>
+
+          {/* Auto-fetched related questions */}
+          <AiFollowups
+            assistantMessageId={id}
+            question={question}
+            answer={text}
+            locale={locale}
+            onAsk={onAsk}
+            disabled={disabled}
+          />
+        </>
+      )}
+    </article>
   );
 }
