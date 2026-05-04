@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { asc } from "drizzle-orm";
 import { JsonLd } from "@/components/json-ld";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -18,8 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
-import { db } from "@/lib/db";
-import { processes as processesTable } from "@/lib/db/schema";
+import { processes as processesData } from "@/lib/data/tech";
 
 export async function generateMetadata({
   params,
@@ -41,11 +39,10 @@ export default async function TechPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Tech" });
+  const isEn = locale === "en";
 
-  const rows = await db
-    .select()
-    .from(processesTable)
-    .orderBy(asc(processesTable.id));
+  // 静态数据 source of truth — DB processes 表是其副本，无额外字段
+  const rows = [...processesData].sort((a, b) => a.id.localeCompare(b.id));
 
   const tools = [
     { nameKey: "tool1Name" as const, descKey: "tool1Desc" as const, statusKey: "live" as const, href: "/tech/calculator" as const },
@@ -67,9 +64,9 @@ export default async function TechPage({
       position: i + 1,
       item: {
         "@type": "Thing",
-        name: p.name,
-        alternateName: p.nameEn ?? undefined,
-        description: p.description ?? undefined,
+        name: isEn ? p.nameEn : p.name,
+        alternateName: isEn ? p.name : p.nameEn,
+        description: isEn ? p.descriptionEn : p.description,
         url: `https://f1frp.com/${locale}/tech#${p.id}`,
       },
     })),
@@ -91,19 +88,22 @@ export default async function TechPage({
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {rows.map((p) => {
-            const applications = (p.applications ?? []) as string[];
+            const applications = isEn ? p.applicationsEn : p.applications;
+            const primaryName = isEn ? p.nameEn : p.name;
+            const altName = isEn ? p.name : p.nameEn;
+            const desc = isEn ? p.descriptionEn : p.description;
             return (
               <Card key={p.id} className="flex flex-col">
                 <CardHeader>
-                  <CardTitle className="text-base">{p.name}</CardTitle>
-                  {p.nameEn && (
-                    <CardDescription className="text-xs">{p.nameEn}</CardDescription>
+                  <CardTitle className="text-base">{primaryName}</CardTitle>
+                  {altName && (
+                    <CardDescription className="text-xs">{altName}</CardDescription>
                   )}
                 </CardHeader>
                 <CardContent className="flex-1">
-                  {p.description && (
+                  {desc && (
                     <p className="text-sm text-muted-foreground line-clamp-3">
-                      {p.description}
+                      {desc}
                     </p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-1">
@@ -123,26 +123,29 @@ export default async function TechPage({
           <h3 className="mb-4 text-lg font-semibold">{t("processDetailTitle")}</h3>
           <Accordion className="w-full">
             {rows.map((p) => {
-              const advantages = (p.advantages ?? []) as string[];
-              const disadvantages = (p.disadvantages ?? []) as string[];
-              const applications = (p.applications ?? []) as string[];
-              const keyParameters = (p.keyParameters ?? []) as string[];
+              const advantages = isEn ? p.advantagesEn : p.advantages;
+              const disadvantages = isEn ? p.disadvantagesEn : p.disadvantages;
+              const applications = isEn ? p.applicationsEn : p.applications;
+              const keyParameters = isEn ? p.keyParametersEn : p.keyParameters;
+              const primaryName = isEn ? p.nameEn : p.name;
+              const altName = isEn ? p.name : p.nameEn;
+              const desc = isEn ? p.descriptionEn : p.description;
               return (
                 <AccordionItem key={p.id} value={p.id}>
                   <AccordionTrigger className="text-left">
                     <div>
-                      <span className="font-semibold">{p.name}</span>
-                      {p.nameEn && (
+                      <span className="font-semibold">{primaryName}</span>
+                      {altName && (
                         <span className="ml-2 text-sm text-muted-foreground">
-                          {p.nameEn}
+                          {altName}
                         </span>
                       )}
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 pb-2">
-                      {p.description && (
-                        <p className="text-sm leading-relaxed">{p.description}</p>
+                      {desc && (
+                        <p className="text-sm leading-relaxed">{desc}</p>
                       )}
 
                       <div className="grid gap-4 sm:grid-cols-2">
