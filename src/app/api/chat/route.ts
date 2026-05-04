@@ -1,6 +1,6 @@
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { getChatModel, isChatConfigured } from "@/lib/ai/provider";
-import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
+import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     }
 
     const systemParts: string[] = [
-      SYSTEM_PROMPT,
+      locale === "en" ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT,
       localeInstruction(locale),
       citationGuidance(locale),
     ];

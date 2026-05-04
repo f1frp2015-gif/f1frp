@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "regions": ["fra1", "iad1"],
   "crons": [
     {
       "path": "/api/cron/ingest-daily",

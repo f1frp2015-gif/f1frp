@@ -30,6 +30,7 @@ import {
 import { priceData } from "@/lib/data/materials";
 import { newsList } from "@/lib/data/news";
 import { ValueChainSection } from "@/components/value-chain-section";
+import { HomePageEnglish } from "./home-english";
 
 // Homepage live stats re-query DB on this cadence. DB count queries hit
 // indexed tables so 60s is safe even under traffic.
@@ -75,6 +76,13 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+
+  // EN-side (getfrp.com) gets a sourcing-led layout aimed at overseas
+  // FRP engineers / procurement. ZH side keeps the AI-platform layout
+  // tuned for domestic suppliers.
+  if (locale === "en") {
+    return <HomePageEnglish />;
+  }
 
   const t = await getTranslations("Home");
   const tm = await getTranslations("Home.modules");

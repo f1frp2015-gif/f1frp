@@ -29,7 +29,11 @@ export async function Footer() {
     },
     {
       title: t("about"),
-      links: [{ label: t("about"), href: "/about" as const }],
+      links: [
+        { label: t("about"), href: "/about" as const },
+        { label: t("privacy"), href: "/privacy" as const },
+        { label: t("terms"), href: "/terms" as const },
+      ],
     },
   ];
 

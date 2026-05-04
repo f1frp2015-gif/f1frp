@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
-import { Mail, MessageCircle, Smartphone } from "lucide-react";
+import {
+  Mail,
+  MessageCircle,
+  Smartphone,
+  ShieldCheck,
+  Building2,
+  Globe2,
+  FileCheck2,
+} from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { JsonLd } from "@/components/json-ld";
 import { CONTACT } from "@/lib/contact";
 
 export async function generateMetadata({
@@ -40,6 +49,7 @@ export default async function AboutPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+      {locale === "en" && <EnglishTrustBlock />}
       <div className="mb-10 text-center">
         <h1 className="text-3xl font-bold">{t("h1")}</h1>
         <p className="mt-3 text-lg text-muted-foreground leading-relaxed">
@@ -188,6 +198,156 @@ export default async function AboutPage({
           <p className="mt-2 text-sm text-muted-foreground">{t("adDesc")}</p>
           <Button className="mt-4">{t("adCta")}</Button>
         </section>
+      </div>
+    </div>
+  );
+}
+
+// EN-side trust block: who you're buying from, registered identity, banking,
+// QA approach, contact. Inserted above the (auto-translated) generic body so
+// overseas buyers see proof of identity within the first viewport.
+//
+// TODO(user): supply ① Doris LinkedIn URL ② company unified social credit
+// code ③ a 12-15 sec factory walk-through video URL ④ 2-3 customer testimonial
+// quotes (anonymized OK). Until then, fields read "available on request".
+function EnglishTrustBlock() {
+  return (
+    <section className="mb-12 overflow-hidden rounded-xl border border-border/70">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Chongqing Yaoyi Advanced Materials Technology Co., Ltd.",
+          alternateName: ["F1 Composite", "getfrp"],
+          url: "https://getfrp.com",
+          foundingDate: "2015",
+          address: {
+            "@type": "PostalAddress",
+            addressCountry: "CN",
+            addressRegion: "Chongqing",
+          },
+          contactPoint: {
+            "@type": "ContactPoint",
+            contactType: "sales",
+            name: "Doris Li",
+            email: "doris.li@f1composite.com",
+            availableLanguage: ["English", "Mandarin"],
+          },
+        }}
+      />
+      <div className="border-b border-border/70 bg-muted/30 px-6 py-5">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          WHO YOU&apos;RE BUYING FROM
+        </div>
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+          F1 Composite — China-based composites sourcing desk
+        </h2>
+        <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
+          Operated by{" "}
+          <strong>
+            Chongqing Yaoyi Advanced Materials Technology Co., Ltd.
+          </strong>{" "}
+          (founded 2015), a Chongqing-registered exporter that has been
+          visiting Chinese FRP / GFRP / CFRP plants in person for a decade.
+          Sourcing desk led by Doris Li, a composites engineer who speaks
+          English and Mandarin and handles every overseas RFQ end-to-end.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-px bg-border/70 sm:grid-cols-4">
+        <TrustBlock
+          Icon={Building2}
+          label="Legal entity"
+          value="Chongqing Yaoyi"
+          sub="USCC available on request"
+        />
+        <TrustBlock
+          Icon={Globe2}
+          label="Founded"
+          value="2015"
+          sub="10 years operating"
+        />
+        <TrustBlock
+          Icon={ShieldCheck}
+          label="Bank routing"
+          value="China Merchants Bank"
+          sub="USD T/T · L/C accepted"
+        />
+        <TrustBlock
+          Icon={FileCheck2}
+          label="Compliance pack"
+          value="CBAM · REACH · MTC"
+          sub="Generated per shipment"
+        />
+      </div>
+
+      <div className="border-t border-border/70 bg-background px-6 py-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              SOURCING DESK
+            </div>
+            <div className="mt-2 text-base font-semibold">Doris Li</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              Composites engineer · English / Mandarin
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+              <a
+                href="mailto:doris.li@f1composite.com"
+                className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-background transition-colors hover:bg-foreground/90"
+              >
+                <Mail size={12} /> Email Doris
+              </a>
+              <a
+                href="https://wa.me/8613883338993"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 transition-colors hover:bg-muted"
+              >
+                WhatsApp
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              HOW WE VERIFY SUPPLIERS
+            </div>
+            <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+              <li>· Business license &amp; USCC cross-checked against PRC registry</li>
+              <li>· Production scale tier (Major / Large / Mid / Small) field-validated</li>
+              <li>· Certifications (ISO 9001, CE, FDA, …) original copies on file</li>
+              <li>· Plant visit photos / video — available before PO</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TrustBlock({
+  Icon,
+  label,
+  value,
+  sub,
+}: {
+  Icon: typeof Mail;
+  label: string;
+  value: string;
+  sub: string;
+}) {
+  return (
+    <div className="bg-background p-4">
+      <div className="flex items-start gap-2">
+        <Icon size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-foreground" />
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            {label}
+          </div>
+          <div className="mt-1 text-sm font-semibold">{value}</div>
+          <div className="mt-0.5 text-[11px] text-muted-foreground">{sub}</div>
+        </div>
       </div>
     </div>
   );

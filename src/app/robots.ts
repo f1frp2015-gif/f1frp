@@ -1,14 +1,37 @@
 import type { MetadataRoute } from "next";
-import { CURRENT_SITE_URL } from "@/lib/sites";
+import { ACTIVE_LOCALE, CURRENT_SITE_URL } from "@/lib/sites";
 
 const disallow = ["/api/", "/dashboard/", "/sign-in", "/sign-up"];
 
-// Explicit allowlist for China-locale search engines + AI crawlers.
-// Making them explicit (instead of only "*") helps some engines verify crawl access
-// during webmaster registration.
-const userAgents = [
+// Western search + AI crawlers — primary audience for getfrp.com.
+const WESTERN_AGENTS = [
   "*",
-  // China
+  "Googlebot",
+  "Googlebot-Image",
+  "Googlebot-News",
+  "Bingbot",
+  "DuckDuckBot",
+  "YandexBot",
+  // AI / LLM crawlers
+  "GPTBot",
+  "OAI-SearchBot",
+  "ChatGPT-User",
+  "PerplexityBot",
+  "Perplexity-User",
+  "ClaudeBot",
+  "anthropic-ai",
+  "Google-Extended",
+  "Applebot",
+  "Applebot-Extended",
+  "CCBot",
+  "Amazonbot",
+  "MistralAI-User",
+];
+
+// China-locale crawlers — only meaningful on f1frp.com (zh).
+// Letting them crawl getfrp.com wastes Vercel egress and leaks the dual-track
+// architecture to Western SEO competitors via WHOIS-style bot fingerprinting.
+const CHINA_AGENTS = [
   "Baiduspider",
   "Baiduspider-render",
   "Baiduspider-image",
@@ -21,25 +44,16 @@ const userAgents = [
   "Bytespider", // ByteDance / 豆包 / 今日头条
   "toutiaospider",
   "iaskspider", // 讯飞
-  // AI / LLM crawlers
-  "GPTBot",
-  "OAI-SearchBot",
-  "ChatGPT-User",
-  "PerplexityBot",
-  "Perplexity-User",
-  "ClaudeBot",
-  "anthropic-ai",
-  "Google-Extended",
-  "Applebot-Extended",
-  "CCBot",
-  "Amazonbot",
-  "Bingbot",
-  "MistralAI-User",
   "Kimi-Bot",
   "MoonshotAI",
 ];
 
 export default function robots(): MetadataRoute.Robots {
+  const userAgents =
+    ACTIVE_LOCALE === "en"
+      ? WESTERN_AGENTS
+      : [...WESTERN_AGENTS, ...CHINA_AGENTS];
+
   return {
     rules: userAgents.map((ua) => ({
       userAgent: ua,

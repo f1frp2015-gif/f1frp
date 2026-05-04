@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { sql, isNotNull } from "drizzle-orm";
 import { setRequestLocale } from "next-intl/server";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ACTIVE_LOCALE } from "@/lib/sites";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { PaymentDialog } from "./payment-dialog";
@@ -59,6 +61,14 @@ export default async function OverseasPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+
+  // /overseas is a Chinese-language pitch aimed at PRC manufacturers selling
+  // their products through getfrp. It has no purpose on the EN-host (getfrp.com),
+  // so redirect overseas-side visitors back to the English home.
+  if (ACTIVE_LOCALE === "en" || locale === "en") {
+    redirect("/");
+  }
+
   setRequestLocale(locale);
 
   const [
