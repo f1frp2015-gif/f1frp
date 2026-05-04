@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { sql, isNotNull } from "drizzle-orm";
 import { setRequestLocale } from "next-intl/server";
 import { ArrowRight, ArrowUpRight } from "lucide-react";

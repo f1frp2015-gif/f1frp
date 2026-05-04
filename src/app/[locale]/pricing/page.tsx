@@ -1,21 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { personalPlans, formatPrice, type Plan } from "@/lib/pricing";
 import { CONTACT } from "@/lib/contact";
 import { PaymentDialog } from "@/components/payment/payment-dialog";
 
+// 仅中文站（f1frp.com）需要套餐页 — getfrp.com 海外侧已取消会员/收费体系
 export const metadata: Metadata = {
   title: "套餐价格 / Pricing | f1frp",
   description:
     "复材站对个人 100% 免费，AI 重度用户可选 ¥29/月 高频版；供应商出海变现走 /overseas 按有效 RFQ 付费方案，无任何企业年费。",
   alternates: {
     canonical: "https://f1frp.com/pricing",
-    languages: {
-      zh: "https://f1frp.com/pricing",
-      en: "https://f1frp.com/en/pricing",
-    },
   },
 };
 
@@ -117,7 +115,8 @@ function PlanCard({ plan, lang }: { plan: Plan; lang: "zh" | "en" }) {
 
 export default async function PricingPage() {
   const locale = (await getLocale()) as "zh" | "en";
-  const lang: "zh" | "en" = locale === "en" ? "en" : "zh";
+  if (locale === "en") notFound();
+  const lang: "zh" | "en" = "zh";
 
   const personal = personalPlans();
 

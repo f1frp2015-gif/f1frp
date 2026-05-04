@@ -1,7 +1,11 @@
 import type { MetadataRoute } from "next";
 import { ACTIVE_LOCALE, CURRENT_SITE_URL } from "@/lib/sites";
 
-const disallow = ["/api/", "/dashboard/", "/sign-in", "/sign-up"];
+const baseDisallow = ["/api/", "/dashboard/", "/sign-in", "/sign-up"];
+
+// getfrp.com 海外侧不再有会员/收费体系 — 屏蔽 zh-only 的 pricing / overseas
+// 即便 sitemap 已不收录，也禁止爬虫从其它入口 (内部链接 / 历史外链) 抓到这两个路径
+const enExtraDisallow = ["/pricing", "/overseas"];
 
 // Western search + AI crawlers — primary audience for getfrp.com.
 const WESTERN_AGENTS = [
@@ -53,6 +57,11 @@ export default function robots(): MetadataRoute.Robots {
     ACTIVE_LOCALE === "en"
       ? WESTERN_AGENTS
       : [...WESTERN_AGENTS, ...CHINA_AGENTS];
+
+  const disallow =
+    ACTIVE_LOCALE === "en"
+      ? [...baseDisallow, ...enExtraDisallow]
+      : baseDisallow;
 
   return {
     rules: userAgents.map((ua) => ({

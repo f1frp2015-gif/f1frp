@@ -118,12 +118,20 @@ export default async function SuppliersPage({
             }
             label={isEn ? "Ask AI to match a supplier" : "AI 智能匹配供应商"}
           />
-          <Link
-            href={"/dashboard/enterprise" as "/dashboard"}
-            className={buttonVariants()}
-          >
-            {t("ctaFreeList")}
-          </Link>
+          {/* getfrp（en）侧无会员/收费体系，海外买家走 /rfq 给 Doris；
+              dashboard/enterprise 仅对 zh 侧的中国工厂开放 */}
+          {isEn ? (
+            <Link href={"/rfq" as never} className={buttonVariants()}>
+              Submit an RFQ
+            </Link>
+          ) : (
+            <Link
+              href={"/dashboard/enterprise" as "/dashboard"}
+              className={buttonVariants()}
+            >
+              {t("ctaFreeList")}
+            </Link>
+          )}
         </div>
       </div>
 
@@ -134,21 +142,46 @@ export default async function SuppliersPage({
       />
 
       <div className="mt-10 rounded-lg border bg-muted/30 p-8 text-center">
-        <h3 className="text-xl font-bold">{t("ctaBoxTitle")}</h3>
-        <p className="mt-2 text-sm text-muted-foreground">{t("ctaBoxSub")}</p>
+        <h3 className="text-xl font-bold">
+          {isEn ? "Ready to source?" : t("ctaBoxTitle")}
+        </h3>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {isEn
+            ? "Tell Doris what you need. First reply within 24 hours, no account required."
+            : t("ctaBoxSub")}
+        </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href={"/dashboard/enterprise" as "/dashboard"}
-            className={buttonVariants({ size: "lg" })}
-          >
-            {t("ctaFreeEnroll")}
-          </Link>
-          <Link
-            href={"/pricing" as "/"}
-            className={buttonVariants({ size: "lg", variant: "outline" })}
-          >
-            {t("ctaMembership")}
-          </Link>
+          {isEn ? (
+            <>
+              <Link
+                href={"/rfq" as never}
+                className={buttonVariants({ size: "lg" })}
+              >
+                Submit an RFQ
+              </Link>
+              <a
+                href="mailto:doris.li@f1composite.com"
+                className={buttonVariants({ size: "lg", variant: "outline" })}
+              >
+                Email Doris
+              </a>
+            </>
+          ) : (
+            <>
+              <Link
+                href={"/dashboard/enterprise" as "/dashboard"}
+                className={buttonVariants({ size: "lg" })}
+              >
+                {t("ctaFreeEnroll")}
+              </Link>
+              <Link
+                href={"/pricing" as "/"}
+                className={buttonVariants({ size: "lg", variant: "outline" })}
+              >
+                {t("ctaMembership")}
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

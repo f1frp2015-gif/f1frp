@@ -13,11 +13,15 @@ import { CURRENT_SITE_URL, ACTIVE_LOCALE, crossSiteUrls } from "@/lib/sites";
 
 export const revalidate = 3600;
 
-const staticRoutes: Array<{
+type StaticRoute = {
   path: string;
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
   priority: number;
-}> = [
+  // 仅 zh 站收录的路径（getfrp.com 海外侧已取消会员/收费体系）
+  zhOnly?: boolean;
+};
+
+const staticRoutes: StaticRoute[] = [
   { path: "/", changeFrequency: "daily", priority: 1.0 },
   { path: "/materials", changeFrequency: "daily", priority: 0.9 },
   { path: "/formulas", changeFrequency: "weekly", priority: 0.8 },
@@ -33,9 +37,9 @@ const staticRoutes: Array<{
   { path: "/community", changeFrequency: "weekly", priority: 0.5 },
   { path: "/trade", changeFrequency: "weekly", priority: 0.6 },
   { path: "/about", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/overseas", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/overseas", changeFrequency: "weekly", priority: 0.8, zhOnly: true },
   { path: "/source-from-china", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/pricing", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/pricing", changeFrequency: "monthly", priority: 0.6, zhOnly: true },
 ];
 
 async function safeFetch<T>(fn: () => Promise<T>): Promise<T | []> {
@@ -56,8 +60,13 @@ function urlFor(path: string): string {
 // Cross-domain hreflang: each path has a zh version on f1frp.com and an en
 // version on getfrp.com. This is the key signal to Google that they are
 // alternate language versions, not duplicates competing for ranking.
-function alternatesFor(path: string) {
+function alternatesFor(path: string, zhOnly = false) {
   const { zh, en } = crossSiteUrls(path);
+  // zh-only 路径（pricing / overseas）海外侧已 404/redirect，
+  // 不发 EN hreflang，避免 Google 抓到失效跨域 alternate
+  if (zhOnly) {
+    return { languages: { zh, "zh-CN": zh, "x-default": zh } };
+  }
   return {
     languages: {
       zh,
@@ -71,13 +80,15 @@ function alternatesFor(path: string) {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((r) => ({
-    url: urlFor(r.path),
-    lastModified: now,
-    changeFrequency: r.changeFrequency,
-    priority: r.priority,
-    alternates: alternatesFor(r.path),
-  }));
+  const staticEntries: MetadataRoute.Sitemap = staticRoutes
+    .filter((r) => !(r.zhOnly && ACTIVE_LOCALE === "en"))
+    .map((r) => ({
+      url: urlFor(r.path),
+      lastModified: now,
+      changeFrequency: r.changeFrequency,
+      priority: r.priority,
+      alternates: alternatesFor(r.path, r.zhOnly),
+    }));
 
   const [
     articleRows,

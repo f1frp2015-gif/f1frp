@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
+import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
@@ -26,6 +27,8 @@ export default async function DashboardLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  // getfrp（en）侧已取消会员/收费体系，海外侧没有 dashboard
+  if (locale === "en") notFound();
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Dashboard" });
 

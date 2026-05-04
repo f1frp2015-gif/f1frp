@@ -46,6 +46,8 @@ export default async function DownloadsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Downloads" });
+  // getfrp（en）侧无会员/收费体系：empty/CTA 不再指向 dashboard，改为 /rfq + Doris
+  const isEn = locale === "en";
 
   const typeLabels = t.raw("types") as Record<string, string>;
 
@@ -70,9 +72,15 @@ export default async function DownloadsPage({
               {t("emptySub")}
             </p>
             <div className="mt-6 flex items-center justify-center gap-3">
-              <Link href="/dashboard/enterprise" className={buttonVariants()}>
-                {t("ctaSupplier")}
-              </Link>
+              {isEn ? (
+                <Link href={"/rfq" as never} className={buttonVariants()}>
+                  Submit an RFQ
+                </Link>
+              ) : (
+                <Link href="/dashboard/enterprise" className={buttonVariants()}>
+                  {t("ctaSupplier")}
+                </Link>
+              )}
               <Link href="/suppliers" className={buttonVariants({ variant: "outline" })}>
                 {t("ctaBrowse")}
               </Link>
@@ -120,13 +128,25 @@ export default async function DownloadsPage({
         </div>
       )}
 
-      <div className="mt-10 rounded-lg border bg-muted/30 p-6 text-center">
-        <h3 className="text-lg font-bold">{t("supplierCtaTitle")}</h3>
-        <p className="mt-2 text-sm text-muted-foreground">{t("supplierCtaSub")}</p>
-        <Link href="/dashboard/enterprise" className={buttonVariants() + " mt-4"}>
-          {t("supplierCtaBtn")}
-        </Link>
-      </div>
+      {isEn ? (
+        <div className="mt-10 rounded-lg border bg-muted/30 p-6 text-center">
+          <h3 className="text-lg font-bold">Need a custom spec sheet?</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Submit an RFQ — Doris replies within 24 hours with tailored docs.
+          </p>
+          <Link href={"/rfq" as never} className={buttonVariants() + " mt-4"}>
+            Submit an RFQ
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-10 rounded-lg border bg-muted/30 p-6 text-center">
+          <h3 className="text-lg font-bold">{t("supplierCtaTitle")}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("supplierCtaSub")}</p>
+          <Link href="/dashboard/enterprise" className={buttonVariants() + " mt-4"}>
+            {t("supplierCtaBtn")}
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

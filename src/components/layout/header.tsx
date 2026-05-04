@@ -99,6 +99,8 @@ export function Header() {
   const locale = useLocale();
   const showSourcing = locale === "en";
   const showOverseas = locale === "zh";
+  // getfrp（en）侧不再有会员/收费体系：海外买家全程匿名，RFQ 直接走 /rfq + Doris
+  const showAuth = locale !== "en";
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -175,7 +177,7 @@ export function Header() {
 
         <div className="hidden items-center gap-2 md:flex">
           <LanguageSwitcher />
-          <AuthButtons />
+          {showAuth && <AuthButtons />}
         </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
@@ -227,9 +229,11 @@ export function Header() {
               <div className="mt-4 border-b pb-3">
                 <LanguageSwitcher variant="full" />
               </div>
-              <div className="mt-6 flex flex-col gap-2">
-                <MobileAuthButtons onClose={() => setOpen(false)} />
-              </div>
+              {showAuth && (
+                <div className="mt-6 flex flex-col gap-2">
+                  <MobileAuthButtons onClose={() => setOpen(false)} />
+                </div>
+              )}
             </nav>
           </SheetContent>
         </Sheet>

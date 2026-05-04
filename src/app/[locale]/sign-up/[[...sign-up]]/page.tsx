@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { SignUp } from "@clerk/nextjs";
 
@@ -18,6 +19,8 @@ export default async function SignUpPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  // getfrp（en）侧已取消会员体系，海外侧没有注册入口
+  if (locale === "en") notFound();
   setRequestLocale(locale);
 
   return (
