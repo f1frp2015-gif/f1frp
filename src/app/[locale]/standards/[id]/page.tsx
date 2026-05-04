@@ -9,6 +9,7 @@ import {
   standardSections as standardSectionsTable,
 } from "@/lib/db/schema";
 import { StandardDetailClient } from "./standard-detail-client";
+import { AskAiButton } from "@/components/ask-ai-button";
 
 export const revalidate = 3600;
 
@@ -88,12 +89,21 @@ export default async function StandardDetailPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <div className="mb-4 text-xs text-muted-foreground">
-        <Link href="/standards" className="hover:text-primary hover:underline">
-          {t("detail.breadcrumb")}
-        </Link>
-        <span className="mx-1.5">/</span>
-        <span>{std.code}</span>
+      <div className="mb-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div>
+          <Link href="/standards" className="hover:text-primary hover:underline">
+            {t("detail.breadcrumb")}
+          </Link>
+          <span className="mx-1.5">/</span>
+          <span>{std.code}</span>
+        </div>
+        <AskAiButton
+          prompt={
+            locale === "en"
+              ? `Explain ${std.code}${std.titleEn ? ` — ${std.titleEn}` : std.title ? ` — ${std.title}` : ""}. What ASTM / ISO / EN standards does it map to? Which test methods does it cover? When does an overseas buyer need to ask for it?`
+              : `${std.code}${std.title ? ` — ${std.title}` : ""} 的核心要点、对应的国际标准（ASTM/ISO/EN）、测试方法和使用场景。`
+          }
+        />
       </div>
       <StandardDetailClient standard={payload} />
     </div>

@@ -1,76 +1,51 @@
-import { sql, isNotNull, eq, and, desc } from "drizzle-orm";
+import { sql, isNotNull, eq, and } from "drizzle-orm";
 import {
-  ShieldCheck,
-  FileBadge,
-  Building2,
-  Award,
-  ArrowRight,
-  ChevronRight,
-  Workflow,
+  Sparkles,
   Bot,
+  ShieldCheck,
+  Building2,
+  ArrowRight,
+  ArrowUpRight,
+  MessagesSquare,
   Database,
-  FileSearch,
-  Receipt,
+  FileBadge,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { db } from "@/lib/db";
 import {
   supplierListings,
   materials as materialsTable,
   standards as standardsTable,
   papers as papersTable,
-  patents as patentsTable,
 } from "@/lib/db/schema";
 import { JsonLd } from "@/components/json-ld";
-import { HomeAiPrompt } from "./home-ai-prompt";
+import { ChatHero } from "./chat-hero";
 
-// English-side homepage. Sourcing-led; speaks directly to overseas FRP
-// engineers and procurement managers landing on getfrp.com.
+// English-side homepage — AI-Concierge first.
 //
-// Refresh on the same cadence as the ZH home — DB count queries are cheap.
-// Re-exported via page.tsx; revalidate there is the source of truth.
+// Premise: 2026-era overseas FRP engineers and procurement increasingly
+// land via ChatGPT / Perplexity-style flows rather than database browsing.
+// getfrp's defensible edge isn't the SKU count (that's a fight against
+// Alibaba / MIC we can't win) — it's a curated bilingual knowledge graph
+// behind a chat interface, with Doris as the human escalation path.
+//
+// Information architecture:
+//   1. Chat input dominates the hero (Perplexity-style, single focal point)
+//   2. Six example prompts inline as starting points
+//   3. Tiny trust strip ("verified · standards mapped · CBAM-ready")
+//   4. Three-step "how it works": Ask → AI cites verified data → Human if needed
+//   5. Below-fold: small browse links + Doris escalation
+//
+// The full source-from-china directory is still reachable as a secondary
+// path for users who prefer browsing — it's just not the default UX.
 
-const TRUST_BADGES = [
-  {
-    label: "CBAM-ready",
-    sub: "Embedded carbon data on request",
-    Icon: ShieldCheck,
-  },
-  {
-    label: "REACH SVHC tracked",
-    sub: "EU substance disclosures vetted",
-    Icon: FileBadge,
-  },
-  {
-    label: "GB ⇄ ASTM mapped",
-    sub: "Standards crosswalk built-in",
-    Icon: Database,
-  },
-  {
-    label: "Sample → container",
-    sub: "Single sourcing desk, end-to-end",
-    Icon: Workflow,
-  },
-] as const;
-
-const PLAYBOOK = [
-  { n: "01", title: "Define spec", body: "Fiber, resin, process, target standard, end-market." },
-  { n: "02", title: "Shortlist", body: "We match 3–5 verified suppliers by tier and certification." },
-  { n: "03", title: "RFQ + samples", body: "Standardized RFQ, sample fee disclosed, lead time committed." },
-  { n: "04", title: "Pre-shipment QA", body: "Independent inspection or our China sourcing desk on-site." },
-  { n: "05", title: "Compliance pack", body: "CBAM data, REACH SVHC, MTC, COA, HS code, COO." },
-  { n: "06", title: "Delivery", body: "FOB / CIF / DDP; consolidation in Shanghai / Ningbo / Tianjin." },
-] as const;
-
-const STANDARDS_CROSSWALK = [
-  { topic: "Tensile properties of FRP", gb: "GB/T 1447", iso: "ISO 527-4", astm: "ASTM D3039" },
-  { topic: "Flexural properties", gb: "GB/T 1449", iso: "ISO 14125", astm: "ASTM D790" },
-  { topic: "Compressive properties", gb: "GB/T 1448", iso: "ISO 14126", astm: "ASTM D695" },
-  { topic: "Pultruded profiles", gb: "GB/T 31539", iso: "ISO 8605", astm: "ASTM D3917" },
-  { topic: "GRP pipes", gb: "GB/T 21238", iso: "ISO 10639", astm: "ASTM D2992" },
-  { topic: "Fire — smoke / toxicity", gb: "GB 8624", iso: "ISO 5660-1", astm: "ASTM E84" },
+const EXAMPLE_PROMPTS = [
+  "Find a verified Chinese supplier for FRP gratings with CE marking, MOQ 200 m².",
+  "Compare GFRP vs CFRP for a 3 m marine spar — strength, weight, cost, suppliers.",
+  "What CBAM data should I request from a Chinese FRP profile manufacturer?",
+  "Which GB standard maps to ASTM D3039 for tensile properties?",
+  "Recommend a vinyl ester resin for 30% HCl service at 60 °C.",
+  "ISO 9001 + EN 13706 certified pultrusion suppliers in Jiangsu, ranked by scale.",
 ] as const;
 
 async function countOne(
@@ -86,69 +61,27 @@ async function countOne(
   }
 }
 
-type SupplierRow = {
-  id: string;
-  nameEn: string | null;
-  category: string | null;
-  scaleTier: string | null;
-};
-
-const TIER_LABEL: Record<string, string> = {
-  XL: "Major",
-  L: "Large",
-  M: "Mid",
-  S: "Small",
-};
+async function countVerifiedSuppliersWithEn(): Promise<number> {
+  try {
+    const rows = await db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(supplierListings)
+      .where(
+        and(eq(supplierListings.verified, true), isNotNull(supplierListings.nameEn)),
+      );
+    return rows[0]?.c ?? 0;
+  } catch {
+    return 0;
+  }
+}
 
 export async function HomePageEnglish() {
-  const tierRank = sql`CASE ${supplierListings.scaleTier} WHEN 'XL' THEN 4 WHEN 'L' THEN 3 WHEN 'M' THEN 2 WHEN 'S' THEN 1 ELSE 0 END`;
-
-  let verified: SupplierRow[] = [];
-  try {
-    verified = await db
-      .select({
-        id: supplierListings.id,
-        nameEn: supplierListings.nameEn,
-        category: supplierListings.category,
-        scaleTier: supplierListings.scaleTier,
-      })
-      .from(supplierListings)
-      .where(and(eq(supplierListings.verified, true), isNotNull(supplierListings.nameEn)))
-      .orderBy(desc(tierRank));
-  } catch {
-    verified = [];
-  }
-
-  const total = verified.length;
-  const tierCounts = verified.reduce<Record<string, number>>((acc, s) => {
-    const t = s.scaleTier ?? "M";
-    acc[t] = (acc[t] ?? 0) + 1;
-    return acc;
-  }, {});
-  const majorPlusLarge = (tierCounts.XL ?? 0) + (tierCounts.L ?? 0);
-
-  const byCategory = new Map<string, number>();
-  for (const r of verified) {
-    const k = r.category ?? "manufacturer";
-    byCategory.set(k, (byCategory.get(k) ?? 0) + 1);
-  }
-  const CATEGORY_LABEL: Record<string, string> = {
-    manufacturer: "Manufacturers",
-    fiber: "Fiber suppliers",
-    resin: "Resin suppliers",
-    additive: "Additives",
-    equipment: "Equipment",
-    mold: "Mold makers",
-    tooling: "Tooling / NDT",
-    service: "Testing / certification",
-  };
-
-  const [materialsCount, standardsCount, papersCount, patentsCount] =
+  const [verifiedSupplierCount, materialsCount, standardsCount, papersCount] =
     await Promise.all([
+      countVerifiedSuppliersWithEn(),
       countOne(materialsTable),
       countOne(standardsTable),
       countOne(papersTable),
-      countOne(patentsTable),
     ]);
 
   return (
@@ -161,453 +94,236 @@ export async function HomePageEnglish() {
               "@type": "WebPage",
               "@id": "https://getfrp.com/#webpage",
               url: "https://getfrp.com/",
-              name: "Source FRP composites from China — getfrp",
+              name: "getfrp — AI sourcing assistant for FRP composites from China",
               inLanguage: "en",
               description:
-                "Source FRP / GFRP / CFRP composites from verified Chinese manufacturers. ASTM-mapped specs, CBAM-ready paperwork, end-to-end RFQ to container.",
+                "Ask in plain English. Get a verified Chinese supplier, an ASTM-mapped spec sheet, and a CBAM-ready paperwork plan in the same answer.",
             },
             {
               "@type": "Service",
               "@id": "https://getfrp.com/#service",
-              name: "China FRP sourcing service",
-              serviceType: "Composite materials sourcing",
+              name: "China FRP sourcing assistant",
+              serviceType: "AI-assisted composites sourcing",
               areaServed: ["US", "DE", "FR", "GB", "IT", "ES", "NL", "PL", "AU", "CA"],
               provider: { "@id": "https://getfrp.com/#organization" },
-              offers: {
-                "@type": "Offer",
-                description:
-                  "Verified supplier shortlist, standardized RFQ, pre-shipment QA, CBAM/REACH compliance pack, end-to-end logistics.",
-              },
             },
           ],
         }}
       />
 
-      {/* ─────────── Hero ─────────── */}
+      {/* ─────────── Chat hero ─────────── */}
       <section className="relative overflow-hidden border-b border-border/80">
         <div
           aria-hidden
           className="absolute inset-0 bg-grid-sm opacity-[0.4] [mask-image:radial-gradient(ellipse_at_center,black_25%,transparent_75%)]"
         />
-        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-28">
-          <div className="mx-auto max-w-3xl">
+        <div className="relative mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-28">
+          <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal opacity-60" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-signal" />
-              </span>
-              FOR OVERSEAS FRP ENGINEERS &amp; BUYERS
+              <Sparkles size={11} />
+              AI SOURCING ASSISTANT FOR FRP COMPOSITES
             </div>
-            <h1 className="mt-6 text-5xl font-semibold leading-[1.05] tracking-[-0.035em] sm:text-6xl lg:text-[72px]">
-              Source FRP composites
+            <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-5xl lg:text-[56px]">
+              Ask in plain English.
               <br />
-              <span className="text-muted-foreground">from China.</span>
-            </h1>
-            <p className="mt-7 max-w-2xl text-[15px] leading-[1.75] text-muted-foreground sm:text-base">
-              {total > 0 ? `${total.toLocaleString()} verified Chinese ` : "Verified Chinese "}
-              FRP / GFRP / CFRP suppliers, ranked by manufacturing scale —
-              with ASTM-mapped specs, CBAM-ready paperwork, and a single sourcing
-              desk from sample to container.
-            </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link
-                href={"/suppliers?verified=1" as never}
-                className={buttonVariants({ size: "lg", variant: "default" })}
-              >
-                Browse verified suppliers
-                <ArrowRight size={16} className="ml-1.5" />
-              </Link>
-              <Link
-                href={"/rfq" as never}
-                className={buttonVariants({ size: "lg", variant: "outline" })}
-              >
-                Submit RFQ
-              </Link>
-              <Link
-                href={"/source-from-china" as never}
-                className="ml-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <Badge variant="signal" className="font-mono">
-                  GUIDE
-                </Badge>
-                Sourcing playbook (6 steps)
-              </Link>
-            </div>
-
-            <HomeAiPrompt placeholder="Ask: Find a verified Chinese supplier for FRP gratings with CE marking…" />
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── Trust badges ─────────── */}
-      <section className="border-b border-border/80">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12">
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border/70 bg-border/70 lg:grid-cols-4">
-            {TRUST_BADGES.map((b) => {
-              const I = b.Icon;
-              return (
-                <div key={b.label} className="flex items-start gap-3 bg-background p-5">
-                  <I size={20} strokeWidth={1.5} className="mt-0.5 shrink-0 text-foreground" />
-                  <div>
-                    <div className="text-sm font-semibold tracking-tight">{b.label}</div>
-                    <div className="mt-1 text-xs leading-snug text-muted-foreground">
-                      {b.sub}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── Verified suppliers by category ─────────── */}
-      <section className="border-b border-border/80">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="flex items-end justify-between border-b border-border/70 pb-3">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                MODULE 01 · DIRECTORY
-              </div>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
-                Verified suppliers by category, ranked by scale
-              </h2>
-            </div>
-            <Link
-              href={"/source-from-china" as never}
-              className="group hidden items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
-            >
-              See full directory
-              <span className="transition-transform group-hover:translate-x-0.5">→</span>
-            </Link>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-2 text-xs">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              Scale tier:
-            </span>
-            {(["XL", "L", "M", "S"] as const).map((t) => (
-              <span
-                key={t}
-                className="inline-flex items-center gap-1.5 border border-border/80 bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider"
-              >
-                {TIER_LABEL[t]}
-                <span className="text-[9px] opacity-60">({tierCounts[t] ?? 0})</span>
+              <span className="text-muted-foreground">
+                Get a verified supplier.
               </span>
-            ))}
-            <span className="ml-auto text-[11px] text-muted-foreground">
-              {majorPlusLarge.toLocaleString()} Major + Large tier
+            </h1>
+            <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
+              An ASTM-mapped spec sheet. A CBAM-ready paperwork plan. A
+              shortlist of verified Chinese FRP manufacturers — in the same
+              answer. A human takes over when you&apos;re ready to RFQ.
+            </p>
+          </div>
+
+          <ChatHero examples={[...EXAMPLE_PROMPTS]} />
+
+          {/* Trust micro-strip directly under the chat input — proof-at-a-glance
+              without forcing the user to scroll. Numbers are live. */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck size={13} className="text-foreground/70" />
+              <strong className="text-foreground">
+                {verifiedSupplierCount.toLocaleString()}
+              </strong>{" "}
+              verified Chinese suppliers
+            </span>
+            <span className="hidden sm:inline text-muted-foreground/40">·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <FileBadge size={13} className="text-foreground/70" />
+              <strong className="text-foreground">
+                {standardsCount.toLocaleString()}
+              </strong>{" "}
+              GB / ASTM / ISO / EN mapped
+            </span>
+            <span className="hidden sm:inline text-muted-foreground/40">·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Database size={13} className="text-foreground/70" />
+              <strong className="text-foreground">
+                {materialsCount.toLocaleString()}
+              </strong>{" "}
+              materials indexed
             </span>
           </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border/70 bg-border/70 sm:grid-cols-3 lg:grid-cols-4">
-            {Object.entries(CATEGORY_LABEL).map(([catId, label]) => {
-              const count = byCategory.get(catId) ?? 0;
-              return (
-                <Link
-                  key={catId}
-                  href={`/suppliers?category=${catId}` as never}
-                  className="group bg-background p-5 transition-colors hover:bg-muted/40"
-                >
-                  <div className="flex items-start justify-between">
-                    <Building2
-                      size={18}
-                      strokeWidth={1.5}
-                      className="text-muted-foreground transition-colors group-hover:text-foreground"
-                    />
-                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 group-hover:text-foreground">
-                      {String(count).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <div className="mt-4 flex items-center gap-1.5 text-[14px] font-semibold tracking-tight">
-                    {label}
-                    <ChevronRight
-                      size={14}
-                      className="text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-foreground"
-                    />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
         </div>
       </section>
 
-      {/* ─────────── Standards crosswalk ─────────── */}
-      <section className="border-b border-border/80 bg-muted/20">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="flex items-end justify-between border-b border-border/70 pb-3">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                MODULE 02 · STANDARDS
-              </div>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
-                GB ⇄ ASTM / ISO crosswalk
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                Chinese suppliers ship on GB-numbered methods. Your spec sheet
-                is in ASTM or ISO. Here&apos;s the mapping for the six tests
-                that decide most FRP buys.
-              </p>
-            </div>
-            <Link
-              href={"/standards" as never}
-              className="group hidden items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
-            >
-              {standardsCount > 0
-                ? `${standardsCount.toLocaleString()} standards →`
-                : "All standards →"}
-            </Link>
-          </div>
-
-          <div className="mt-6 overflow-hidden rounded-md border border-border/70 bg-background">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border/70 bg-muted/40 text-left text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3 font-mono font-normal">Property</th>
-                  <th className="px-4 py-3 font-mono font-normal">China (GB)</th>
-                  <th className="px-4 py-3 font-mono font-normal">ISO</th>
-                  <th className="px-4 py-3 font-mono font-normal">ASTM</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {STANDARDS_CROSSWALK.map((row) => (
-                  <tr key={row.topic} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 font-medium">{row.topic}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{row.gb}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{row.iso}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{row.astm}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-3 text-[11px] text-muted-foreground">
-            Need a method not listed? Ask the AI assistant — it will cite the
-            full standard text.
-          </p>
-        </div>
-      </section>
-
-      {/* ─────────── Sourcing playbook (6 steps) ─────────── */}
+      {/* ─────────── How it works ─────────── */}
       <section className="border-b border-border/80">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="flex items-end justify-between border-b border-border/70 pb-3">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                MODULE 03 · PLAYBOOK
-              </div>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
-                Spec → PO → Container in 6 steps
-              </h2>
-            </div>
-            <Link
-              href={"/source-from-china#playbook" as never}
-              className="group hidden items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
-            >
-              Full playbook →
-            </Link>
-          </div>
-
-          <div className="mt-8 grid gap-px overflow-hidden rounded-md border border-border/70 bg-border/70 sm:grid-cols-2 lg:grid-cols-3">
-            {PLAYBOOK.map((s) => (
-              <div key={s.n} className="bg-background p-5">
-                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  STEP {s.n}
-                </div>
-                <div className="mt-2 text-[15px] font-semibold tracking-tight">
-                  {s.title}
-                </div>
-                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                  {s.body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── Engineer tools (secondary) ─────────── */}
-      <section className="border-b border-border/80 bg-muted/20">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="border-b border-border/70 pb-3">
+        <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
+          <div className="text-center">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              MODULE 04 · ENGINEER TOOLS
+              HOW IT WORKS
             </div>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
-              Pre-RFQ research, in one workbench
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              From question to PO, with verified facts at every step.
             </h2>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border/70 bg-border/70 sm:grid-cols-4">
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
               {
-                href: "/ai" as const,
-                label: "AI spec lookup",
-                sub: "Cited answers, no hallucination",
                 Icon: Bot,
-                primary: true,
+                step: "01",
+                title: "Ask anything",
+                body: "Specs, suppliers, standards, compliance. The assistant answers in your unit system, with inline citations to the underlying source.",
               },
               {
-                href: "/materials" as const,
-                label: "Materials",
-                sub: `${materialsCount.toLocaleString()} grades`,
-                Icon: Database,
+                Icon: Building2,
+                step: "02",
+                title: "We match verified suppliers",
+                body: "Every recommendation comes from a curated registry — business license cross-checked, scale tier field-validated, certifications on file.",
               },
               {
-                href: "/papers" as const,
-                label: "Papers",
-                sub: `${papersCount.toLocaleString()} indexed`,
-                Icon: FileSearch,
+                Icon: MessagesSquare,
+                step: "03",
+                title: "Doris takes it from there",
+                body: "When you're ready to RFQ, our China sourcing desk handles paperwork, on-site QA, payment routing, and end-to-end logistics.",
               },
-              {
-                href: "/patents" as const,
-                label: "Patents",
-                sub: `${patentsCount.toLocaleString()} CN/US/EU`,
-                Icon: ShieldCheck,
-              },
-            ].map((m) => {
-              const I = m.Icon;
-              const isPrimary = "primary" in m && m.primary;
+            ].map((s) => {
+              const I = s.Icon;
               return (
-                <Link
-                  key={m.href}
-                  href={m.href as never}
-                  className={`group relative flex flex-col justify-between gap-8 p-6 transition-colors ${
-                    isPrimary
-                      ? "bg-foreground text-background hover:bg-foreground/95"
-                      : "bg-background hover:bg-muted/40"
-                  }`}
+                <div
+                  key={s.step}
+                  className="rounded-xl border border-border/70 bg-background p-6"
                 >
-                  <I
-                    size={20}
-                    strokeWidth={1.5}
-                    className={isPrimary ? "text-background" : "text-foreground"}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 text-[15px] font-semibold tracking-tight">
-                      {m.label}
-                      <span
-                        className={
-                          isPrimary
-                            ? "text-background/70 transition-transform group-hover:translate-x-0.5"
-                            : "text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-foreground"
-                        }
-                      >
-                        →
-                      </span>
-                    </div>
-                    <div
-                      className={`mt-1 text-xs ${
-                        isPrimary ? "text-background/80" : "text-muted-foreground"
-                      }`}
-                    >
-                      {m.sub}
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <I size={20} strokeWidth={1.5} className="text-foreground" />
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                      STEP {s.step}
+                    </span>
                   </div>
-                </Link>
+                  <h3 className="mt-5 text-base font-semibold tracking-tight">
+                    {s.title}
+                  </h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                    {s.body}
+                  </p>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ─────────── Trust / About strip ─────────── */}
-      <section className="border-b border-border/80">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+      {/* ─────────── Below-fold: prefer to browse? ─────────── */}
+      <section className="border-b border-border/80 bg-muted/20">
+        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+          <div className="grid gap-8 sm:grid-cols-[1fr_auto] sm:items-center">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                WHO YOU&apos;RE BUYING FROM
+                PREFER TO BROWSE?
               </div>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                A China-based sourcing desk, run by composites engineers.
+              <h2 className="mt-2 text-xl font-semibold tracking-tight">
+                The full directory and standards crosswalk are still here.
               </h2>
-              <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-                getfrp is the English desk of <strong>F1 Composite</strong> /
-                Yaoyi Advanced Materials — a Chongqing-registered exporter
-                that has been visiting FRP plants in person since 2015. We
-                handle paperwork, payment routing, on-site QA, and the
-                Mandarin-only conversations that sink most overseas RFQs.
+              <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-muted-foreground">
+                Skip the chat and walk through the verified supplier
+                directory by category, the GB ⇄ ASTM standards crosswalk,
+                or the 6-step sourcing playbook. Every page has an
+                &ldquo;Ask AI&rdquo; button when you want a second opinion.
               </p>
-              <div className="mt-7 flex flex-wrap items-center gap-3">
+              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[13px]">
                 <Link
-                  href={"/about" as never}
-                  className={buttonVariants({ size: "default", variant: "outline" })}
+                  href={"/source-from-china" as never}
+                  className="inline-flex items-center gap-1 text-foreground hover:underline"
                 >
-                  About F1 Composite
+                  Sourcing playbook
+                  <ArrowUpRight size={13} />
                 </Link>
-                <a
-                  href="mailto:doris.li@f1composite.com"
-                  className={buttonVariants({ size: "default", variant: "default" })}
+                <Link
+                  href={"/suppliers?verified=1" as never}
+                  className="inline-flex items-center gap-1 text-foreground hover:underline"
                 >
-                  Talk to our sourcing desk
-                  <ArrowRight size={14} className="ml-1.5" />
-                </a>
+                  Verified suppliers ({verifiedSupplierCount.toLocaleString()})
+                  <ArrowUpRight size={13} />
+                </Link>
+                <Link
+                  href={"/standards" as never}
+                  className="inline-flex items-center gap-1 text-foreground hover:underline"
+                >
+                  Standards ({standardsCount.toLocaleString()})
+                  <ArrowUpRight size={13} />
+                </Link>
+                <Link
+                  href={"/materials" as never}
+                  className="inline-flex items-center gap-1 text-foreground hover:underline"
+                >
+                  Materials ({materialsCount.toLocaleString()})
+                  <ArrowUpRight size={13} />
+                </Link>
+                <Link
+                  href={"/papers" as never}
+                  className="inline-flex items-center gap-1 text-foreground hover:underline"
+                >
+                  Papers ({papersCount.toLocaleString()})
+                  <ArrowUpRight size={13} />
+                </Link>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <TrustStat label="Verified suppliers" value={total} />
-              <TrustStat label="Major + Large tier" value={majorPlusLarge} />
-              <TrustStat label="Materials indexed" value={materialsCount} />
-              <TrustStat label="Standards mapped" value={standardsCount} />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─────────── Final CTA ─────────── */}
-      <section className="bg-foreground py-16 text-background sm:py-20">
+      {/* ─────────── Doris escalation ─────────── */}
+      <section className="bg-foreground py-14 text-background sm:py-16">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-background/70">
-            START YOUR FRP RFQ
+            READY TO RFQ?
           </div>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Tell us your spec.
-            <br />
-            <span className="text-background/70">
-              We&apos;ll come back with 3–5 verified quotes.
-            </span>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Let a human take over.
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-background/80">
-            Fiber, resin, process, target standard, target country, quantity.
-            Five fields. We do the rest.
+          <p className="mx-auto mt-4 max-w-xl text-[14px] leading-relaxed text-background/80">
+            Doris Li runs our China sourcing desk — composites engineer,
+            English / Mandarin, ten years on the ground. She handles
+            paperwork, QA, payment routing, and the conversations that
+            sink most overseas RFQs.
           </p>
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="mailto:doris.li@f1composite.com"
+              className="inline-flex items-center gap-1.5 rounded-md bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background/90"
+            >
+              Email Doris
+              <ArrowRight size={14} />
+            </a>
             <Link
               href={"/rfq" as never}
-              className="inline-flex items-center gap-1.5 rounded-md bg-background px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-background/90"
+              className="inline-flex items-center gap-1.5 rounded-md border border-background/30 px-5 py-2.5 text-sm transition-colors hover:bg-background/10"
             >
-              <Receipt size={16} />
-              Submit RFQ
+              Submit a structured RFQ
             </Link>
             <Link
-              href={"/source-from-china" as never}
-              className="inline-flex items-center gap-1.5 rounded-md border border-background/30 px-6 py-3 text-sm transition-colors hover:bg-background/10"
+              href={"/about" as never}
+              className="inline-flex items-center gap-1.5 text-sm text-background/70 transition-colors hover:text-background"
             >
-              Read the playbook first
+              About F1 Composite
             </Link>
-          </div>
-          <div className="mt-6 inline-flex items-center gap-2 text-[11px] text-background/60">
-            <Award size={12} />
-            No registration required to submit your first RFQ.
           </div>
         </div>
       </section>
     </>
-  );
-}
-
-function TrustStat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="border border-border/70 bg-background p-5">
-      <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight">
-        {value.toLocaleString()}
-      </div>
-    </div>
   );
 }

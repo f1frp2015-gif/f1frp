@@ -31,6 +31,7 @@ import { buildMaterialIndex, matchIngredient } from "@/lib/material-matcher";
 import { JsonLd } from "@/components/json-ld";
 import { InquiryButton } from "./inquiry-button";
 import { SaveButton } from "@/components/save-button";
+import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
 
 export const revalidate = 3600;
@@ -256,7 +257,14 @@ export default async function MaterialDetailPage({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <AskAiButton
+            prompt={
+              locale === "en"
+                ? `Tell me about ${m.name}${m.brand ? ` from ${m.brand}` : ""}${m.model ? ` (${m.model})` : ""} — typical applications, equivalent grades from Western brands, and which Chinese suppliers offer it. Reply in SI and Imperial.`
+                : `${m.name}${m.brand ? `（${m.brand}）` : ""}${m.model ? ` ${m.model}` : ""} 的主要应用、国外等效牌号、国内供应渠道。`
+            }
+          />
           <SaveButton
             sourceType="material"
             sourceId={m.id}
