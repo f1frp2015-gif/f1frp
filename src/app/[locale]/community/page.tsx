@@ -27,113 +27,125 @@ export async function generateMetadata({
   };
 }
 
-const questions = [
+type L = { zh: string; en: string };
+const tr = (v: L, locale: string) => (locale === "en" ? v.en : v.zh);
+
+const questions: Array<{
+  id: string;
+  title: L;
+  author: L;
+  answers: number;
+  views: number;
+  category: L;
+  date: string;
+  hot: boolean;
+}> = [
   {
     id: "q1",
-    title: "真空导入时树脂流速太慢，如何优化导流介质布局？",
-    author: "老王玻璃钢",
+    title: { zh: "真空导入时树脂流速太慢，如何优化导流介质布局？", en: "Vacuum infusion resin flows too slowly — how to optimize the flow-media layout?" },
+    author: { zh: "老王玻璃钢", en: "Old Wang FRP" },
     answers: 12,
     views: 356,
-    category: "工艺问题",
+    category: { zh: "工艺问题", en: "Process" },
     date: "2026-04-16",
     hot: true,
   },
   {
     id: "q2",
-    title: "196#树脂做手糊制品表面发粘不固化，是什么原因？",
-    author: "初学者小李",
+    title: { zh: "196#树脂做手糊制品表面发粘不固化，是什么原因？", en: "Hand layup with #196 resin — sticky, won't cure. What's wrong?" },
+    author: { zh: "初学者小李", en: "Newcomer Li" },
     answers: 8,
     views: 245,
-    category: "工艺问题",
+    category: { zh: "工艺问题", en: "Process" },
     date: "2026-04-15",
     hot: true,
   },
   {
     id: "q3",
-    title: "碳纤维管用缠绕还是卷制工艺好？各有什么优缺点？",
-    author: "碳纤维工程师",
+    title: { zh: "碳纤维管用缠绕还是卷制工艺好？各有什么优缺点？", en: "Carbon fiber tubes — filament winding vs roll wrapping: trade-offs?" },
+    author: { zh: "碳纤维工程师", en: "Carbon Fiber Engineer" },
     answers: 15,
     views: 423,
-    category: "材料选型",
+    category: { zh: "材料选型", en: "Material selection" },
     date: "2026-04-15",
     hot: false,
   },
   {
     id: "q4",
-    title: "FRP格栅和钢格栅的承载力对比，有实测数据吗？",
-    author: "结构设计师",
+    title: { zh: "FRP格栅和钢格栅的承载力对比，有实测数据吗？", en: "FRP vs steel grating load capacity — any real test data?" },
+    author: { zh: "结构设计师", en: "Structural Designer" },
     answers: 6,
     views: 189,
-    category: "材料选型",
+    category: { zh: "材料选型", en: "Material selection" },
     date: "2026-04-14",
     hot: false,
   },
   {
     id: "q5",
-    title: "拉挤模具入口处经常堵料，怎么解决？",
-    author: "拉挤老师傅",
+    title: { zh: "拉挤模具入口处经常堵料，怎么解决？", en: "Pultrusion die inlet keeps clogging — how to fix?" },
+    author: { zh: "拉挤老师傅", en: "Pultrusion Veteran" },
     answers: 9,
     views: 312,
-    category: "设备模具",
+    category: { zh: "设备模具", en: "Equipment & tooling" },
     date: "2026-04-13",
     hot: false,
   },
   {
     id: "q6",
-    title: "乙烯基酯树脂和不饱和聚酯树脂防腐性能差异有多大？",
-    author: "防腐工程师",
+    title: { zh: "乙烯基酯树脂和不饱和聚酯树脂防腐性能差异有多大？", en: "Vinyl ester vs UPR — how big is the corrosion-resistance gap?" },
+    author: { zh: "防腐工程师", en: "Corrosion Engineer" },
     answers: 11,
     views: 398,
-    category: "材料选型",
+    category: { zh: "材料选型", en: "Material selection" },
     date: "2026-04-12",
     hot: true,
   },
 ];
 
-const experts = [
+const experts: Array<{ name: L; title: L; org: L; answers: number }> = [
   {
-    name: "张教授",
-    title: "复合材料力学专家",
-    org: "哈尔滨工业大学",
+    name: { zh: "张教授", en: "Prof. Zhang" },
+    title: { zh: "复合材料力学专家", en: "Composites mechanics expert" },
+    org: { zh: "哈尔滨工业大学", en: "Harbin Institute of Technology" },
     answers: 156,
   },
   {
-    name: "李工",
-    title: "风电叶片工艺工程师",
-    org: "某大型风电企业",
+    name: { zh: "李工", en: "Engineer Li" },
+    title: { zh: "风电叶片工艺工程师", en: "Wind blade process engineer" },
+    org: { zh: "某大型风电企业", en: "Major wind energy OEM" },
     answers: 243,
   },
   {
-    name: "王总工",
-    title: "FRP防腐设计专家",
-    org: "某化工设计院",
+    name: { zh: "王总工", en: "Chief Engineer Wang" },
+    title: { zh: "FRP防腐设计专家", en: "FRP anti-corrosion design expert" },
+    org: { zh: "某化工设计院", en: "Chemical engineering institute" },
     answers: 198,
   },
   {
-    name: "陈师傅",
-    title: "缠绕成型资深技师",
-    org: "30年行业经验",
+    name: { zh: "陈师傅", en: "Master Chen" },
+    title: { zh: "缠绕成型资深技师", en: "Senior filament-winding technician" },
+    org: { zh: "30年行业经验", en: "30 years industry experience" },
     answers: 312,
   },
 ];
 
-const jobs = [
+const jobs: Array<{ title: L; company: L; location: L; salary: string }> = [
   {
-    title: "复合材料工艺工程师",
-    company: "某新能源汽车公司",
-    location: "上海",
+    title: { zh: "复合材料工艺工程师", en: "Composites Process Engineer" },
+    company: { zh: "某新能源汽车公司", en: "EV manufacturer" },
+    location: { zh: "上海", en: "Shanghai" },
     salary: "20-35K",
   },
   {
-    title: "FRP结构设计师",
-    company: "某海工装备企业",
-    location: "青岛",
+    title: { zh: "FRP结构设计师", en: "FRP Structural Designer" },
+    company: { zh: "某海工装备企业", en: "Offshore equipment company" },
+    location: { zh: "青岛", en: "Qingdao" },
     salary: "15-25K",
   },
   {
-    title: "拉挤车间主任",
-    company: "某型材制造企业",
-    location: "南通",
+    title: { zh: "拉挤车间主任", en: "Pultrusion Shop Manager" },
+    company: { zh: "某型材制造企业", en: "Profile manufacturer" },
+    location: { zh: "南通", en: "Nantong" },
     salary: "12-18K",
   },
 ];
@@ -155,10 +167,13 @@ export default async function CommunityPage({
     url: `https://f1frp.com/${locale}/community`,
     mainEntity: questions.map((q) => ({
       "@type": "Question",
-      name: q.title,
+      name: tr(q.title, locale),
       acceptedAnswer: {
         "@type": "Answer",
-        text: `本问题由复材站社区讨论，已有 ${q.answers} 条回答，浏览量 ${q.views}。请前往平台查看详细解答。`,
+        text:
+          locale === "en"
+            ? `Discussed in the f1frp community — ${q.answers} answers, ${q.views} views. Open the platform for full thread.`
+            : `本问题由复材站社区讨论，已有 ${q.answers} 条回答，浏览量 ${q.views}。请前往平台查看详细解答。`,
       },
     })),
   };
@@ -190,7 +205,7 @@ export default async function CommunityPage({
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-[10px]">
-                        {q.category}
+                        {tr(q.category, locale)}
                       </Badge>
                       {q.hot && (
                         <Badge
@@ -202,10 +217,10 @@ export default async function CommunityPage({
                       )}
                     </div>
                     <h3 className="mt-2 font-medium leading-snug">
-                      {q.title}
+                      {tr(q.title, locale)}
                     </h3>
                     <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>{q.author}</span>
+                      <span>{tr(q.author, locale)}</span>
                       <span>{t("answers", { count: q.answers })}</span>
                       <span>{t("views", { count: q.views })}</span>
                       <span>{q.date}</span>
@@ -240,13 +255,15 @@ export default async function CommunityPage({
             <CardContent className="space-y-3">
               {experts.map((expert) => (
                 <div
-                  key={expert.name}
+                  key={expert.name.zh}
                   className="flex items-center justify-between"
                 >
                   <div>
-                    <div className="text-sm font-medium">{expert.name}</div>
+                    <div className="text-sm font-medium">
+                      {tr(expert.name, locale)}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {expert.title} · {expert.org}
+                      {tr(expert.title, locale)} · {tr(expert.org, locale)}
                     </div>
                   </div>
                   <Badge variant="secondary" className="text-[10px]">
@@ -266,14 +283,16 @@ export default async function CommunityPage({
             <CardContent className="space-y-3">
               {jobs.map((job) => (
                 <div
-                  key={job.title}
+                  key={job.title.zh}
                   className="rounded-md border p-3"
                 >
-                  <div className="text-sm font-medium">{job.title}</div>
+                  <div className="text-sm font-medium">
+                    {tr(job.title, locale)}
+                  </div>
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{job.company}</span>
+                    <span>{tr(job.company, locale)}</span>
                     <span>·</span>
-                    <span>{job.location}</span>
+                    <span>{tr(job.location, locale)}</span>
                   </div>
                   <div className="mt-1 text-sm font-semibold text-primary">
                     {job.salary}

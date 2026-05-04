@@ -287,7 +287,15 @@ export function StandardsClient({
                         variant={std.status === "现行" ? "default" : "secondary"}
                         className="text-[10px]"
                       >
-                        {std.status}
+                        {isEn
+                          ? std.status === "现行"
+                            ? "Active"
+                            : std.status === "废止"
+                              ? "Withdrawn"
+                              : std.status === "即将实施"
+                                ? "Upcoming"
+                                : std.status
+                          : std.status}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -305,7 +313,7 @@ export function StandardsClient({
           {remaining > 0 && (
             <div className="mt-6 flex justify-center border-t pt-4">
               <Button variant="outline" onClick={expand}>
-                展开剩余 {remaining} 条
+                {isEn ? `Show ${remaining} more` : `展开剩余 ${remaining} 条`}
               </Button>
             </div>
           )}

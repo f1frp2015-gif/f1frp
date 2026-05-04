@@ -280,7 +280,7 @@ export function PatentsClient({
         {remaining > 0 && (
           <div className="mt-2 flex justify-center">
             <Button variant="outline" onClick={expand}>
-              展开剩余 {remaining} 条
+              {isEn ? `Show ${remaining} more` : `展开剩余 ${remaining} 条`}
             </Button>
           </div>
         )}

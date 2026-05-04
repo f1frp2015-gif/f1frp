@@ -116,7 +116,7 @@ export default async function PatentDetailPage({
       <JsonLd data={jsonLd} />
       <BreadcrumbJsonLd
         items={[
-          { name: "首页", url: "https://f1frp.com/" },
+          { name: locale === "en" ? "Home" : "首页", url: "https://f1frp.com/" },
           { name: t("detail.breadcrumb"), url: "https://f1frp.com/patents" },
           { name: p.title, url: `https://f1frp.com/patents/${canonical}` },
         ]}

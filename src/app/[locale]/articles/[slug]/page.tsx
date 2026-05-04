@@ -72,20 +72,24 @@ export default async function ArticleDetailPage({
 
   const { article: a, author } = row;
 
+  const isEn = locale === "en";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: a.title,
     description: a.excerpt ?? undefined,
-    inLanguage: "zh-CN",
+    inLanguage: isEn ? "en" : "zh-CN",
     datePublished: a.publishedAt?.toISOString(),
     dateModified: a.updatedAt?.toISOString(),
     author: author?.name
       ? { "@type": "Person", name: author.name }
-      : { "@type": "Organization", name: "复材站编辑部" },
+      : {
+          "@type": "Organization",
+          name: isEn ? "f1frp Editorial" : "复材站编辑部",
+        },
     publisher: {
       "@type": "Organization",
-      name: "复材站",
+      name: isEn ? "f1frp" : "复材站",
       url: "https://f1frp.com",
     },
     mainEntityOfPage: `https://f1frp.com/articles/${encodeURIComponent(a.slug)}`,
@@ -96,7 +100,7 @@ export default async function ArticleDetailPage({
       <JsonLd data={jsonLd} />
       <BreadcrumbJsonLd
         items={[
-          { name: "首页", url: "https://f1frp.com/" },
+          { name: isEn ? "Home" : "首页", url: "https://f1frp.com/" },
           { name: t("detail.breadcrumb"), url: "https://f1frp.com/articles" },
           {
             name: a.title,

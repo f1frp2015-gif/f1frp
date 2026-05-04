@@ -3,17 +3,25 @@ import { db } from "@/lib/db";
 import { articles, authors } from "@/lib/db/schema";
 import { renderOgCard, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og-image";
 
-export const alt = "复材站资讯";
+export const alt = "f1frp news";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const revalidate = 3600;
 
-const CATEGORY_LABEL: Record<string, string> = {
+const CATEGORY_LABEL_ZH: Record<string, string> = {
   industry: "行业动态",
   policy: "政策法规",
   tech: "技术前沿",
   company: "企业新闻",
   expo: "展会活动",
+};
+
+const CATEGORY_LABEL_EN: Record<string, string> = {
+  industry: "Industry",
+  policy: "Policy",
+  tech: "Technology",
+  company: "Company news",
+  expo: "Expos & events",
 };
 
 function safeDecode(s: string): string {
@@ -27,9 +35,12 @@ function safeDecode(s: string): string {
 export default async function Image({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const slug = safeDecode(params.slug);
+  const { locale, slug: rawSlug } = await params;
+  const isEn = locale === "en";
+  const labels = isEn ? CATEGORY_LABEL_EN : CATEGORY_LABEL_ZH;
+  const slug = safeDecode(rawSlug);
   const [row] = await db
     .select({ article: articles, author: authors })
     .from(articles)
@@ -38,21 +49,23 @@ export default async function Image({
     .limit(1);
   if (!row) {
     return renderOgCard({
-      category: "资讯",
-      title: "文章未找到",
+      category: isEn ? "News" : "资讯",
+      title: isEn ? "Article not found" : "文章未找到",
       subtitle: "f1frp.com",
     });
   }
   const a = row.article;
-  const cat = a.category ? CATEGORY_LABEL[a.category] ?? a.category : "资讯";
+  const fallbackCat = isEn ? "News" : "资讯";
+  const cat = a.category ? labels[a.category] ?? a.category : fallbackCat;
   const dateStr = a.publishedAt
     ? a.publishedAt.toISOString().slice(0, 10)
     : "";
-  const meta = [row.author?.name ?? "复材站编辑部", dateStr]
+  const fallbackAuthor = isEn ? "f1frp Editorial" : "复材站编辑部";
+  const meta = [row.author?.name ?? fallbackAuthor, dateStr]
     .filter(Boolean)
     .join(" · ");
   return renderOgCard({
-    category: `资讯 · ${cat}`,
+    category: `${fallbackCat} · ${cat}`,
     title: a.title,
     subtitle: a.excerpt ?? undefined,
     meta: meta || undefined,

@@ -276,7 +276,7 @@ export function MaterialsClient({
           {remaining > 0 && (
             <div className="mt-6 flex justify-center border-t pt-4">
               <Button variant="outline" onClick={expand}>
-                展开剩余 {remaining} 条
+                {isEn ? `Show ${remaining} more` : `展开剩余 ${remaining} 条`}
               </Button>
             </div>
           )}

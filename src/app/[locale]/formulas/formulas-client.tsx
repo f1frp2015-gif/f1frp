@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/icon";
 import { Card, CardContent } from "@/components/ui/card";
@@ -253,6 +253,8 @@ export function FormulasClient({
   ingredientMaterialMap: Record<string, string>;
 }) {
   const t = useTranslations("Formulas");
+  const locale = useLocale();
+  const isEn = locale === "en";
   const [search, setSearch] = useState("");
   const [activeProcess, setActiveProcess] = useState("all");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -297,7 +299,7 @@ export function FormulasClient({
 
   const groupedByProcess = useMemo(() => {
     return filtered.reduce<Record<string, SerializedFormula[]>>((acc, f) => {
-      const key = f.process || "未分组";
+      const key = f.process || (isEn ? "Ungrouped" : "未分组");
       (acc[key] ||= []).push(f);
       return acc;
     }, {});

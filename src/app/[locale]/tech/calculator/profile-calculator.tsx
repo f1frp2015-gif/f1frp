@@ -1,40 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 
 const materials: Record<
   string,
-  { label: string; E: number; sigma: number; density: number; group: string }
+  { label: string; labelEn: string; E: number; sigma: number; density: number; group: string }
 > = {
-  "frp-e17": { label: "FRP EN 13706 E17", E: 17, sigma: 170, density: 1.9, group: "FRP" },
-  "frp-e23": { label: "FRP EN 13706 E23", E: 23, sigma: 240, density: 1.9, group: "FRP" },
-  "frp-standard": { label: "FRP ASCE 标准级", E: 17.2, sigma: 207, density: 1.8, group: "FRP" },
-  "frp-high": { label: "FRP ASCE 高性能级", E: 27.6, sigma: 345, density: 1.9, group: "FRP" },
-  "frp-gb-i": { label: "FRP GB/T 31539 I级", E: 20, sigma: 200, density: 1.9, group: "FRP" },
-  "frp-gb-ii": { label: "FRP GB/T 31539 II级", E: 15, sigma: 150, density: 1.8, group: "FRP" },
-  "steel-s235": { label: "钢材 S235 (EN 10025)", E: 210, sigma: 235, density: 7.85, group: "Metal" },
-  "steel-s355": { label: "钢材 S355 (EN 10025)", E: 210, sigma: 355, density: 7.85, group: "Metal" },
-  "steel-q235": { label: "钢材 Q235 (GB/T 700)", E: 206, sigma: 235, density: 7.85, group: "Metal" },
-  "steel-q345": { label: "钢材 Q345 (GB/T 1591)", E: 206, sigma: 345, density: 7.85, group: "Metal" },
-  "alu-6061": { label: "铝合金 6061-T6", E: 69, sigma: 276, density: 2.7, group: "Metal" },
-  "alu-6063": { label: "铝合金 6063-T5", E: 69, sigma: 186, density: 2.7, group: "Metal" },
+  "frp-e17": { label: "FRP EN 13706 E17", labelEn: "FRP EN 13706 E17", E: 17, sigma: 170, density: 1.9, group: "FRP" },
+  "frp-e23": { label: "FRP EN 13706 E23", labelEn: "FRP EN 13706 E23", E: 23, sigma: 240, density: 1.9, group: "FRP" },
+  "frp-standard": { label: "FRP ASCE 标准级", labelEn: "FRP ASCE Standard", E: 17.2, sigma: 207, density: 1.8, group: "FRP" },
+  "frp-high": { label: "FRP ASCE 高性能级", labelEn: "FRP ASCE High-performance", E: 27.6, sigma: 345, density: 1.9, group: "FRP" },
+  "frp-gb-i": { label: "FRP GB/T 31539 I级", labelEn: "FRP GB/T 31539 Class I", E: 20, sigma: 200, density: 1.9, group: "FRP" },
+  "frp-gb-ii": { label: "FRP GB/T 31539 II级", labelEn: "FRP GB/T 31539 Class II", E: 15, sigma: 150, density: 1.8, group: "FRP" },
+  "steel-s235": { label: "钢材 S235 (EN 10025)", labelEn: "Steel S235 (EN 10025)", E: 210, sigma: 235, density: 7.85, group: "Metal" },
+  "steel-s355": { label: "钢材 S355 (EN 10025)", labelEn: "Steel S355 (EN 10025)", E: 210, sigma: 355, density: 7.85, group: "Metal" },
+  "steel-q235": { label: "钢材 Q235 (GB/T 700)", labelEn: "Steel Q235 (GB/T 700)", E: 206, sigma: 235, density: 7.85, group: "Metal" },
+  "steel-q345": { label: "钢材 Q345 (GB/T 1591)", labelEn: "Steel Q345 (GB/T 1591)", E: 206, sigma: 345, density: 7.85, group: "Metal" },
+  "alu-6061": { label: "铝合金 6061-T6", labelEn: "Aluminum 6061-T6", E: 69, sigma: 276, density: 2.7, group: "Metal" },
+  "alu-6063": { label: "铝合金 6063-T5", labelEn: "Aluminum 6063-T5", E: 69, sigma: 186, density: 2.7, group: "Metal" },
 };
 
 const loadTypes = [
-  { id: "udl", label: "均布荷载 (UDL)", factor_M: 1 / 8, factor_d: 5 / 384 },
-  { id: "point-mid", label: "跨中集中荷载", factor_M: 1 / 4, factor_d: 1 / 48 },
-  { id: "cantilever-point", label: "悬臂梁 — 端部集中荷载", factor_M: 1, factor_d: 1 / 3 },
-  { id: "cantilever-udl", label: "悬臂梁 — 均布荷载", factor_M: 1 / 2, factor_d: 1 / 8 },
+  { id: "udl", label: "均布荷载 (UDL)", labelEn: "Uniformly distributed load (UDL)", factor_M: 1 / 8, factor_d: 5 / 384 },
+  { id: "point-mid", label: "跨中集中荷载", labelEn: "Mid-span point load", factor_M: 1 / 4, factor_d: 1 / 48 },
+  { id: "cantilever-point", label: "悬臂梁 — 端部集中荷载", labelEn: "Cantilever — end point load", factor_M: 1, factor_d: 1 / 3 },
+  { id: "cantilever-udl", label: "悬臂梁 — 均布荷载", labelEn: "Cantilever — UDL", factor_M: 1 / 2, factor_d: 1 / 8 },
 ];
 
 const profileShapes = [
-  { id: "i-beam", label: "工字型 (I-Beam)" },
-  { id: "channel", label: "槽型 (Channel)" },
-  { id: "angle", label: "角型 (L-Profile)" },
-  { id: "square-tube", label: "方管 / 矩形管" },
-  { id: "round-tube", label: "圆管" },
+  { id: "i-beam", label: "工字型 (I-Beam)", labelEn: "I-beam" },
+  { id: "channel", label: "槽型 (Channel)", labelEn: "Channel" },
+  { id: "angle", label: "角型 (L-Profile)", labelEn: "L-profile (angle)" },
+  { id: "square-tube", label: "方管 / 矩形管", labelEn: "Square / rectangular tube" },
+  { id: "round-tube", label: "圆管", labelEn: "Round tube" },
 ];
 
 function calcIx(shape: string, h: number, b: number, tw: number, tf: number): number {
@@ -85,6 +85,10 @@ type Mode = "beam" | "equivalence";
 
 export default function ProfileCalculator() {
   const t = useTranslations("Tech");
+  const locale = useLocale();
+  const isEn = locale === "en";
+  const lab = (o: { label: string; labelEn?: string }) =>
+    isEn && o.labelEn ? o.labelEn : o.label;
 
   const [mode, setMode] = useState<Mode>("beam");
 
@@ -198,26 +202,26 @@ export default function ProfileCalculator() {
                 <label className={labelCls}>{t("calculator.labelMaterial")}</label>
                 <select value={matKey} onChange={(e) => setMatKey(e.target.value)} className={selectCls}>
                   <optgroup label="FRP — EN 13706">
-                    <option value="frp-e17">EN 13706 E17级</option>
-                    <option value="frp-e23">EN 13706 E23级</option>
+                    <option value="frp-e17">{isEn ? "EN 13706 E17" : "EN 13706 E17级"}</option>
+                    <option value="frp-e23">{isEn ? "EN 13706 E23" : "EN 13706 E23级"}</option>
                   </optgroup>
                   <optgroup label="FRP — GB/T 31539-2015">
-                    <option value="frp-gb-i">GB/T 31539 I级</option>
-                    <option value="frp-gb-ii">GB/T 31539 II级</option>
+                    <option value="frp-gb-i">{isEn ? "GB/T 31539 Class I" : "GB/T 31539 I级"}</option>
+                    <option value="frp-gb-ii">{isEn ? "GB/T 31539 Class II" : "GB/T 31539 II级"}</option>
                   </optgroup>
                   <optgroup label="FRP — ASCE">
-                    <option value="frp-standard">ASCE 标准级</option>
-                    <option value="frp-high">ASCE 高性能级</option>
+                    <option value="frp-standard">{isEn ? "ASCE Standard" : "ASCE 标准级"}</option>
+                    <option value="frp-high">{isEn ? "ASCE High-performance" : "ASCE 高性能级"}</option>
                   </optgroup>
-                  <optgroup label="钢材 — EN">
+                  <optgroup label={isEn ? "Steel — EN" : "钢材 — EN"}>
                     <option value="steel-s235">S235 (EN 10025)</option>
                     <option value="steel-s355">S355 (EN 10025)</option>
                   </optgroup>
-                  <optgroup label="钢材 — 国标">
+                  <optgroup label={isEn ? "Steel — China GB" : "钢材 — 国标"}>
                     <option value="steel-q235">Q235 (GB/T 700)</option>
                     <option value="steel-q345">Q345 (GB/T 1591)</option>
                   </optgroup>
-                  <optgroup label="铝合金">
+                  <optgroup label={isEn ? "Aluminum" : "铝合金"}>
                     <option value="alu-6061">6061-T6</option>
                     <option value="alu-6063">6063-T5</option>
                   </optgroup>
@@ -226,7 +230,7 @@ export default function ProfileCalculator() {
               <div>
                 <label className={labelCls}>{t("calculator.labelLoadType")}</label>
                 <select value={loadType} onChange={(e) => setLoadType(e.target.value)} className={selectCls}>
-                  {loadTypes.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+                  {loadTypes.map((l) => <option key={l.id} value={l.id}>{lab(l)}</option>)}
                 </select>
               </div>
             </div>
@@ -249,7 +253,7 @@ export default function ProfileCalculator() {
             <div>
               <label className={labelCls}>{t("calculator.labelShape")}</label>
               <select value={shape} onChange={(e) => setShape(e.target.value)} className={selectCls}>
-                {profileShapes.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                {profileShapes.map((s) => <option key={s.id} value={s.id}>{lab(s)}</option>)}
               </select>
             </div>
 
@@ -341,15 +345,15 @@ export default function ProfileCalculator() {
               <div>
                 <label className={labelCls}>{t("calculator.equivSrcMat")}</label>
                 <select value={eqSourceMat} onChange={(e) => setEqSourceMat(e.target.value)} className={selectCls}>
-                  <optgroup label="钢材 — EN">
+                  <optgroup label={isEn ? "Steel — EN" : "钢材 — EN"}>
                     <option value="steel-s235">S235 (EN 10025)</option>
                     <option value="steel-s355">S355 (EN 10025)</option>
                   </optgroup>
-                  <optgroup label="钢材 — 国标">
+                  <optgroup label={isEn ? "Steel — China GB" : "钢材 — 国标"}>
                     <option value="steel-q235">Q235 (GB/T 700)</option>
                     <option value="steel-q345">Q345 (GB/T 1591)</option>
                   </optgroup>
-                  <optgroup label="铝合金">
+                  <optgroup label={isEn ? "Aluminum" : "铝合金"}>
                     <option value="alu-6061">6061-T6</option>
                     <option value="alu-6063">6063-T5</option>
                   </optgroup>
@@ -363,12 +367,12 @@ export default function ProfileCalculator() {
                     <option value="frp-e23">EN 13706 E23</option>
                   </optgroup>
                   <optgroup label="GB/T 31539-2015">
-                    <option value="frp-gb-i">GB/T 31539 I级</option>
-                    <option value="frp-gb-ii">GB/T 31539 II级</option>
+                    <option value="frp-gb-i">{isEn ? "GB/T 31539 Class I" : "GB/T 31539 I级"}</option>
+                    <option value="frp-gb-ii">{isEn ? "GB/T 31539 Class II" : "GB/T 31539 II级"}</option>
                   </optgroup>
                   <optgroup label="ASCE">
-                    <option value="frp-standard">ASCE 标准级</option>
-                    <option value="frp-high">ASCE 高性能级</option>
+                    <option value="frp-standard">{isEn ? "ASCE Standard" : "ASCE 标准级"}</option>
+                    <option value="frp-high">{isEn ? "ASCE High-performance" : "ASCE 高性能级"}</option>
                   </optgroup>
                 </select>
               </div>
@@ -377,7 +381,7 @@ export default function ProfileCalculator() {
             <div>
               <label className={labelCls}>{t("calculator.labelShape")}</label>
               <select value={eqShape} onChange={(e) => setEqShape(e.target.value)} className={selectCls}>
-                {profileShapes.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                {profileShapes.map((s) => <option key={s.id} value={s.id}>{lab(s)}</option>)}
               </select>
             </div>
 

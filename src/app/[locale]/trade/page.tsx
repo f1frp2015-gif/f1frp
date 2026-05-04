@@ -26,79 +26,129 @@ export async function generateMetadata({
   };
 }
 
-const demandList = [
+type L = { zh: string; en: string };
+const tr = (v: L, locale: string) => (locale === "en" ? v.en : v.zh);
+
+// priceData 来自 lib/data/materials.ts，name/region 是中文。EN 侧用静态映射翻译。
+const PRICE_NAME_EN: Record<string, string> = {
+  "196# 树脂": "#196 UPR",
+  "191# 树脂": "#191 UPR",
+  "乙烯基酯树脂": "Vinyl ester resin",
+  "E-51 环氧树脂": "E-51 epoxy",
+  "酚醛树脂 PF": "Phenolic (PF) resin",
+  "风电叶片灌注环氧": "Wind blade infusion epoxy",
+  "双马来酰亚胺 BMI": "BMI (bismaleimide)",
+  "ECR 无碱粗纱": "ECR boron-free roving",
+  "E 玻纤短切毡": "E-glass chopped strand mat",
+  "T300 级 3K 碳纤维": "T300-grade 3K carbon fiber",
+  "T700 级 12K 碳纤维": "T700-grade 12K carbon fiber",
+  "异酞型胶衣": "Isophthalic gelcoat",
+  "PVC 泡沫芯材 H80": "PVC foam core H80",
+  "MEKP 固化剂": "MEKP catalyst",
+  "FRP 拉挤型材": "FRP pultruded profile",
+  "玻璃钢格栅": "FRP grating",
+};
+
+const REGION_EN: Record<string, string> = {
+  华东: "East China",
+  华南: "South China",
+  华北: "North China",
+  华中: "Central China",
+  西南: "Southwest China",
+  西北: "Northwest China",
+  东北: "Northeast China",
+  全国: "Nationwide",
+};
+
+const demandList: Array<{
+  id: string;
+  type: "buy";
+  title: L;
+  company: L;
+  location: L;
+  date: string;
+  urgent: boolean;
+}> = [
   {
     id: "d1",
-    type: "buy" as const,
-    title: "采购196#不饱和聚酯树脂 20吨",
-    company: "某环保设备公司",
-    location: "江苏盐城",
+    type: "buy",
+    title: { zh: "采购196#不饱和聚酯树脂 20吨", en: "Buying #196 UPR — 20 tons" },
+    company: { zh: "某环保设备公司", en: "Environmental equipment company" },
+    location: { zh: "江苏盐城", en: "Yancheng, Jiangsu" },
     date: "2026-04-17",
     urgent: true,
   },
   {
     id: "d2",
-    type: "buy" as const,
-    title: "求购ECR玻璃纤维方格布 5000㎡",
-    company: "某游艇制造公司",
-    location: "广东珠海",
+    type: "buy",
+    title: { zh: "求购ECR玻璃纤维方格布 5000㎡", en: "Buying ECR glass woven roving — 5000 m²" },
+    company: { zh: "某游艇制造公司", en: "Yacht manufacturer" },
+    location: { zh: "广东珠海", en: "Zhuhai, Guangdong" },
     date: "2026-04-16",
     urgent: false,
   },
   {
     id: "d3",
-    type: "buy" as const,
-    title: "采购FRP拉挤型材（工字型/槽型）大量长期",
-    company: "某建筑安装公司",
-    location: "浙江杭州",
+    type: "buy",
+    title: { zh: "采购FRP拉挤型材（工字型/槽型）大量长期", en: "Buying FRP pultruded profiles (I/U sections) — long-term volume" },
+    company: { zh: "某建筑安装公司", en: "Construction & installation company" },
+    location: { zh: "浙江杭州", en: "Hangzhou, Zhejiang" },
     date: "2026-04-16",
     urgent: false,
   },
   {
     id: "d4",
-    type: "buy" as const,
-    title: "采购乙烯基酯树脂 10吨 防腐项目用",
-    company: "某化工工程公司",
-    location: "山东淄博",
+    type: "buy",
+    title: { zh: "采购乙烯基酯树脂 10吨 防腐项目用", en: "Buying vinyl ester resin — 10 tons, anti-corrosion project" },
+    company: { zh: "某化工工程公司", en: "Chemical engineering firm" },
+    location: { zh: "山东淄博", en: "Zibo, Shandong" },
     date: "2026-04-15",
     urgent: true,
   },
 ];
 
-const supplyList = [
+const supplyList: Array<{
+  id: string;
+  type: "sell";
+  title: L;
+  company: L;
+  location: L;
+  date: string;
+  featured: boolean;
+}> = [
   {
     id: "s1",
-    type: "sell" as const,
-    title: "长期供应191#/196#不饱和聚酯树脂",
-    company: "华昌聚合物有限公司",
-    location: "江苏常州",
+    type: "sell",
+    title: { zh: "长期供应191#/196#不饱和聚酯树脂", en: "Long-term supply of #191/#196 UPR" },
+    company: { zh: "华昌聚合物有限公司", en: "Huachang Polymer Co., Ltd." },
+    location: { zh: "江苏常州", en: "Changzhou, Jiangsu" },
     date: "2026-04-17",
     featured: true,
   },
   {
     id: "s2",
-    type: "sell" as const,
-    title: "供应模塑玻璃钢格栅 多规格现货",
-    company: "南通恒新复合材料",
-    location: "江苏南通",
+    type: "sell",
+    title: { zh: "供应模塑玻璃钢格栅 多规格现货", en: "Molded FRP grating — multiple specs in stock" },
+    company: { zh: "南通恒新复合材料", en: "Nantong Hengxin Composites" },
+    location: { zh: "江苏南通", en: "Nantong, Jiangsu" },
     date: "2026-04-16",
     featured: true,
   },
   {
     id: "s3",
-    type: "sell" as const,
-    title: "供应FRP电缆桥架/管箱 来图定制",
-    company: "河北枣强华瑞公司",
-    location: "河北衡水",
+    type: "sell",
+    title: { zh: "供应FRP电缆桥架/管箱 来图定制", en: "FRP cable trays / boxes — custom to drawing" },
+    company: { zh: "河北枣强华瑞公司", en: "Hebei Zaoqiang Huarui Co." },
+    location: { zh: "河北衡水", en: "Hengshui, Hebei" },
     date: "2026-04-16",
     featured: false,
   },
   {
     id: "s4",
-    type: "sell" as const,
-    title: "供应碳纤维预浸料 T300/T700 多规格",
-    company: "光威复材股份有限公司",
-    location: "山东威海",
+    type: "sell",
+    title: { zh: "供应碳纤维预浸料 T300/T700 多规格", en: "Carbon fiber prepreg — T300/T700 multiple specs" },
+    company: { zh: "光威复材股份有限公司", en: "Guangwei Composites Co., Ltd." },
+    location: { zh: "山东威海", en: "Weihai, Shandong" },
     date: "2026-04-15",
     featured: false,
   },
@@ -134,23 +184,34 @@ export default async function TradePage({
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {priceData.map((item) => (
+            {priceData.map((item) => {
+              const isEn = locale === "en";
+              const displayName = isEn
+                ? PRICE_NAME_EN[item.name] ?? item.name
+                : item.name;
+              const displayRegion = isEn
+                ? REGION_EN[item.region] ?? item.region
+                : item.region;
+              const displayUnit = isEn
+                ? item.unit.replace("元/吨", "CNY/MT").replace("元/㎡", "CNY/m²")
+                : item.unit;
+              return (
               <div
                 key={item.name}
                 className="flex items-center justify-between rounded-lg border p-4"
               >
                 <div>
-                  <div className="text-sm font-medium">{item.name}</div>
+                  <div className="text-sm font-medium">{displayName}</div>
                   <div className="text-xs text-muted-foreground">
-                    {item.region}
+                    {displayRegion}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-mono font-bold">
-                    ¥{item.price.toLocaleString()}
+                    {isEn ? "CNY " : "¥"}{item.price.toLocaleString()}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {item.unit}
+                    {displayUnit}
                   </div>
                   <div
                     className={`text-xs font-mono font-semibold ${
@@ -168,7 +229,8 @@ export default async function TradePage({
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
             {t("priceDisclaimer")}
@@ -199,10 +261,10 @@ export default async function TradePage({
                         </Badge>
                       )}
                     </div>
-                    <h3 className="mt-1 font-medium">{item.title}</h3>
+                    <h3 className="mt-1 font-medium">{tr(item.title, locale)}</h3>
                     <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{item.company}</span>
-                      <span>{item.location}</span>
+                      <span>{tr(item.company, locale)}</span>
+                      <span>{tr(item.location, locale)}</span>
                       <span>{item.date}</span>
                     </div>
                   </div>
@@ -234,10 +296,10 @@ export default async function TradePage({
                         </Badge>
                       )}
                     </div>
-                    <h3 className="mt-1 font-medium">{item.title}</h3>
+                    <h3 className="mt-1 font-medium">{tr(item.title, locale)}</h3>
                     <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{item.company}</span>
-                      <span>{item.location}</span>
+                      <span>{tr(item.company, locale)}</span>
+                      <span>{tr(item.location, locale)}</span>
                       <span>{item.date}</span>
                     </div>
                   </div>
