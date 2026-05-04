@@ -14,6 +14,7 @@ import { JsonLd } from "@/components/json-ld";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { patentCategories, patentStatusLabels, patentStatusLabelsEn } from "@/lib/data/patents";
 import { SaveButton } from "@/components/save-button";
+import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
 
 export const revalidate = 600;
@@ -168,15 +169,23 @@ export default async function PatentDetailPage({
             </p>
           )}
         </div>
-        <SaveButton
-          sourceType="patent"
-          sourceId={canonical}
-          title={p.title}
-          url={`/patents/${encodeURIComponent(canonical)}`}
-          signedIn={viewer.signedIn}
-          initialSaved={alreadySaved}
-          className="shrink-0"
-        />
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <AskAiButton
+            prompt={
+              locale === "en"
+                ? `Explain patent ${p.publicationNo ?? p.grantNo ?? p.applicationNo ?? canonical} — "${p.titleEn ?? p.title}"${p.applicant ? ` (${p.applicant})` : ""}. What is the core claim, what does it block competitors from doing, and is there a workaround for an overseas FRP buyer sourcing similar tech from China?`
+                : `专利 ${p.publicationNo ?? p.grantNo ?? p.applicationNo ?? canonical}《${p.title}》的核心权利要求、技术要点，以及国内对应工艺/供应商。`
+            }
+          />
+          <SaveButton
+            sourceType="patent"
+            sourceId={canonical}
+            title={p.title}
+            url={`/patents/${encodeURIComponent(canonical)}`}
+            signedIn={viewer.signedIn}
+            initialSaved={alreadySaved}
+          />
+        </div>
       </div>
 
       {p.sourceUrl && (

@@ -8,6 +8,7 @@ import { supplierListings } from "@/lib/db/schema";
 import { supplierCategories, provinces } from "@/lib/data/suppliers";
 import { SuppliersClient, type SerializedSupplier } from "./suppliers-client";
 import { JsonLd } from "@/components/json-ld";
+import { AskAiButton } from "@/components/ask-ai-button";
 
 export const revalidate = 3600;
 
@@ -108,12 +109,22 @@ export default async function SuppliersPage({
           <h1 className="text-3xl font-bold">{t("pageDirectoryTitle")}</h1>
           <p className="mt-2 text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Link
-          href={"/dashboard/enterprise" as "/dashboard"}
-          className={buttonVariants()}
-        >
-          {t("ctaFreeList")}
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <AskAiButton
+            prompt={
+              isEn
+                ? `Match me a verified Chinese supplier. I'm looking for [fiber type / product category] with [certification, e.g. CE, ISO 9001, EN 13706] and approximate volume [MOQ]. Suggest 3-5 candidates ranked by scale tier and certification fit.`
+                : `按工况帮我匹配 3-5 家国内复材供应商：[纤维/树脂/产品品类]、需要[认证]、年用量[数量]。按规模与匹配度排序。`
+            }
+            label={isEn ? "Ask AI to match a supplier" : "AI 智能匹配供应商"}
+          />
+          <Link
+            href={"/dashboard/enterprise" as "/dashboard"}
+            className={buttonVariants()}
+          >
+            {t("ctaFreeList")}
+          </Link>
+        </div>
       </div>
 
       <SuppliersClient

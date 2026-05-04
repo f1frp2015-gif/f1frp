@@ -14,6 +14,7 @@ import { JsonLd } from "@/components/json-ld";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { paperCategories } from "@/lib/data/papers";
 import { SaveButton } from "@/components/save-button";
+import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
 
 export const revalidate = 600;
@@ -171,15 +172,23 @@ export default async function PaperDetailPage({
           {(p.authors ?? []).join(", ")}
           {p.affiliation ? ` · ${p.affiliation}` : ""}
         </div>
-        <SaveButton
-          sourceType="paper"
-          sourceId={canonical}
-          title={p.title}
-          url={`/papers/${encodeURIComponent(canonical)}`}
-          signedIn={viewer.signedIn}
-          initialSaved={alreadySaved}
-          className="shrink-0"
-        />
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <AskAiButton
+            prompt={
+              locale === "en"
+                ? `Summarize the paper "${p.titleEn ?? p.title}"${p.year ? ` (${p.year})` : ""}${p.journal ? ` in ${p.journal}` : ""}. What's the practical takeaway for a composites engineer sourcing similar materials from China? Cite the DOI if available.`
+                : `论文《${p.title}》${p.year ? `（${p.year}）` : ""}${p.journal ? `（${p.journal}）` : ""}的核心结论与对国内复材选材的启示。`
+            }
+          />
+          <SaveButton
+            sourceType="paper"
+            sourceId={canonical}
+            title={p.title}
+            url={`/papers/${encodeURIComponent(canonical)}`}
+            signedIn={viewer.signedIn}
+            initialSaved={alreadySaved}
+          />
+        </div>
       </div>
 
       <Card className="mt-6">
