@@ -64,54 +64,8 @@ export async function generateMetadata({
       template: `%s | ${brand}`,
     },
     description,
-    keywords:
-      locale === "zh"
-        ? [
-            "复合材料",
-            "纤维复合材料",
-            "FRP",
-            "CFRP",
-            "GFRP",
-            "玻璃纤维",
-            "碳纤维",
-            "玄武岩纤维",
-            "芳纶纤维",
-            "生物基纤维",
-            "玻璃钢",
-            "树脂",
-            "复合材料AI",
-            "AI选材",
-            "复合材料数据库",
-            "复合材料配方",
-            "拉挤成型",
-            "缠绕成型",
-            "真空导入",
-            "RTM",
-            "手糊成型",
-          ]
-        : [
-            "composite materials",
-            "fiber reinforced polymer",
-            "FRP",
-            "CFRP",
-            "GFRP",
-            "glass fiber",
-            "carbon fiber",
-            "basalt fiber",
-            "aramid fiber",
-            "bio-based fiber",
-            "fiberglass",
-            "resin",
-            "composite AI",
-            "material selection",
-            "composite database",
-            "composite formulas",
-            "pultrusion",
-            "filament winding",
-            "vacuum infusion",
-            "RTM",
-            "hand lay-up",
-          ],
+    // meta keywords intentionally omitted: Google ignores them and dense
+    // keyword lists are flagged as over-optimization by some auditors.
     icons: {
       icon: [
         { url: "/favicon.svg", type: "image/svg+xml" },
@@ -126,10 +80,12 @@ export async function generateMetadata({
       siteName: brand,
       title,
       description,
-      images: [{ url: "/og-icon.png", width: 512, height: 512, alt: brand }],
+      // og:image populated by src/app/[locale]/opengraph-image.tsx
+      // (1200×630 dynamically generated — beats the old 512×512 logo
+      // for social/SERP card CTR).
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
     },
@@ -144,12 +100,19 @@ export async function generateMetadata({
     alternates: {
       canonical,
       // Cross-domain hreflang: zh content is canonical on f1frp.com, en
-      // content on getfrp.com. This signals Google they are language
-      // alternates of the same content, not duplicates.
+      // content on getfrp.com. Regional en variants (US/GB/AU/CA) all
+      // point at the single en deploy — the Service schema's areaServed
+      // covers the rest. Without these, Google's regional SERPs (google.de
+      // for English, google.co.uk, etc.) often default to less-localized
+      // alternates.
       languages: {
         zh: SITE_ZH,
         "zh-CN": SITE_ZH,
         en: SITE_EN,
+        "en-US": SITE_EN,
+        "en-GB": SITE_EN,
+        "en-AU": SITE_EN,
+        "en-CA": SITE_EN,
         "x-default": SITE_EN,
       },
     },

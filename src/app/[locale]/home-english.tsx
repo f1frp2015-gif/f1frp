@@ -127,7 +127,7 @@ export async function HomePageEnglish() {
               Ask in plain English.
               <br />
               <span className="text-muted-foreground">
-                Get a verified supplier.
+                Get a verified China FRP supplier.
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
