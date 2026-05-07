@@ -94,18 +94,64 @@ export async function HomePageEnglish() {
               "@type": "WebPage",
               "@id": "https://getfrp.com/#webpage",
               url: "https://getfrp.com/",
-              name: "getfrp — AI sourcing assistant for FRP composites from China",
+              name: "getfrp — AI-Native China Composites Supply-Chain Platform",
               inLanguage: "en",
               description:
-                "Ask in plain English. Get a verified Chinese supplier, an ASTM-mapped spec sheet, and a CBAM-ready paperwork plan in the same answer.",
+                "The AI-native vertical platform for sourcing FRP / GFRP / CFRP composites from China — verified suppliers, ASTM ⇄ GB standards crosswalk, CBAM-ready paperwork, and a bilingual sourcing desk for RFQ, QA, payment, and logistics.",
             },
             {
               "@type": "Service",
               "@id": "https://getfrp.com/#service",
-              name: "China FRP sourcing assistant",
-              serviceType: "AI-assisted composites sourcing",
-              areaServed: ["US", "DE", "FR", "GB", "IT", "ES", "NL", "PL", "AU", "CA"],
+              name: "China composites supply-chain platform",
+              serviceType:
+                "AI-native composites sourcing and supply chain (RFQ · QA · CBAM · logistics)",
+              areaServed: [
+                "US",
+                "DE",
+                "FR",
+                "GB",
+                "IT",
+                "ES",
+                "NL",
+                "PL",
+                "AU",
+                "CA",
+              ],
               provider: { "@id": "https://getfrp.com/#organization" },
+              hasOfferCatalog: {
+                "@type": "OfferCatalog",
+                name: "Supply-chain capabilities",
+                itemListElement: [
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "Verified Chinese FRP supplier matching",
+                    },
+                  },
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "ASTM ⇄ GB ⇄ ISO ⇄ EN standards crosswalk",
+                    },
+                  },
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "CBAM carbon-data collection from suppliers",
+                    },
+                  },
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "On-site QA, payment routing, and logistics",
+                    },
+                  },
+                ],
+              },
             },
           ],
         }}
@@ -121,7 +167,7 @@ export async function HomePageEnglish() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
               <Sparkles size={11} />
-              AI SOURCING ASSISTANT FOR FRP COMPOSITES
+              AI-NATIVE CHINA COMPOSITES SUPPLY-CHAIN PLATFORM
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-5xl lg:text-[56px]">
               Ask in plain English.
@@ -131,9 +177,10 @@ export async function HomePageEnglish() {
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
-              An ASTM-mapped spec sheet. A CBAM-ready paperwork plan. A
-              shortlist of verified Chinese FRP manufacturers — in the same
-              answer. A human takes over when you&apos;re ready to RFQ.
+              The vertical platform for FRP / GFRP / CFRP procurement from
+              China — verified suppliers, ASTM ⇄ GB standards crosswalk,
+              CBAM-ready paperwork. Bilingual sourcing desk takes over when
+              you&apos;re ready to RFQ.
             </p>
           </div>
 

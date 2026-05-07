@@ -1,8 +1,8 @@
 {
   "Site": {
     "name": "getfrp",
-    "tagline": "AI sourcing assistant for FRP composites from China",
-    "description": "Ask getfrp in plain English. Get a verified Chinese FRP / GFRP / CFRP supplier, an ASTM-mapped spec sheet, and a CBAM-ready paperwork plan in the same answer. A human sourcing desk takes over when you're ready to RFQ."
+    "tagline": "AI-Native China Composites Supply-Chain Platform",
+    "description": "getfrp is the AI-native vertical platform for sourcing FRP / GFRP / CFRP composites from China. Verified suppliers, ASTM ⇄ GB standards crosswalk, CBAM-ready paperwork, and a bilingual sourcing desk for RFQ, on-site QA, payment, and logistics — in one platform."
   },
   "Nav": {
     "materials": "Materials",

@@ -16,9 +16,9 @@ const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? SITE_ZH;
 const normalized = raw.endsWith("/") ? raw.slice(0, -1) : raw;
 const isEnSide = normalized === SITE_EN;
 
-const EN_LLMS = `# getfrp.com — China FRP Composites Sourcing Platform
+const EN_LLMS = `# getfrp.com — AI-Native China Composites Supply-Chain Platform
 
-> getfrp is an AI-first sourcing platform for fiber-reinforced polymer (FRP / GFRP / CFRP) composites from China. Ask in plain English, get a verified Chinese supplier, an ASTM/GB-mapped spec sheet, and a CBAM-ready paperwork plan in the same answer. A bilingual human sourcing desk (Doris Li, composites engineer, 10 years experience) takes over for RFQ, on-site QA, payment routing, and end-to-end logistics.
+> getfrp is the AI-native vertical platform for sourcing fiber-reinforced polymer (FRP / GFRP / CFRP) composites from China. The platform unifies a curated supplier registry, ASTM ⇄ GB ⇄ ISO ⇄ EN ⇄ DIN standards crosswalk, materials and formulas database, and CBAM-ready paperwork generation behind a plain-English chat interface. A bilingual human sourcing desk (Doris Li, composites engineer, 10 years on the ground in China) handles the rest of the supply chain: RFQ, on-site QA, payment routing, and end-to-end logistics.
 
 ## Audience
 Overseas FRP procurement, composites engineers, and product designers sourcing from China — primary markets: US, DE, FR, GB, IT, ES, NL, PL, AU, CA.

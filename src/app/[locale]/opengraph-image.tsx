@@ -13,10 +13,10 @@ export const contentType = "image/png";
 
 const COPY = {
   en: {
-    eyebrow: "AI SOURCING ASSISTANT",
-    h1Top: "FRP composites,",
-    h1Bottom: "sourced from China.",
-    sub: "Verified suppliers · ASTM ⇄ GB crosswalk · CBAM-ready",
+    eyebrow: "AI-NATIVE COMPOSITES SUPPLY-CHAIN PLATFORM",
+    h1Top: "China composites,",
+    h1Bottom: "AI-native supply chain.",
+    sub: "Verified suppliers · ASTM ⇄ GB · CBAM-ready · Sourcing desk",
     domain: "getfrp.com",
     brand: "getfrp",
   },
