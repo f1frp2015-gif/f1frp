@@ -52,8 +52,8 @@ export function getOfflineChannels(): OfflineChannelsConfig {
       qrUrl: env.F1FRP_WECHAT_QR_URL,
       merchantId: env.F1FRP_WECHAT_MERCHANT_ID,
     },
-    contactEmail: "doris.li@f1composite.com",
-    contactPhone: "138 8333 8993",
+    contactEmail: "f1frp2015@gmail.com",
+    contactPhone: "",
   };
 }
 

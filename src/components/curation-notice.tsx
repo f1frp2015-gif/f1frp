@@ -1,4 +1,4 @@
-import { CONTACT } from "@/lib/contact";
+import { PRIMARY_CONTACT_EMAIL } from "@/lib/contact";
 
 export function CurationNotice({ scope = "本栏目" }: { scope?: string }) {
   return (
@@ -11,10 +11,10 @@ export function CurationNotice({ scope = "本栏目" }: { scope?: string }) {
           {scope}内容由复材站编辑部整理自公开检索数据库与学术/专利公开渠道，仅供行业从业者研究参考，不构成权威法律或学术出处。
           如内容涉及版权、来源归属或其他合法权益问题，请联系网站客服（邮箱：
           <a
-            href={`mailto:${CONTACT.email}`}
+            href={`mailto:${PRIMARY_CONTACT_EMAIL}`}
             className="text-primary hover:underline"
           >
-            {CONTACT.email}
+            {PRIMARY_CONTACT_EMAIL}
           </a>
           ），我们将在核实后及时删除或更正。
         </div>

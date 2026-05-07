@@ -30,6 +30,11 @@ const geistMono = Geist_Mono({
 });
 
 import { CURRENT_SITE_URL, SITE_ZH, SITE_EN } from "@/lib/sites";
+import {
+  CONTACT,
+  CONTACT_TECH,
+  SHOW_SALES_CONTACT,
+} from "@/lib/contact";
 
 const siteUrl = CURRENT_SITE_URL;
 const brandOverride = process.env.NEXT_PUBLIC_SITE_NAME;
@@ -180,14 +185,24 @@ export default async function LocaleLayout({
                 logo: `${siteUrl}/og-icon.png`,
                 description,
                 sameAs: [],
-                contactPoint: {
-                  "@type": "ContactPoint",
-                  contactType: "customer support",
-                  name: "Doris Li",
-                  email: "doris.li@f1composite.com",
-                  telephone: "+86-138-8333-8993",
-                  availableLanguage: ["zh-CN", "en"],
-                },
+                // ContactPoint exposes Doris (sourcing desk) only on the
+                // en side. zh side surfaces the tech mailbox only — no
+                // human name, no phone — to match the user-visible UI.
+                contactPoint: SHOW_SALES_CONTACT
+                  ? {
+                      "@type": "ContactPoint",
+                      contactType: "customer support",
+                      name: CONTACT.name,
+                      email: CONTACT.email,
+                      telephone: "+86-138-8333-8993",
+                      availableLanguage: ["zh-CN", "en"],
+                    }
+                  : {
+                      "@type": "ContactPoint",
+                      contactType: "technical support",
+                      email: CONTACT_TECH.email,
+                      availableLanguage: ["zh-CN"],
+                    },
               },
               {
                 "@type": "WebSite",

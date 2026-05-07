@@ -369,7 +369,7 @@ export function PaymentDialog({
             </DialogHeader>
             <div className="space-y-3 text-[13px]">
               <p>我们将在 <strong>1 个工作日</strong>内核对到账信息，对账完成后通过邮件通知。</p>
-              <p className="text-muted-foreground">如有紧急问题请联系：doris.li@f1composite.com / 138 8333 8993</p>
+              <p className="text-muted-foreground">如有紧急问题请联系：f1frp2015@gmail.com</p>
             </div>
             <DialogFooter>
               <Button onClick={() => setOpen(false)} className="w-full">关闭</Button>

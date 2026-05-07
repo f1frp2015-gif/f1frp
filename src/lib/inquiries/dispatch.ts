@@ -32,9 +32,14 @@ export interface RfqPayload {
   category: string;
 }
 
+import { SHOW_SALES_CONTACT } from "@/lib/contact";
+
 const FALLBACK_RECIPIENT = "f1frp2015@gmail.com";
-// CC 给运营 + 平台账号（运营对接 + 平台留底；fallback 自身就是 f1frp2015，不重复 CC）
-const CC_OPS = ["doris.li@f1composite.com", "f1frp2015@gmail.com"];
+// CC 是收件人可见信息。zh 站不再 cc Doris（避免向供应商暴露 sourcing desk 身份），
+// en 站保留 Doris 在 CC（她是 sourcing desk 主联系人）。
+const CC_OPS = SHOW_SALES_CONTACT
+  ? ["doris.li@f1composite.com", "f1frp2015@gmail.com"]
+  : ["f1frp2015@gmail.com"];
 const FROM = "f1frp RFQ <noreply@f1frp.com>";
 
 const CATEGORY_TO_SUPPLIER: Record<string, string[]> = {

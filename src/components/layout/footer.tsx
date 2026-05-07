@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/logo";
-import { CONTACT, CONTACT_TECH } from "@/lib/contact";
+import { CONTACT, CONTACT_TECH, SHOW_SALES_CONTACT } from "@/lib/contact";
 
 export async function Footer() {
   const t = await getTranslations("Footer");
@@ -71,28 +71,30 @@ export async function Footer() {
               {t("contact")}
             </h4>
             <div className="mt-4 space-y-4 text-[13px] text-muted-foreground">
-              <div className="space-y-1.5">
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
-                  {t("bizLabel")}
-                </p>
-                <p className="font-medium text-foreground">{CONTACT.name}</p>
-                <p>
-                  <a
-                    href={`tel:+86${CONTACT.phoneRaw}`}
-                    className="transition-colors hover:text-foreground"
-                  >
-                    {CONTACT.phone}
-                  </a>
-                </p>
-                <p>
-                  <a
-                    href={`mailto:${CONTACT.email}`}
-                    className="transition-colors hover:text-foreground"
-                  >
-                    {CONTACT.email}
-                  </a>
-                </p>
-              </div>
+              {SHOW_SALES_CONTACT && (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
+                    {t("bizLabel")}
+                  </p>
+                  <p className="font-medium text-foreground">{CONTACT.name}</p>
+                  <p>
+                    <a
+                      href={`tel:+86${CONTACT.phoneRaw}`}
+                      className="transition-colors hover:text-foreground"
+                    >
+                      {CONTACT.phone}
+                    </a>
+                  </p>
+                  <p>
+                    <a
+                      href={`mailto:${CONTACT.email}`}
+                      className="transition-colors hover:text-foreground"
+                    >
+                      {CONTACT.email}
+                    </a>
+                  </p>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
                   {t("techLabel")}

@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { CONTACT } from "@/lib/contact";
+import { CONTACT_TECH } from "@/lib/contact";
 import {
   getPlan,
   personalPlans,
@@ -147,8 +147,8 @@ export default async function UpgradePage({
           </h2>
           <p className="text-sm text-emerald-700 dark:text-emerald-400">
             订阅已激活。可能需要 1–2 分钟同步。如有问题联系{" "}
-            <a href={`mailto:${CONTACT.email}`} className="underline">
-              {CONTACT.email}
+            <a href={`mailto:${CONTACT_TECH.email}`} className="underline">
+              {CONTACT_TECH.email}
             </a>
             。
           </p>
@@ -164,26 +164,16 @@ export default async function UpgradePage({
             {plan
               ? `你选择的方案：${plan.nameZh}（¥${(plan.priceCents / 100).toLocaleString("zh-CN")}）。`
               : null}
-            请联系销售完成对公转账，到账当日开通：
+            请发邮件至以下技术服务邮箱，附上方案名称，我们会回复对公账户与汇款指引：
           </p>
           <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-200">
-            <li>• 联系人：{CONTACT.name}</li>
-            <li>
-              • 电话 / 微信：
-              <a
-                href={`tel:+86${CONTACT.phoneRaw}`}
-                className="ml-1 text-emerald-600 hover:underline"
-              >
-                {CONTACT.phone}
-              </a>
-            </li>
             <li>
               • 邮箱：
               <a
-                href={`mailto:${CONTACT.email}`}
+                href={`mailto:${CONTACT_TECH.email}`}
                 className="ml-1 text-emerald-600 hover:underline"
               >
-                {CONTACT.email}
+                {CONTACT_TECH.email}
               </a>
             </li>
           </ul>

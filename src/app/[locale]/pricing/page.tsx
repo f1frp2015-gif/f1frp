@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { personalPlans, formatPrice, type Plan } from "@/lib/pricing";
-import { CONTACT } from "@/lib/contact";
+import { CONTACT_TECH } from "@/lib/contact";
 import { PaymentDialog } from "@/components/payment/payment-dialog";
 
 // 仅中文站（f1frp.com）需要套餐页 — getfrp.com 海外侧已取消会员/收费体系
@@ -234,18 +234,12 @@ export default async function PricingPage() {
             : "Pay via WeChat Pay / Alipay / Stripe. VAT invoice on request."}
         </p>
         <p>
-          {lang === "zh" ? "联系销售：" : "Contact sales: "}
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">{CONTACT.name}</span>
-          {" · "}
+          {lang === "zh" ? "联系：" : "Contact: "}
           <a
             className="text-emerald-600 hover:underline"
-            href={`tel:+86${CONTACT.phoneRaw}`}
+            href={`mailto:${CONTACT_TECH.email}`}
           >
-            {CONTACT.phone}
-          </a>
-          {" · "}
-          <a className="text-emerald-600 hover:underline" href={`mailto:${CONTACT.email}`}>
-            {CONTACT.email}
+            {CONTACT_TECH.email}
           </a>
         </p>
       </section>

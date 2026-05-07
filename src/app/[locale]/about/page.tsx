@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { JsonLd } from "@/components/json-ld";
-import { CONTACT } from "@/lib/contact";
+import { CONTACT, CONTACT_TECH, SHOW_SALES_CONTACT } from "@/lib/contact";
 
 export async function generateMetadata({
   params,
@@ -130,64 +130,91 @@ export default async function AboutPage({
 
         <section id="contact" className="mb-10">
           <h2 className="text-2xl font-bold">{t("contactTitle")}</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <Mail
-                  size={24}
-                  strokeWidth={1.5}
-                  className="mx-auto text-foreground"
-                />
-                <div className="mt-3 text-sm font-medium">
-                  {t("contactBusiness")}
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  <div className="font-medium text-foreground">{CONTACT.name}</div>
-                  <a
-                    href={`mailto:${CONTACT.email}`}
-                    className="hover:text-foreground"
-                  >
-                    {CONTACT.email}
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <MessageCircle
-                  size={24}
-                  strokeWidth={1.5}
-                  className="mx-auto text-foreground"
-                />
-                <div className="mt-3 text-sm font-medium">
-                  {t("contactWechat")}
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {CONTACT.wechat}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <Smartphone
-                  size={24}
-                  strokeWidth={1.5}
-                  className="mx-auto text-foreground"
-                />
-                <div className="mt-3 text-sm font-medium">
-                  {t("contactOfficial")}
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  <a
-                    href={`tel:+86${CONTACT.phoneRaw}`}
-                    className="hover:text-foreground"
-                  >
-                    {CONTACT.phone}
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {SHOW_SALES_CONTACT ? (
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Mail
+                    size={24}
+                    strokeWidth={1.5}
+                    className="mx-auto text-foreground"
+                  />
+                  <div className="mt-3 text-sm font-medium">
+                    {t("contactBusiness")}
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">
+                      {CONTACT.name}
+                    </div>
+                    <a
+                      href={`mailto:${CONTACT.email}`}
+                      className="hover:text-foreground"
+                    >
+                      {CONTACT.email}
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <MessageCircle
+                    size={24}
+                    strokeWidth={1.5}
+                    className="mx-auto text-foreground"
+                  />
+                  <div className="mt-3 text-sm font-medium">
+                    {t("contactWechat")}
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {CONTACT.wechat}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Smartphone
+                    size={24}
+                    strokeWidth={1.5}
+                    className="mx-auto text-foreground"
+                  />
+                  <div className="mt-3 text-sm font-medium">
+                    {t("contactOfficial")}
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    <a
+                      href={`tel:+86${CONTACT.phoneRaw}`}
+                      className="hover:text-foreground"
+                    >
+                      {CONTACT.phone}
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="mt-6">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Mail
+                    size={24}
+                    strokeWidth={1.5}
+                    className="mx-auto text-foreground"
+                  />
+                  <div className="mt-3 text-sm font-medium">
+                    {t("contactTech")}
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    <a
+                      href={`mailto:${CONTACT_TECH.email}`}
+                      className="hover:text-foreground"
+                    >
+                      {CONTACT_TECH.email}
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </section>
 
         <section

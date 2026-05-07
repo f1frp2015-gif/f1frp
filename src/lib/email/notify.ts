@@ -2,8 +2,9 @@
 // 用于支付订单状态变更通知 / 后续其它系统邮件
 
 const FROM = "f1frp <noreply@f1frp.com>";
-// 所有系统邮件默认 CC 给运营 + 平台账号（运营可见 + 平台监控所有出站）
-const CC_OPS = ["doris.li@f1composite.com", "f1frp2015@gmail.com"];
+// 所有系统邮件默认 CC 给平台账号；CC 收件人对收件人可见，
+// 因此 zh 站不再 cc Doris（避免向用户暴露 sourcing desk 身份）。
+const CC_OPS = ["f1frp2015@gmail.com"];
 
 interface SendOpts {
   to: string;
@@ -147,7 +148,7 @@ export async function sendOrderInitEmail(to: string, ctx: InitCtx): Promise<void
     <p><strong>转账到以下对公账户，并在备注栏填订单号 <code>${ctx.orderNo}</code></strong>：</p>
     ${bankBlock}
     <p>转账完成后，请回到 f1frp.com 提交转账凭证（金额、时间、付款方账号后 4 位等），便于我们 1 个工作日内对账。</p>
-    <p style="color:#888;font-size:12px">紧急问题：doris.li@f1composite.com / 138 8333 8993</p>
+    <p style="color:#888;font-size:12px">技术支持：f1frp2015@gmail.com</p>
   `;
   await sendEmail({ to, subject, html: wrapHtml(subject, body) });
 }
@@ -170,7 +171,7 @@ export async function sendEvidenceReceivedEmail(to: string, ctx: EvidenceCtx): P
     <p>您好 ${escapeHtml(ctx.payerName)}，</p>
     <p>我们已收到您的转账凭证，订单 <code>${ctx.orderNo}</code>（应付 ¥ ${yuan}）${transferred}进入对账队列。</p>
     <p>预计 <strong>1 个工作日</strong>内核对完成，对账成功后您会收到一封"权益已开通"的邮件；如有金额或备注不符的问题，我们会通过邮件与您沟通。</p>
-    <p style="color:#888;font-size:12px">紧急问题：doris.li@f1composite.com / 138 8333 8993</p>
+    <p style="color:#888;font-size:12px">技术支持：f1frp2015@gmail.com</p>
   `;
   await sendEmail({ to, subject, html: wrapHtml(subject, body) });
 }
@@ -193,7 +194,7 @@ export async function sendOrderRejectedEmail(
     <p>您的订单 <code>${ctx.orderNo}</code>（¥${yuan}）未能通过对账，原因：</p>
     <blockquote style="border-left:3px solid #ef4444;padding-left:12px;color:#444">${escapeHtml(ctx.reason)}</blockquote>
     <p>请回复本邮件提供补充凭证（转账截图 / 银行回单），我们会重新核对。</p>
-    <p style="color:#888;font-size:12px">紧急问题：doris.li@f1composite.com / 138 8333 8993</p>
+    <p style="color:#888;font-size:12px">技术支持：f1frp2015@gmail.com</p>
   `;
   await sendEmail({ to, subject, html: wrapHtml(subject, body) });
 }

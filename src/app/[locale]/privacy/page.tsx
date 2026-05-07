@@ -164,10 +164,10 @@ function PrivacyZh() {
       <h2>3. 您的权利</h2>
       <p>
         您有权访问、更正、删除我们持有的您的个人信息。请发送邮件至{" "}
-        <a href="mailto:doris.li@f1composite.com">doris.li@f1composite.com</a>。
+        <a href="mailto:f1frp2015@gmail.com">f1frp2015@gmail.com</a>。
       </p>
       <h2>4. 联系</h2>
-      <p>重庆曜一新材料科技有限公司 · Doris Li</p>
+      <p>重庆曜一新材料科技有限公司</p>
     </div>
   );
 }

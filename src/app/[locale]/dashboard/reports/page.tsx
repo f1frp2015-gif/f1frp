@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CONTACT } from "@/lib/contact";
+import { CONTACT_TECH } from "@/lib/contact";
 import { formatYuan } from "@/lib/pricing";
 import { resolveReportViewer } from "@/lib/reports";
 
@@ -86,8 +86,14 @@ export default async function DashboardReportsPage({
             <CardContent className="space-y-4 p-5">
               <div className="rounded-md bg-amber-100/60 p-3 text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
                 <strong>支付通道接入中。</strong>
-                {" "}请通过微信添加 <strong>{CONTACT.wechat}</strong>{" "}
-                ({CONTACT.name})，备注订单号完成转账，款到 1 个工作日内开通下载权限。
+                {" "}请发邮件至{" "}
+                <a
+                  href={`mailto:${CONTACT_TECH.email}`}
+                  className="underline"
+                >
+                  {CONTACT_TECH.email}
+                </a>
+                ，备注订单号，我们会在 1 个工作日内回复对公账户与开通下载权限。
               </div>
               <div className="space-y-3">
                 {pending.map((o) => {
@@ -207,7 +213,7 @@ export default async function DashboardReportsPage({
 
       <Separator className="my-10" />
       <p className="text-xs text-muted-foreground">
-        电子发票请在购买后联系 {CONTACT.email} 由人工开具。
+        电子发票请在购买后联系 {CONTACT_TECH.email} 由人工开具。
       </p>
     </div>
   );

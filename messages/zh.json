@@ -619,9 +619,9 @@
       "breadcrumb": "文章",
       "hot": "热门",
       "readTime": "阅读 {time}",
-      "disclaimer": "本文由复材站编辑部整理自网络公开资料，目的在于向行业从业者传递信息、辅助决策参考，并非原创资讯报道。所引用事实、数据均来自公开渠道。如内容涉及版权、来源归属或其他合法权益问题，请联系网站客服（邮箱：doris.li@f1composite.com），我们将在核实后及时删除或更正。",
+      "disclaimer": "本文由复材站编辑部整理自网络公开资料，目的在于向行业从业者传递信息、辅助决策参考，并非原创资讯报道。所引用事实、数据均来自公开渠道。如内容涉及版权、来源归属或其他合法权益问题，请联系网站客服（邮箱：f1frp2015@gmail.com），我们将在核实后及时删除或更正。",
       "disclaimerLabel": "声明：",
-      "disclaimerEmail": "doris.li@f1composite.com",
+      "disclaimerEmail": "f1frp2015@gmail.com",
       "back": "← 返回列表",
       "editorial": "整理：复材站编辑部"
     }
@@ -1228,12 +1228,36 @@
       "colTraditional": "传统复材站点",
       "colF1frp": "f1frp",
       "compareRows": [
-        { "dim": "内容更新", "tr": "人工录入，月更或季更", "f1": "每日 cron 自动拉新 + 实时 commentary" },
-        { "dim": "AI 能力", "tr": "无 / 有也是套壳 ChatGPT，无引用", "f1": "RAG citation-first，无来源不答" },
-        { "dim": "数据链接", "tr": "各页孤立 PDF 下载", "f1": "六大库跨表链接，深度引流" },
-        { "dim": "双语支持", "tr": "仅中文，或简陋机翻英文版", "f1": "中英同源，hreflang + SEO 双覆盖" },
-        { "dim": "数据追溯", "tr": "不标注来源", "f1": "材料带 source_type，论文带 DOI，专利带公开号" },
-        { "dim": "工程交付", "tr": "只能看，不能用", "f1": "询盘→供应商邮件、PDF 报告、在线计算器" }
+        {
+          "dim": "内容更新",
+          "tr": "人工录入，月更或季更",
+          "f1": "每日 cron 自动拉新 + 实时 commentary"
+        },
+        {
+          "dim": "AI 能力",
+          "tr": "无 / 有也是套壳 ChatGPT，无引用",
+          "f1": "RAG citation-first，无来源不答"
+        },
+        {
+          "dim": "数据链接",
+          "tr": "各页孤立 PDF 下载",
+          "f1": "六大库跨表链接，深度引流"
+        },
+        {
+          "dim": "双语支持",
+          "tr": "仅中文，或简陋机翻英文版",
+          "f1": "中英同源，hreflang + SEO 双覆盖"
+        },
+        {
+          "dim": "数据追溯",
+          "tr": "不标注来源",
+          "f1": "材料带 source_type，论文带 DOI，专利带公开号"
+        },
+        {
+          "dim": "工程交付",
+          "tr": "只能看，不能用",
+          "f1": "询盘→供应商邮件、PDF 报告、在线计算器"
+        }
       ],
       "cta": "看完优势，看看这些优势转化为哪些具体能力：",
       "nextCapabilities": "能做什么",
@@ -1600,7 +1624,7 @@
       "r8Body": "为所有 AI 回答接入 OpenTelemetry 和用户反馈闭环；建立 AI 引用质量评分 + 幻觉监测；把 AI 产出的每条解读加入人工抽查通道。让可信度本身成为产品。",
       "r8When": "Q2 2026 起持续",
       "cta": "有建议、想合作、想内测某个功能？",
-      "ctaEmail": "doris.li@f1composite.com"
+      "ctaEmail": "f1frp2015@gmail.com"
     }
   },
   "HpRtm": {
@@ -1674,17 +1698,33 @@
     "adv4Desc": "从原材料到制品，从技术到贸易，一个平台解决 FRP 行业全流程需求",
     "roadmapTitle": "发展路线",
     "roadmap": [
-      { "date": "2026 Q2", "event": "平台上线，资讯中心 + 材料数据库 + 供应商目录" },
-      { "date": "2026 Q3", "event": "交易市场上线，价格行情 + 供需发布 + 在线询价" },
-      { "date": "2026 Q4", "event": "技术社区 + 在线工具 + 微信小程序" },
-      { "date": "2027 H1", "event": "AI 智能匹配 + 会员体系 + 培训认证" },
-      { "date": "2027 H2", "event": "在线交易闭环 + 供应链服务 + 行业指数" }
+      {
+        "date": "2026 Q2",
+        "event": "平台上线，资讯中心 + 材料数据库 + 供应商目录"
+      },
+      {
+        "date": "2026 Q3",
+        "event": "交易市场上线，价格行情 + 供需发布 + 在线询价"
+      },
+      {
+        "date": "2026 Q4",
+        "event": "技术社区 + 在线工具 + 微信小程序"
+      },
+      {
+        "date": "2027 H1",
+        "event": "AI 智能匹配 + 会员体系 + 培训认证"
+      },
+      {
+        "date": "2027 H2",
+        "event": "在线交易闭环 + 供应链服务 + 行业指数"
+      }
     ],
     "contactTitle": "联系我们",
     "contactBusiness": "商务合作",
     "contactWechat": "微信客服",
     "contactOfficial": "微信公众号",
     "contactOfficialValue": "搜索\"复材站\"",
+    "contactTech": "技术服务邮箱",
     "adTitle": "广告与合作",
     "adDesc": "复材站面向 FRP 行业企业提供精准的广告投放和品牌推广服务，包括首页 Banner、分类页推荐位、资讯软文等多种形式。",
     "adCta": "获取广告方案"

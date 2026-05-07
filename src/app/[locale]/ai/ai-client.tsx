@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useLocale, useTranslations } from "next-intl";
 import { getMessageText } from "@/lib/ai/utils";
+import { SHOW_SALES_CONTACT } from "@/lib/contact";
 import { AiMessage, type Citation } from "@/components/ai-message";
 import { SourceCards } from "@/components/ai-source-cards";
 import { AiFollowups } from "@/components/ai-followups";
@@ -379,7 +380,7 @@ function AssistantAnswer({
                   : "复制回答"}
             </button>
 
-            {supplierHits.length > 0 && (
+            {SHOW_SALES_CONTACT && supplierHits.length > 0 && (
               <a
                 href={`mailto:doris.li@f1composite.com?subject=${encodeURIComponent(
                   isEn
