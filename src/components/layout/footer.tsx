@@ -124,6 +124,18 @@ export async function Footer() {
                 {process.env.NEXT_PUBLIC_ICP_BEIAN}
               </a>
             )}
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-foreground"
+            >
+              {t("privacy")}
+            </Link>
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-foreground"
+            >
+              {t("terms")}
+            </Link>
           </div>
           {t("signature") && (
             <div className="font-mono">{t("signature")}</div>
