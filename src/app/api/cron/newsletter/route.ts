@@ -132,15 +132,16 @@ export async function GET(req: Request) {
     return NextResponse.json({ skipped: true, reason: "RESEND_API_KEY not set" });
   }
 
-  // TODO: configure NEWSLETTER_RECIPIENTS env var with comma-separated emails
+  // NEWSLETTER_RECIPIENTS: comma-separated list. NEWSLETTER_OWNER: optional
+  // single address always included (deduped).
   const recipientEnv = process.env.NEWSLETTER_RECIPIENTS ?? "";
-  const OWNER = "wyfsye@gmail.com";
+  const owner = (process.env.NEWSLETTER_OWNER ?? "").trim();
   const recipients = recipientEnv
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
 
-  if (!recipients.length) {
+  if (!recipients.length && !owner) {
     return NextResponse.json({ skipped: true, reason: "NEWSLETTER_RECIPIENTS not set or empty" });
   }
 
@@ -178,7 +179,7 @@ export async function GET(req: Request) {
   const subject = `复材站周报 / f1frp Weekly — ${new Date().toISOString().slice(0, 10)}`;
 
   // Send via Resend HTTP API
-  const allRecipients = [...new Set([...recipients, OWNER])];
+  const allRecipients = [...new Set(owner ? [...recipients, owner] : recipients)];
 
   const sendRes = await fetch("https://api.resend.com/emails", {
     method: "POST",
