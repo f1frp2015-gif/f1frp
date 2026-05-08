@@ -1,5 +1,8 @@
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
-import { getChatModel, isChatConfigured } from "@/lib/ai/provider";
+import {
+  getChatModelForRequest,
+  isChatConfiguredForRequest,
+} from "@/lib/ai/provider";
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
@@ -52,7 +55,7 @@ function citationGuidance(locale: string): string {
 }
 
 export async function POST(req: Request) {
-  if (!isChatConfigured()) {
+  if (!isChatConfiguredForRequest(req)) {
     return Response.json({ error: "AI not configured" }, { status: 503 });
   }
 
@@ -125,7 +128,7 @@ export async function POST(req: Request) {
     }
 
     const result = streamText({
-      model: getChatModel(),
+      model: getChatModelForRequest(req),
       system: systemParts.join("\n\n"),
       messages: await convertToModelMessages(uiMessages),
       maxOutputTokens: 2000,

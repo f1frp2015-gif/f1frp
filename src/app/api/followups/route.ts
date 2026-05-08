@@ -1,6 +1,9 @@
 import { generateText } from "ai";
 import { z } from "zod";
-import { getChatModel, isChatConfigured } from "@/lib/ai/provider";
+import {
+  getChatModelForRequest,
+  isChatConfiguredForRequest,
+} from "@/lib/ai/provider";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 
 export const runtime = "nodejs";
@@ -28,7 +31,7 @@ const FollowupsSchema = z.object({
  * across every supported provider (OR, direct Google, DeepSeek).
  */
 export async function POST(req: Request) {
-  if (!isChatConfigured()) {
+  if (!isChatConfiguredForRequest(req)) {
     return Response.json({ questions: [] }, { status: 200 });
   }
 
@@ -67,7 +70,7 @@ Output ONLY a JSON object on a single line, no prose, no code fences:
 
   try {
     const result = await generateText({
-      model: getChatModel(),
+      model: getChatModelForRequest(req),
       system,
       prompt: userBlock,
       temperature: 0.5,

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { generateText } from "ai";
-import { getChatModel, isChatConfigured } from "@/lib/ai/provider";
+import {
+  getChatModelForRequest,
+  isChatConfiguredForRequest,
+} from "@/lib/ai/provider";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext } from "@/lib/ai/retrieve";
 import { db } from "@/lib/db";
@@ -35,7 +38,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "question too long" }, { status: 400 });
   }
 
-  if (!isChatConfigured()) {
+  if (!isChatConfiguredForRequest(req)) {
     return NextResponse.json({ error: "AI not configured" }, { status: 503 });
   }
 
@@ -71,7 +74,7 @@ export async function POST(req: Request) {
   let answer = "";
   try {
     const { text } = await generateText({
-      model: getChatModel(),
+      model: getChatModelForRequest(req),
       system: systemForAsk,
       prompt,
       maxOutputTokens: 800,

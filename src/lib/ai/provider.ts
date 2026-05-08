@@ -1,13 +1,16 @@
-// AI provider 分流（2026-04-27 重构 — OpenRouter 中转 default）
+// AI provider 分流（2026-05-08 — host-aware chat routing）
 //
-// 默认路径：CHAT_PROVIDER=openrouter → 通过 OpenRouter 调 google/gemini-2.5-flash
-//   - 国内 ECS 可达（OpenRouter 国内访问性较稳）
-//   - 海外 Vercel 也用同一路径，保证两侧生成行为一致
-//   - 免费 Gemini 走 OR 的 BYOK 通道（在 OR 后台填 Google API key 用 Google 免费配额）
+// 现在按 *host* 而不是部署 profile 来挑 chat model：
+//   - f1frp.com (国内站)  → DeepSeek (deepseek-chat)
+//   - getfrp.com (海外站) / preview → OpenRouter → google/gemini-2.5-flash
 //
-// Fallback：
-//   - profile=global    → 直连 Google (Vercel 默认行为，未来兜底用)
-//   - profile=domestic  → DeepSeek 直连（OR 不可用时国内最后兜底）
+// 这样同一份代码、同一份 env 部署到双轨 (阿里云 ECS / Vercel) 都自动选对模型,
+// 不再依赖 AI_PROFILE / CHAT_PROVIDER 单值开关。两侧的 API key 都得配:
+//   - DEEPSEEK_API_KEY    (f1frp.com 必需)
+//   - OPENROUTER_API_KEY  (getfrp.com / preview 必需)
+//
+// 显式覆盖：CHAT_PROVIDER=openrouter|google|deepseek 仍然有效，会无视 host
+// 强制走指定 provider —— 用于 cron / 后端脚本（无 host）和本地调试。
 //
 // 嵌入：始终用 Google gemini-embedding-001 (768d) 保持向量一致；
 // 国内 ECS 通过 GOOGLE_AI_GATEWAY_URL 走代理。
@@ -17,27 +20,38 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel, EmbeddingModel } from "ai";
 
 type Profile = "global" | "domestic";
+type ChatProvider = "openrouter" | "google" | "deepseek";
 
 const profile: Profile =
   process.env.AI_PROFILE === "domestic" ? "domestic" : "global";
 
 export const aiProfile = profile;
 
-// CHAT_PROVIDER 取值：
-//   "openrouter" — 走 OR + google/gemini-2.5-flash（推荐 default）
-//   "google"     — 直连 Google
-//   "deepseek"   — 走 DeepSeek（国内备选）
-//   未设置时按 profile 推断：domestic→deepseek, global→google
-const chatProvider: "openrouter" | "google" | "deepseek" =
+const explicitProvider: ChatProvider | null =
   process.env.CHAT_PROVIDER === "openrouter"
     ? "openrouter"
     : process.env.CHAT_PROVIDER === "google"
       ? "google"
       : process.env.CHAT_PROVIDER === "deepseek"
         ? "deepseek"
-        : profile === "domestic"
-          ? "deepseek"
-          : "google";
+        : null;
+
+const DOMESTIC_HOSTS = new Set(["f1frp.com", "www.f1frp.com"]);
+
+function isDomesticHost(host?: string | null): boolean {
+  if (!host) return false;
+  return DOMESTIC_HOSTS.has(host.toLowerCase().split(":")[0]);
+}
+
+function pickProviderForHost(host?: string | null): ChatProvider {
+  if (explicitProvider) return explicitProvider;
+  if (isDomesticHost(host)) return "deepseek";
+  // Default for overseas / preview / unknown host: keep existing OpenRouter
+  // path (gemini-2.5-flash). On the domestic ECS, host header always carries
+  // f1frp.com so we never hit this branch in production.
+  if (profile === "domestic") return "deepseek";
+  return "openrouter";
+}
 
 const CHAT_MODEL_GLOBAL = "gemini-2.5-flash";
 const CHAT_MODEL_DOMESTIC = "deepseek-chat";
@@ -86,18 +100,25 @@ function buildOpenRouter() {
   });
 }
 
-export function getChatModel(): LanguageModel {
-  if (chatProvider === "openrouter") {
+export function getChatModel(host?: string | null): LanguageModel {
+  const provider = pickProviderForHost(host);
+  if (provider === "openrouter") {
     return buildOpenRouter().chatModel(
       process.env.OPENROUTER_CHAT_MODEL ?? CHAT_MODEL_OPENROUTER,
     );
   }
-  if (chatProvider === "deepseek") {
+  if (provider === "deepseek") {
     return buildDeepseek().chatModel(
       process.env.DEEPSEEK_CHAT_MODEL ?? CHAT_MODEL_DOMESTIC,
     );
   }
   return buildGoogle(process.env.GOOGLE_AI_GATEWAY_URL)(CHAT_MODEL_GLOBAL);
+}
+
+export function getChatModelForRequest(req: Request): LanguageModel {
+  const host =
+    req.headers.get("x-forwarded-host") || req.headers.get("host");
+  return getChatModel(host);
 }
 
 export function getEmbeddingModel(): EmbeddingModel {
@@ -114,10 +135,17 @@ export function getEmbeddingModel(): EmbeddingModel {
   return buildGoogle(baseURL).textEmbeddingModel(EMBED_MODEL);
 }
 
-export function isChatConfigured(): boolean {
-  if (chatProvider === "openrouter") {
+export function isChatConfigured(host?: string | null): boolean {
+  const provider = pickProviderForHost(host);
+  if (provider === "openrouter") {
     return Boolean(process.env.OPENROUTER_API_KEY);
   }
-  if (chatProvider === "deepseek") return Boolean(process.env.DEEPSEEK_API_KEY);
+  if (provider === "deepseek") return Boolean(process.env.DEEPSEEK_API_KEY);
   return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+}
+
+export function isChatConfiguredForRequest(req: Request): boolean {
+  const host =
+    req.headers.get("x-forwarded-host") || req.headers.get("host");
+  return isChatConfigured(host);
 }
