@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { asc } from "drizzle-orm";
+import { and, asc, isNotNull, ne } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/lib/db";
 import { standards as standardsTable } from "@/lib/db/schema";
@@ -29,24 +29,31 @@ export default async function StandardsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const isEn = locale === "en";
 
+  // EN 侧只展示已有英文标题的标准, 避免页面回退到中文 → Google 把页面归到 zh
   const rows = await db
     .select()
     .from(standardsTable)
+    .where(
+      isEn
+        ? and(isNotNull(standardsTable.titleEn), ne(standardsTable.titleEn, ""))
+        : undefined,
+    )
     .orderBy(asc(standardsTable.countryCode), asc(standardsTable.code));
 
   const serialized: SerializedStandard[] = rows.map((r) => ({
     id: r.id,
     code: r.code,
-    title: r.title,
+    title: isEn ? r.titleEn ?? "" : r.title,
     titleEn: r.titleEn ?? "",
-    country: r.country ?? "",
+    country: isEn ? r.countryEn ?? "" : r.country ?? "",
     countryCode: r.countryCode ?? "",
-    category: r.category ?? "",
-    process: (r.process ?? []) as string[],
+    category: isEn ? r.categoryEn ?? "" : r.category ?? "",
+    process: (isEn ? r.processEn ?? [] : r.process ?? []) as string[],
     year: r.year ?? "",
-    status: (r.status ?? "现行") as SerializedStandard["status"],
-    description: r.description ?? "",
+    status: ((isEn ? r.statusEn ?? r.status : r.status) ?? "现行") as SerializedStandard["status"],
+    description: isEn ? r.descriptionEn ?? "" : r.description ?? "",
   }));
 
   return (

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { asc } from "drizzle-orm";
+import { and, asc, isNotNull, ne, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/lib/db";
 import { materials as materialsTable } from "@/lib/db/schema";
@@ -29,10 +29,23 @@ export default async function MaterialsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const isEn = locale === "en";
 
+  // getfrp.com 是英文站. 缺英文名的物料一律不展示, 否则页面会回退到中文 →
+  // Google 把页面归类为 zh-CN, 与 f1frp.com 形成"重复, Google 选择了不同规范"。
+  // 含非 ASCII 字符的 id 在线上 /materials/[id] 直接 404, 也一并过滤。
   const rows = await db
     .select()
     .from(materialsTable)
+    .where(
+      isEn
+        ? and(
+            isNotNull(materialsTable.nameEn),
+            ne(materialsTable.nameEn, ""),
+            sql`${materialsTable.id} ~ '^[\\x00-\\x7F]+$'`,
+          )
+        : undefined,
+    )
     .orderBy(asc(materialsTable.category), asc(materialsTable.name))
     .limit(500);
 
@@ -60,17 +73,18 @@ export default async function MaterialsPage({
     })),
   };
 
+  // EN 侧已经在 SQL 层过滤掉缺英文的行, 此处不再向中文字段 fallback。
   const serialized = rows.map((r) => ({
     id: r.id,
-    name: r.name,
+    name: isEn ? r.nameEn ?? "" : r.name,
     nameEn: r.nameEn ?? "",
     category: r.category,
-    subCategory: r.subCategory ?? "",
-    brand: r.brand ?? "",
-    model: r.model ?? "",
-    properties: (r.properties ?? {}) as Record<string, string>,
-    applications: (r.applications ?? []) as string[],
-    description: r.description ?? "",
+    subCategory: isEn ? r.subCategoryEn ?? "" : r.subCategory ?? "",
+    brand: isEn ? r.brandEn ?? "" : r.brand ?? "",
+    model: isEn ? r.modelEn ?? "" : r.model ?? "",
+    properties: (isEn ? r.propertiesEn ?? {} : r.properties ?? {}) as Record<string, string>,
+    applications: (isEn ? r.applicationsEn ?? [] : r.applications ?? []) as string[],
+    description: isEn ? r.descriptionEn ?? "" : r.description ?? "",
   }));
 
   return (

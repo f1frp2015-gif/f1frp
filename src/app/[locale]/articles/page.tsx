@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull, ne, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -39,18 +39,31 @@ export default async function ArticlesPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Articles" });
+  const isEn = locale === "en";
 
-  // P2-⑥ geo filter: hide articles flagged for the OTHER side
-  // (e.g. 国内补贴解读 with forEn=false won't surface on getfrp.com)
-  const geoFilter = locale === "en"
-    ? eq(articles.forEn, true)
+  // EN 侧: forEn=true + 必须有英文标题 + slug 必须 ASCII (避免详情页 URL 编码后被
+  // Google 识别为低质量)。任何缺一就在 EN 站隐藏, 不向中文 fallback。
+  const filter = isEn
+    ? and(
+        eq(articles.forEn, true),
+        isNotNull(articles.titleEn),
+        ne(articles.titleEn, ""),
+        sql`${articles.slug} ~ '^[\\x00-\\x7F]+$'`,
+      )
     : eq(articles.forZh, true);
 
-  const rows = await db
+  const rowsRaw = await db
     .select()
     .from(articles)
-    .where(geoFilter)
+    .where(filter)
     .orderBy(desc(articles.publishedAt), desc(articles.createdAt));
+
+  const rows = rowsRaw.map((a) => ({
+    ...a,
+    title: isEn ? a.titleEn ?? "" : a.title,
+    excerpt: isEn ? a.excerptEn ?? null : a.excerpt ?? null,
+    body: isEn ? a.bodyEn ?? null : a.body ?? null,
+  }));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">

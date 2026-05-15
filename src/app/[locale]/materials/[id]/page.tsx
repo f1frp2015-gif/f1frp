@@ -157,10 +157,16 @@ export async function generateMetadata({
   const { locale, id } = await params;
   const t = await getTranslations({ locale, namespace: "Materials.detail" });
   const m = await loadMaterial(id);
-  if (!m) return { title: t("notFound") };
+  const isEn = locale === "en";
+  if (!m || (isEn && !(m.nameEn && m.nameEn.trim())))
+    return { title: t("notFound"), robots: { index: false, follow: false } };
+  const name = isEn ? m.nameEn ?? "" : m.name;
+  const description = isEn
+    ? m.descriptionEn ?? t("metaDescription", { name })
+    : m.description ?? t("metaDescription", { name });
   return {
-    title: t("metaTitle", { name: m.name }),
-    description: m.description ?? t("metaDescription", { name: m.name }),
+    title: t("metaTitle", { name }),
+    description,
   };
 }
 
@@ -177,8 +183,21 @@ export default async function MaterialDetailPage({
   const ts = await getTranslations("Materials.detail.sections");
   const tSupplier = await getTranslations("Suppliers");
 
-  const m = await loadMaterial(id);
-  if (!m) notFound();
+  const mRaw = await loadMaterial(id);
+  if (!mRaw) notFound();
+  const isEn = locale === "en";
+  // EN 侧缺英文名一律 404, 避免页面回退到中文内容 → Google 把整站归到 zh
+  if (isEn && !(mRaw.nameEn && mRaw.nameEn.trim())) notFound();
+  const m = {
+    ...mRaw,
+    name: isEn ? mRaw.nameEn ?? mRaw.name : mRaw.name,
+    subCategory: isEn ? mRaw.subCategoryEn ?? null : mRaw.subCategory ?? null,
+    brand: isEn ? mRaw.brandEn ?? null : mRaw.brand ?? null,
+    model: isEn ? mRaw.modelEn ?? null : mRaw.model ?? null,
+    properties: isEn ? mRaw.propertiesEn ?? null : mRaw.properties ?? null,
+    applications: isEn ? mRaw.applicationsEn ?? null : mRaw.applications ?? null,
+    description: isEn ? mRaw.descriptionEn ?? null : mRaw.description ?? null,
+  };
 
   const viewer = await resolveViewer();
   const alreadySaved =
@@ -189,7 +208,7 @@ export default async function MaterialDetailPage({
   const [suppliers, dls, relatedFormulas] = await Promise.all([
     loadRelatedSuppliers(m.category),
     loadDownloads(m.id),
-    loadRelatedFormulas(m),
+    loadRelatedFormulas(mRaw),
   ]);
 
   const props = (m.properties ?? {}) as Record<string, string>;
@@ -204,7 +223,7 @@ export default async function MaterialDetailPage({
     "@type": "Product",
     url: canonicalUrl,
     inLanguage,
-    name: m.name,
+    name: isEn ? mRaw.nameEn ?? mRaw.name : mRaw.name,
     description: m.description ?? undefined,
     mpn: m.model ?? undefined,
     category: m.subCategory ?? m.category,

@@ -25,40 +25,57 @@ import {
 
 export type FormulaIngredient = {
   name: string;
+  nameEn: string;
   role: string;
+  roleEn: string;
   amount: string;
+  amountEn: string;
   note?: string;
+  noteEn?: string;
 };
 export type ProcessingParam = {
   name: string;
+  nameEn: string;
   value: string;
+  valueEn: string;
   note?: string;
+  noteEn?: string;
 };
 export type ExpectedProperty = {
   name: string;
+  nameEn: string;
   value: string;
+  valueEn: string;
   standard?: string;
   note?: string;
+  noteEn?: string;
 };
 export type SerializedFormula = {
   id: string;
   name: string;
+  nameEn: string;
   processId: string;
   process: string;
+  processEn: string;
   category: string;
+  categoryEn: string;
   application: string;
+  applicationEn: string;
   difficulty: "入门" | "中级" | "高级";
   description: string;
+  descriptionEn: string;
   resinSystem: FormulaIngredient[];
   reinforcement: FormulaIngredient[];
   auxiliaries: FormulaIngredient[];
   processing: ProcessingParam[];
   properties: ExpectedProperty[];
   tips: string[];
+  tipsEn: string[];
   safetyNotes: string[];
+  safetyNotesEn: string[];
 };
 
-type FilterOption = { id: string; name: string; iconKey?: string };
+type FilterOption = { id: string; name: string; nameEn?: string; iconKey?: string };
 
 function DifficultyBadge({ level }: { level: string }) {
   const t = useTranslations("Formulas");
@@ -93,6 +110,8 @@ function IngredientTable({
   materialMap: Record<string, string>;
 }) {
   const t = useTranslations("Formulas");
+  const locale = useLocale();
+  const isEn = locale === "en";
   if (!items || items.length === 0) return null;
   return (
     <div>
@@ -113,6 +132,10 @@ function IngredientTable({
           <TableBody>
             {items.map((item, i) => {
               const matId = materialMap[item.name];
+              const dispName = isEn && item.nameEn ? item.nameEn : item.name;
+              const dispRole = isEn && item.roleEn ? item.roleEn : item.role;
+              const dispAmount = isEn && item.amountEn ? item.amountEn : item.amount;
+              const dispNote = isEn ? item.noteEn ?? item.note : item.note;
               return (
                 <TableRow key={i}>
                   <TableCell className="font-medium">
@@ -122,21 +145,21 @@ function IngredientTable({
                         className="inline-flex items-center gap-1 text-primary hover:underline"
                         title={t("viewMaterial")}
                       >
-                        {item.name}
+                        {dispName}
                         <span className="text-[10px] opacity-60">↗</span>
                       </Link>
                     ) : (
-                      item.name
+                      dispName
                     )}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-[10px]">
-                      {item.role}
+                      {dispRole}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{item.amount}</TableCell>
+                  <TableCell className="font-mono text-xs">{dispAmount}</TableCell>
                   <TableCell className="hidden text-xs text-muted-foreground sm:table-cell">
-                    {item.note}
+                    {dispNote}
                   </TableCell>
                 </TableRow>
               );
@@ -156,9 +179,15 @@ function FormulaDetail({
   materialMap: Record<string, string>;
 }) {
   const t = useTranslations("Formulas");
+  const locale = useLocale();
+  const isEn = locale === "en";
+  const tips = isEn && formula.tipsEn?.length ? formula.tipsEn : formula.tips;
+  const safetyNotes = isEn && formula.safetyNotesEn?.length ? formula.safetyNotesEn : formula.safetyNotes;
   return (
     <div className="space-y-5 pb-2">
-      <p className="text-sm leading-relaxed text-muted-foreground">{formula.description}</p>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        {isEn && formula.descriptionEn ? formula.descriptionEn : formula.description}
+      </p>
 
       <IngredientTable title={t("sectionResin")} num={1} items={formula.resinSystem} amountHead={t("colAmount")} materialMap={materialMap} />
       <IngredientTable title={t("sectionReinforcement")} num={2} items={formula.reinforcement} amountHead={t("colAmountPos")} materialMap={materialMap} />
@@ -174,8 +203,8 @@ function FormulaDetail({
             <div className="space-y-1.5">
               {formula.processing.map((p, i) => (
                 <div key={i} className="flex items-start justify-between gap-2 rounded-md bg-muted/50 px-3 py-2">
-                  <span className="text-xs text-muted-foreground">{p.name}</span>
-                  <span className="shrink-0 text-right text-xs font-medium">{p.value}</span>
+                  <span className="text-xs text-muted-foreground">{isEn && p.nameEn ? p.nameEn : p.name}</span>
+                  <span className="shrink-0 text-right text-xs font-medium">{isEn && p.valueEn ? p.valueEn : p.value}</span>
                 </div>
               ))}
             </div>
@@ -191,9 +220,9 @@ function FormulaDetail({
             <div className="space-y-1.5">
               {formula.properties.map((p, i) => (
                 <div key={i} className="flex items-start justify-between gap-2 rounded-md bg-muted/50 px-3 py-2">
-                  <span className="text-xs text-muted-foreground">{p.name}</span>
+                  <span className="text-xs text-muted-foreground">{isEn && p.nameEn ? p.nameEn : p.name}</span>
                   <div className="shrink-0 text-right">
-                    <span className="text-xs font-medium">{p.value}</span>
+                    <span className="text-xs font-medium">{isEn && p.valueEn ? p.valueEn : p.value}</span>
                     {p.standard && <span className="ml-1 text-[10px] text-muted-foreground">({p.standard})</span>}
                   </div>
                 </div>
@@ -203,14 +232,14 @@ function FormulaDetail({
         )}
       </div>
 
-      {formula.tips?.length > 0 && (
+      {tips?.length > 0 && (
         <div>
           <h4 className="mb-2 flex items-center gap-2 text-sm font-bold">
             <span className="flex h-5 w-5 items-center justify-center rounded bg-amber-500/10 text-xs text-amber-600">!</span>
             {t("sectionTips")}
           </h4>
           <ul className="space-y-1.5">
-            {formula.tips.map((tip, i) => (
+            {tips.map((tip, i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
                 <span className="mt-0.5 shrink-0 text-amber-500">●</span>
                 <span className="text-muted-foreground">{tip}</span>
@@ -220,11 +249,11 @@ function FormulaDetail({
         </div>
       )}
 
-      {formula.safetyNotes?.length > 0 && (
+      {safetyNotes?.length > 0 && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
           <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">{t("sectionSafety")}</h4>
           <ul className="space-y-1">
-            {formula.safetyNotes.map((note, i) => (
+            {safetyNotes.map((note, i) => (
               <li key={i} className="flex items-start gap-2 text-xs text-red-700 dark:text-red-300">
                 <span className="mt-0.5 shrink-0">⚠</span>
                 {note}
@@ -288,9 +317,13 @@ export function FormulasClient({
       const matchSearch =
         !q ||
         f.name.toLowerCase().includes(q) ||
+        (f.nameEn ?? "").toLowerCase().includes(q) ||
         f.process.toLowerCase().includes(q) ||
+        (f.processEn ?? "").toLowerCase().includes(q) ||
         f.application.toLowerCase().includes(q) ||
-        f.description.toLowerCase().includes(q);
+        (f.applicationEn ?? "").toLowerCase().includes(q) ||
+        f.description.toLowerCase().includes(q) ||
+        (f.descriptionEn ?? "").toLowerCase().includes(q);
       const matchProcess = activeProcess === "all" || f.processId === activeProcess;
       const matchCategory = activeCategory === "all" || f.category === activeCategory;
       return matchSearch && matchProcess && matchCategory;
@@ -299,11 +332,12 @@ export function FormulasClient({
 
   const groupedByProcess = useMemo(() => {
     return filtered.reduce<Record<string, SerializedFormula[]>>((acc, f) => {
-      const key = f.process || (isEn ? "Ungrouped" : "未分组");
+      const proc = isEn && f.processEn ? f.processEn : f.process;
+      const key = proc || (isEn ? "Ungrouped" : "未分组");
       (acc[key] ||= []).push(f);
       return acc;
     }, {});
-  }, [filtered]);
+  }, [filtered, isEn]);
 
   const beginners = formulas.filter((f) => f.difficulty === "入门").length;
   const advanced = formulas.filter((f) => f.difficulty === "高级").length;
@@ -340,7 +374,7 @@ export function FormulasClient({
               onClick={() => setActiveProcess(p.id)}
             >
               {p.iconKey && <Icon name={p.iconKey} size={12} />}
-              {p.name}
+              {isEn && p.nameEn ? p.nameEn : p.name}
             </Badge>
           ))}
         </div>
@@ -354,7 +388,7 @@ export function FormulasClient({
               className="cursor-pointer px-2.5 py-1 text-xs"
               onClick={() => setActiveCategory(c.id)}
             >
-              {c.name}
+              {isEn && c.nameEn ? c.nameEn : c.name}
             </Badge>
           ))}
         </div>
@@ -364,7 +398,9 @@ export function FormulasClient({
         <div key={processName} className="mb-8">
           <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
             {(() => {
-              const k = processFilters.find((p) => p.name === processName)?.iconKey;
+              const k = processFilters.find(
+                (p) => p.name === processName || p.nameEn === processName,
+              )?.iconKey;
               return k ? <Icon name={k} size={20} className="text-muted-foreground" /> : null;
             })()}
             {processName}
@@ -385,12 +421,14 @@ export function FormulasClient({
               >
                 <AccordionTrigger className="py-4">
                   <div className="flex flex-1 flex-col items-start gap-1.5 pr-4 text-left sm:flex-row sm:items-center sm:gap-3">
-                    <span className="font-semibold">{f.name}</span>
+                    <span className="font-semibold">{isEn && f.nameEn ? f.nameEn : f.name}</span>
                     <div className="flex flex-wrap gap-1.5">
                       <DifficultyBadge level={f.difficulty} />
-                      {f.application && (
+                      {(isEn && f.applicationEn ? f.applicationEn : f.application) && (
                         <Badge variant="outline" className="text-[10px]">
-                          {f.application.split("、")[0]}
+                          {(isEn && f.applicationEn ? f.applicationEn : f.application).split(
+                            isEn ? "," : "、",
+                          )[0]}
                         </Badge>
                       )}
                     </div>

@@ -7,11 +7,20 @@ import {
   papers,
   patents,
   materials,
-  supplierListings,
 } from "@/lib/db/schema";
 import { CURRENT_SITE_URL, ACTIVE_LOCALE, crossSiteUrls } from "@/lib/sites";
 
 export const revalidate = 3600;
+
+// getfrp.com 是英文站. 现实约束:
+//  1) 物料/专利/论文的 id/slug 大量直接采用中文原文 → URL 含 UTF-8 字符
+//  2) 部分中文 id 的 /materials/[id] 路由在线上返回 404 (Vercel 路由 / Next.js
+//     编码处理不一致),Sitemap 把这些链接交给 Google 后会被记为"未找到 404",
+//     拖累整站的索引覆盖率
+//  3) 即便页面 200,标题/正文仍是中文,Google 语言检测会把页面归类为 zh-CN,
+//     与 f1frp.com 的中文版形成"重复,Google 选择了不同的规范"
+// 所以英文 sitemap 只收录 path 纯 ASCII 的条目;中文站 (f1frp.com) 保持全量.
+const isAsciiPath = (s: string) => /^[\x00-\x7F]+$/.test(s);
 
 type StaticRoute = {
   path: string;
@@ -90,116 +99,144 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: alternatesFor(r.path, r.zhOnly),
     }));
 
-  const [
-    articleRows,
-    standardRows,
-    paperRows,
-    patentRows,
-    materialRows,
-    supplierRows,
-  ] = await Promise.all([
-    safeFetch(() =>
-      db
-        .select({ slug: articles.slug, updatedAt: articles.updatedAt })
-        .from(articles)
-        .orderBy(desc(articles.publishedAt))
-        .limit(1000),
-    ),
-    safeFetch(() =>
-      db
-        .select({ id: standards.id, updatedAt: standards.updatedAt })
-        .from(standards)
-        .limit(1000),
-    ),
-    safeFetch(() =>
-      db
-        .select({ id: papers.id, slug: papers.slug, updatedAt: papers.updatedAt })
-        .from(papers)
-        .orderBy(desc(papers.updatedAt))
-        .limit(2000),
-    ),
-    safeFetch(() =>
-      db
-        .select({ id: patents.id, slug: patents.slug, updatedAt: patents.updatedAt })
-        .from(patents)
-        .orderBy(desc(patents.updatedAt))
-        .limit(2000),
-    ),
-    safeFetch(() =>
-      db
-        .select({ id: materials.id, updatedAt: materials.updatedAt })
-        .from(materials)
-        .limit(2000),
-    ),
-    safeFetch(() =>
-      db
-        .select({ id: supplierListings.id, updatedAt: supplierListings.updatedAt })
-        .from(supplierListings)
-        .limit(500),
-    ),
-  ]);
+  const [articleRows, standardRows, paperRows, patentRows, materialRows] =
+    await Promise.all([
+      safeFetch(() =>
+        db
+          .select({ slug: articles.slug, updatedAt: articles.updatedAt })
+          .from(articles)
+          .orderBy(desc(articles.publishedAt))
+          .limit(1000),
+      ),
+      safeFetch(() =>
+        db
+          .select({
+            id: standards.id,
+            titleEn: standards.titleEn,
+            updatedAt: standards.updatedAt,
+          })
+          .from(standards)
+          .limit(1000),
+      ),
+      safeFetch(() =>
+        db
+          .select({
+            id: papers.id,
+            slug: papers.slug,
+            titleEn: papers.titleEn,
+            updatedAt: papers.updatedAt,
+          })
+          .from(papers)
+          .orderBy(desc(papers.updatedAt))
+          .limit(2000),
+      ),
+      safeFetch(() =>
+        db
+          .select({
+            id: patents.id,
+            slug: patents.slug,
+            titleEn: patents.titleEn,
+            updatedAt: patents.updatedAt,
+          })
+          .from(patents)
+          .orderBy(desc(patents.updatedAt))
+          .limit(2000),
+      ),
+      safeFetch(() =>
+        db
+          .select({
+            id: materials.id,
+            nameEn: materials.nameEn,
+            updatedAt: materials.updatedAt,
+          })
+          .from(materials)
+          .limit(2000),
+      ),
+    ]);
 
-  function dynamicEntries<T>(
-    rows: T[],
-    getPath: (r: T) => string,
-    getUpdatedAt: (r: T) => Date | null,
+  const isEn = ACTIVE_LOCALE === "en";
+
+  // EN 侧: 只收录 path 纯 ASCII 且有英文内容字段的条目
+  // ZH 侧: 全量收录(中文 slug 在 f1frp.com 是合法的本地化 URL)
+  const articleEntries = (
+    articleRows as Array<{ slug: string; updatedAt: Date | null }>
+  )
+    .filter((r) => (isEn ? isAsciiPath(r.slug) : true))
+    .map((r) => ({ path: `/articles/${r.slug}`, updatedAt: r.updatedAt }));
+
+  const standardEntries = (
+    standardRows as Array<{
+      id: string;
+      titleEn: string | null;
+      updatedAt: Date | null;
+    }>
+  )
+    .filter((r) =>
+      isEn ? isAsciiPath(r.id) && (r.titleEn ?? "").trim() !== "" : true,
+    )
+    .map((r) => ({ path: `/standards/${r.id}`, updatedAt: r.updatedAt }));
+
+  const paperEntries = (
+    paperRows as Array<{
+      id: string;
+      slug: string | null;
+      titleEn: string | null;
+      updatedAt: Date | null;
+    }>
+  )
+    .map((r) => ({ urlSlug: r.slug ?? r.id, titleEn: r.titleEn, updatedAt: r.updatedAt }))
+    .filter((r) =>
+      isEn ? isAsciiPath(r.urlSlug) && (r.titleEn ?? "").trim() !== "" : true,
+    )
+    .map((r) => ({ path: `/papers/${r.urlSlug}`, updatedAt: r.updatedAt }));
+
+  const patentEntries = (
+    patentRows as Array<{
+      id: string;
+      slug: string | null;
+      titleEn: string | null;
+      updatedAt: Date | null;
+    }>
+  )
+    .map((r) => ({ urlSlug: r.slug ?? r.id, titleEn: r.titleEn, updatedAt: r.updatedAt }))
+    .filter((r) =>
+      isEn ? isAsciiPath(r.urlSlug) && (r.titleEn ?? "").trim() !== "" : true,
+    )
+    .map((r) => ({ path: `/patents/${r.urlSlug}`, updatedAt: r.updatedAt }));
+
+  const materialEntries = (
+    materialRows as Array<{
+      id: string;
+      nameEn: string | null;
+      updatedAt: Date | null;
+    }>
+  )
+    .filter((r) =>
+      // 关键: 含中文的 material id 在线上 /materials/[id] 直接 404,
+      // 把它们留在 sitemap 会被 GSC 统计成大面积"未找到"错误。
+      isEn ? isAsciiPath(r.id) && (r.nameEn ?? "").trim() !== "" : true,
+    )
+    .map((r) => ({ path: `/materials/${r.id}`, updatedAt: r.updatedAt }));
+
+  const toSitemapEntry = (
+    e: { path: string; updatedAt: Date | null },
     priority: number,
-  ): MetadataRoute.Sitemap {
-    return rows.map((r) => {
-      const path = getPath(r);
-      return {
-        url: urlFor(path),
-        lastModified: getUpdatedAt(r) ?? now,
-        changeFrequency: "monthly" as const,
-        priority,
-        alternates: alternatesFor(path),
-      };
-    });
-  }
-
-  // Suppress unused warning for ACTIVE_LOCALE (kept exported for future
-  // locale-conditional content; URL paths themselves are locale-agnostic).
-  void ACTIVE_LOCALE;
+  ): MetadataRoute.Sitemap[number] => ({
+    url: urlFor(e.path),
+    lastModified: e.updatedAt ?? now,
+    changeFrequency: "monthly" as const,
+    priority,
+    alternates: alternatesFor(e.path),
+  });
 
   return [
     ...staticEntries,
-    ...dynamicEntries(
-      articleRows as Array<{ slug: string; updatedAt: Date | null }>,
-      (r) => `/articles/${r.slug}`,
-      (r) => r.updatedAt,
-      0.6,
-    ),
-    ...dynamicEntries(
-      standardRows as Array<{ id: string; updatedAt: Date | null }>,
-      (r) => `/standards/${r.id}`,
-      (r) => r.updatedAt,
-      0.7,
-    ),
-    ...dynamicEntries(
-      paperRows as Array<{ id: string; slug: string | null; updatedAt: Date | null }>,
-      (r) => `/papers/${r.slug ?? r.id}`,
-      (r) => r.updatedAt,
-      0.6,
-    ),
-    ...dynamicEntries(
-      patentRows as Array<{ id: string; slug: string | null; updatedAt: Date | null }>,
-      (r) => `/patents/${r.slug ?? r.id}`,
-      (r) => r.updatedAt,
-      0.6,
-    ),
-    ...dynamicEntries(
-      materialRows as Array<{ id: string; updatedAt: Date | null }>,
-      (r) => `/materials/${r.id}`,
-      (r) => r.updatedAt,
-      0.6,
-    ),
-    ...dynamicEntries(
-      supplierRows as Array<{ id: string; updatedAt: Date | null }>,
-      // Supplier listing pages live at /suppliers (anchor #id used by UI).
-      // For sitemap purposes Google only takes the URL part, so emit clean /suppliers.
-      () => `/suppliers`,
-      (r) => r.updatedAt,
-      0.5,
-    ),
+    ...articleEntries.map((e) => toSitemapEntry(e, 0.6)),
+    ...standardEntries.map((e) => toSitemapEntry(e, 0.7)),
+    ...paperEntries.map((e) => toSitemapEntry(e, 0.6)),
+    ...patentEntries.map((e) => toSitemapEntry(e, 0.6)),
+    ...materialEntries.map((e) => toSitemapEntry(e, 0.6)),
+    // /suppliers 列表页已经在 staticRoutes 里收录一次; 不再为每个 listing 重复发同一 URL。
+    // (旧实现给每行发一次 /suppliers, 造成 sitemap 里同一 URL 重复 459 次, 直接被 Google 判为低质量 sitemap)
   ];
 }

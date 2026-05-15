@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { desc } from "drizzle-orm";
+import { and, desc, isNotNull, ne, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/lib/db";
 import { patents as patentsTable } from "@/lib/db/schema";
@@ -33,6 +33,7 @@ export default async function PatentsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const isEn = locale === "en";
 
   const rows = await db
     .select({
@@ -44,38 +45,52 @@ export default async function PatentsPage({
       publicationNo: patentsTable.publicationNo,
       grantNo: patentsTable.grantNo,
       applicant: patentsTable.applicant,
+      applicantEn: patentsTable.applicantEn,
       filingDate: patentsTable.filingDate,
       publicationDate: patentsTable.publicationDate,
       grantDate: patentsTable.grantDate,
       classification: patentsTable.classification,
       status: patentsTable.status,
       country: patentsTable.country,
+      countryEn: patentsTable.countryEn,
       countryCode: patentsTable.countryCode,
       category: patentsTable.category,
+      categoryEn: patentsTable.categoryEn,
       abstract: patentsTable.abstract,
+      abstractEn: patentsTable.abstractEn,
       // claims/inventors excluded — only loaded on /patents/[id]
     })
     .from(patentsTable)
+    .where(
+      // EN 侧仅展示英文标题已存在、且 URL slug 为 ASCII 的专利
+      isEn
+        ? and(
+            isNotNull(patentsTable.titleEn),
+            ne(patentsTable.titleEn, ""),
+            sql`COALESCE(${patentsTable.slug}, ${patentsTable.id}) ~ '^[\\x00-\\x7F]+$'`,
+          )
+        : undefined,
+    )
     .orderBy(desc(patentsTable.filingDate));
 
   const serialized: SerializedPatent[] = rows.map((r) => ({
     id: r.slug ?? r.id,
-    title: r.title,
+    title: isEn ? r.titleEn ?? "" : r.title,
     titleEn: r.titleEn ?? "",
     applicationNo: r.applicationNo ?? "",
     publicationNo: r.publicationNo ?? "",
     grantNo: r.grantNo ?? "",
-    applicant: r.applicant ?? "",
+    applicant: isEn ? r.applicantEn ?? "" : r.applicant ?? "",
     inventors: [],
     filingDate: r.filingDate ?? "",
     publicationDate: r.publicationDate ?? "",
     grantDate: r.grantDate ?? "",
     classification: (r.classification ?? []) as string[],
     status: (r.status ?? "pending") as SerializedPatent["status"],
-    country: r.country ?? "",
+    country: isEn ? r.countryEn ?? "" : r.country ?? "",
     countryCode: r.countryCode ?? "",
-    category: r.category ?? "",
-    abstract: r.abstract ?? "",
+    category: isEn ? r.categoryEn ?? "" : r.category ?? "",
+    abstract: isEn ? r.abstractEn ?? "" : r.abstract ?? "",
   }));
 
   return (

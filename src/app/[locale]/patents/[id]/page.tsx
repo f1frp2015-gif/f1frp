@@ -40,8 +40,16 @@ export async function generateMetadata({
     .from(patentsTable)
     .where(or(eq(patentsTable.slug, id), eq(patentsTable.id, id)))
     .limit(1);
-  if (!row) return { title: t("detail.notFound") };
-  return { title: row.title, description: row.abstract ?? undefined };
+  const isEn = locale === "en";
+  if (!row || (isEn && !(row.titleEn && row.titleEn.trim()))) {
+    return {
+      title: t("detail.notFound"),
+      robots: { index: false, follow: false },
+    };
+  }
+  const titleText = isEn ? row.titleEn ?? "" : row.title;
+  const descText = isEn ? row.abstractEn ?? undefined : row.abstract ?? undefined;
+  return { title: titleText, description: descText };
 }
 
 export default async function PatentDetailPage({
@@ -52,14 +60,28 @@ export default async function PatentDetailPage({
   const { locale, id: raw } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Patents" });
+  const isEn = locale === "en";
 
   const id = safeDecode(raw);
-  const [p] = await db
+  const [pRaw] = await db
     .select()
     .from(patentsTable)
     .where(or(eq(patentsTable.slug, id), eq(patentsTable.id, id)))
     .limit(1);
-  if (!p) notFound();
+  if (!pRaw) notFound();
+  // EN 侧缺英文标题一律 404, 不展示中文内容
+  if (isEn && !(pRaw.titleEn && pRaw.titleEn.trim())) notFound();
+  const p = {
+    ...pRaw,
+    title: isEn ? pRaw.titleEn ?? "" : pRaw.title,
+    applicant: isEn ? pRaw.applicantEn ?? null : pRaw.applicant ?? null,
+    inventors: isEn ? pRaw.inventorsEn ?? null : pRaw.inventors ?? null,
+    commentary: isEn ? pRaw.commentaryEn ?? null : pRaw.commentary ?? null,
+    country: isEn ? pRaw.countryEn ?? null : pRaw.country ?? null,
+    abstract: isEn ? pRaw.abstractEn ?? null : pRaw.abstract ?? null,
+    claims: isEn ? pRaw.claimsEn ?? null : pRaw.claims ?? null,
+    category: isEn ? pRaw.categoryEn ?? null : pRaw.category ?? null,
+  };
   if (p.slug && id === p.id && id !== p.slug) {
     permanentRedirect(`/patents/${encodeURIComponent(p.slug)}`);
   }

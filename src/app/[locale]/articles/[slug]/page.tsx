@@ -42,13 +42,22 @@ export async function generateMetadata({
   const { locale, slug: rawSlug } = await params;
   const slug = safeDecode(rawSlug);
   const row = await loadArticle(slug);
-  if (!row) {
+  const isEn = locale === "en";
+  if (
+    !row ||
+    (isEn && (!row.article.forEn || !(row.article.titleEn && row.article.titleEn.trim())))
+  ) {
     const t = await getTranslations({ locale, namespace: "Articles" });
-    return { title: t("detail.notFound") };
+    return {
+      title: t("detail.notFound"),
+      robots: { index: false, follow: false },
+    };
   }
   return {
-    title: row.article.title,
-    description: row.article.excerpt ?? undefined,
+    title: isEn ? row.article.titleEn ?? "" : row.article.title,
+    description: isEn
+      ? row.article.excerptEn ?? undefined
+      : row.article.excerpt ?? undefined,
   };
 }
 
@@ -70,7 +79,19 @@ export default async function ArticleDetailPage({
   const row = await loadArticle(slug);
   if (!row) notFound();
 
-  const { article: a, author } = row;
+  const isEnLocale = locale === "en";
+  const aRaw = row.article;
+  // EN 侧: 必须 forEn=true 且有英文标题, 否则 404 — 不展示中文内容
+  if (isEnLocale && (!aRaw.forEn || !(aRaw.titleEn && aRaw.titleEn.trim()))) {
+    notFound();
+  }
+  const a = {
+    ...aRaw,
+    title: isEnLocale ? aRaw.titleEn ?? "" : aRaw.title,
+    excerpt: isEnLocale ? aRaw.excerptEn ?? null : aRaw.excerpt ?? null,
+    body: isEnLocale ? aRaw.bodyEn ?? null : aRaw.body ?? null,
+  };
+  const author = row.author;
 
   const isEn = locale === "en";
   const jsonLd = {

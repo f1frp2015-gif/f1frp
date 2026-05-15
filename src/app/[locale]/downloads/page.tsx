@@ -93,14 +93,14 @@ export default async function DownloadsPage({
             <Card key={d.id}>
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base">{d.title}</CardTitle>
+                  <CardTitle className="text-base">{(isEn ? d.titleEn ?? d.title : d.title)}</CardTitle>
                   <Badge variant="outline" className="shrink-0 text-[10px] uppercase">
                     {typeLabels[d.type] ?? d.type}
                   </Badge>
                 </div>
-                {d.description && (
+                {(isEn ? d.descriptionEn ?? d.description : d.description) && (
                   <CardDescription className="line-clamp-2">
-                    {d.description}
+                    {(isEn ? d.descriptionEn ?? d.description : d.description)}
                   </CardDescription>
                 )}
               </CardHeader>

@@ -1,14 +1,12 @@
 // Locale-aware contact source of truth.
 //
-// Doris is the en-side (getfrp.com) sourcing desk. On the zh side
-// (f1frp.com) the product is anonymous tooling — no human sourcing desk
-// is surfaced to users — so all user-facing UI must hide Doris's name,
-// phone, WeChat, and personal email, and fall back to the tech mailbox.
+// 2026-05 update: removed all personal identifiers from CONTACT (name,
+// phone, WeChat). The site no longer surfaces an individual person as
+// the contact face — only a team alias and a tech mailbox. This applies
+// to BOTH deploys (getfrp.com and f1frp.com).
 //
-// CONTACT keeps its structural shape so existing UI compiles without
-// null guards; gate rendering with SHOW_SALES_CONTACT instead.
-// PRIMARY_CONTACT_EMAIL is the single email safe to render on either
-// side without conditional logic.
+// SHOW_SALES_CONTACT still gates the en side from the zh side: en gets
+// a "sourcing desk" team alias + email; zh gets only the tech mailbox.
 
 import { ACTIVE_LOCALE } from "./sites";
 
@@ -18,14 +16,16 @@ export const CONTACT_TECH = {
   email: "f1frp2015@gmail.com",
 } as const;
 
+// Sourcing desk (en/getfrp.com only). Anonymous team alias — no
+// individual name, no phone, no WeChat. Email points at the existing
+// service mailbox until a dedicated sourcing@f1composite.com is wired
+// up in DNS.
 export const CONTACT = {
-  name: "Doris Li",
-  phone: "138 8333 8993",
-  email: "doris.li@f1composite.com",
-  phoneRaw: "13883338993",
-  wechat: "13883338993",
+  name: "F1 Composite sourcing desk",
+  email: "f1frp2015@gmail.com",
 } as const;
 
+// Single email safe to render on either side.
 export const PRIMARY_CONTACT_EMAIL = SHOW_SALES_CONTACT
   ? CONTACT.email
   : CONTACT_TECH.email;

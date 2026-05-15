@@ -40,10 +40,20 @@ export async function generateMetadata({
     .from(papersTable)
     .where(or(eq(papersTable.slug, id), eq(papersTable.id, id)))
     .limit(1);
-  if (!row) return { title: t("detail.notFound") };
+  const isEn = locale === "en";
+  if (!row || (isEn && !(row.titleEn && row.titleEn.trim()))) {
+    return {
+      title: t("detail.notFound"),
+      robots: { index: false, follow: false },
+    };
+  }
+  const titleText = isEn ? row.titleEn ?? "" : row.title;
+  const descText = isEn
+    ? row.abstractEn ?? row.titleEn ?? undefined
+    : row.abstract ?? row.titleEn ?? undefined;
   return {
-    title: row.title,
-    description: row.abstract ?? row.titleEn ?? undefined,
+    title: titleText,
+    description: descText,
   };
 }
 
@@ -55,14 +65,29 @@ export default async function PaperDetailPage({
   const { locale, id: raw } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Papers" });
+  const isEn = locale === "en";
 
   const id = safeDecode(raw);
-  const [p] = await db
+  const [pRaw] = await db
     .select()
     .from(papersTable)
     .where(or(eq(papersTable.slug, id), eq(papersTable.id, id)))
     .limit(1);
-  if (!p) notFound();
+  if (!pRaw) notFound();
+  // EN 侧缺英文标题一律 404, 不展示中文内容
+  if (isEn && !(pRaw.titleEn && pRaw.titleEn.trim())) notFound();
+
+  // EN 侧不向中文 fallback (titleEn 上方已保证存在)
+  const p = {
+    ...pRaw,
+    title: isEn ? pRaw.titleEn ?? "" : pRaw.title,
+    affiliation: isEn ? pRaw.affiliationEn ?? null : pRaw.affiliation ?? null,
+    journal: isEn ? pRaw.journalEn ?? null : pRaw.journal ?? null,
+    abstract: isEn ? pRaw.abstractEn ?? null : pRaw.abstract ?? null,
+    commentary: isEn ? pRaw.commentaryEn ?? null : pRaw.commentary ?? null,
+    keywords: isEn ? pRaw.keywordsEn ?? null : pRaw.keywords ?? null,
+    category: isEn ? pRaw.categoryEn ?? null : pRaw.category ?? null,
+  };
   // Legacy hash id → 301 to canonical slug URL
   if (p.slug && id === p.id && id !== p.slug) {
     permanentRedirect(`/papers/${encodeURIComponent(p.slug)}`);

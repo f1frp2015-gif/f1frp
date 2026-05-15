@@ -33,13 +33,21 @@ export async function generateMetadata({
     .from(standardsTable)
     .where(eq(standardsTable.id, id))
     .limit(1);
-  if (!std) {
+  const isEn = locale === "en";
+  if (!std || (isEn && !(std.titleEn && std.titleEn.trim()))) {
     const t = await getTranslations({ locale, namespace: "Standards" });
-    return { title: t("detail.notFound") };
+    return {
+      title: t("detail.notFound"),
+      robots: { index: false, follow: false },
+    };
   }
+  const titleText = isEn ? std.titleEn ?? "" : std.title;
+  const descText = isEn
+    ? std.descriptionEn ?? `${std.code} — ${titleText}`
+    : std.description ?? `${std.code} — ${titleText}`;
   return {
-    title: `${std.code} ${std.title}`,
-    description: std.description ?? `${std.code} — ${std.title}`,
+    title: `${std.code} ${titleText}`,
+    description: descText,
   };
 }
 
@@ -59,6 +67,8 @@ export default async function StandardDetailPage({
     .where(eq(standardsTable.id, id))
     .limit(1);
   if (!std) notFound();
+  // EN 侧缺英文标题一律 404, 不展示中文内容
+  if (locale === "en" && !(std.titleEn && std.titleEn.trim())) notFound();
 
   const sections = await db
     .select()
@@ -66,25 +76,31 @@ export default async function StandardDetailPage({
     .where(eq(standardSectionsTable.standardId, id))
     .orderBy(asc(standardSectionsTable.sortOrder));
 
+  const isEn = locale === "en";
+  // EN 侧不向中文 fallback (上方已保证 titleEn 必存在)
   const payload = {
     id: std.id,
     code: std.code,
-    title: std.title,
+    title: isEn ? std.titleEn ?? "" : std.title,
     titleEn: std.titleEn ?? "",
-    country: std.country ?? "",
+    country: isEn ? std.countryEn ?? "" : std.country ?? "",
     countryCode: std.countryCode ?? "",
-    category: std.category ?? "",
-    process: (std.process ?? []) as string[],
+    category: isEn ? std.categoryEn ?? "" : std.category ?? "",
+    process: (isEn ? std.processEn ?? [] : std.process ?? []) as string[],
     year: std.year ?? "",
-    status: std.status ?? "现行",
-    description: std.description ?? "",
-    sections: sections.map((s) => ({
-      id: s.id,
-      chapterNo: s.chapterNo,
-      title: s.title,
-      body: s.body,
-      keyPoints: (s.keyPoints ?? []) as string[],
-    })),
+    status: (isEn ? std.statusEn ?? std.status : std.status) ?? "现行",
+    description: isEn ? std.descriptionEn ?? "" : std.description ?? "",
+    sections: sections
+      .filter((s) =>
+        isEn ? (s.titleEn && s.titleEn.trim()) || (s.bodyEn && s.bodyEn.trim()) : true,
+      )
+      .map((s) => ({
+        id: s.id,
+        chapterNo: s.chapterNo,
+        title: isEn ? s.titleEn ?? "" : s.title,
+        body: isEn ? s.bodyEn ?? "" : s.body,
+        keyPoints: (isEn ? s.keyPointsEn ?? [] : s.keyPoints ?? []) as string[],
+      })),
   };
 
   return (

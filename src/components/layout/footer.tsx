@@ -79,14 +79,6 @@ export async function Footer() {
                   <p className="font-medium text-foreground">{CONTACT.name}</p>
                   <p>
                     <a
-                      href={`tel:+86${CONTACT.phoneRaw}`}
-                      className="transition-colors hover:text-foreground"
-                    >
-                      {CONTACT.phone}
-                    </a>
-                  </p>
-                  <p>
-                    <a
                       href={`mailto:${CONTACT.email}`}
                       className="transition-colors hover:text-foreground"
                     >
