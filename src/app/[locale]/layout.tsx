@@ -33,9 +33,11 @@ import { CURRENT_SITE_URL, SITE_ZH, SITE_EN } from "@/lib/sites";
 import { CONTACT } from "@/lib/contact";
 
 const siteUrl = CURRENT_SITE_URL;
-const brandOverride = process.env.NEXT_PUBLIC_SITE_NAME;
-const taglineOverride = process.env.NEXT_PUBLIC_SITE_TAGLINE;
-const descOverride = process.env.NEXT_PUBLIC_SITE_DESCRIPTION;
+// Site identity is now sourced exclusively from messages/{locale}.json.
+// The earlier NEXT_PUBLIC_SITE_{NAME,TAGLINE,DESCRIPTION} env-var overrides
+// went stale and silently kept old marketing copy live in <title> / meta /
+// JSON-LD even after en.json was updated; deleting them restores the
+// translations file as the single source of truth.
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -49,9 +51,9 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Site" });
 
-  const brand = brandOverride ?? t("name");
-  const tagline = taglineOverride ?? t("tagline");
-  const description = descOverride ?? t("description");
+  const brand = t("name");
+  const tagline = t("tagline");
+  const description = t("description");
 
   const isDefault = locale === routing.defaultLocale;
   const canonical = isDefault ? siteUrl : `${siteUrl}/${locale}`;
@@ -156,8 +158,8 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const t = await getTranslations({ locale, namespace: "Site" });
-  const brand = brandOverride ?? t("name");
-  const description = descOverride ?? t("description");
+  const brand = t("name");
+  const description = t("description");
   const htmlLang = locale === "zh" ? "zh-CN" : "en";
 
   return (
