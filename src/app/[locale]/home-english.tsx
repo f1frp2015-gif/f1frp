@@ -241,10 +241,10 @@ export async function HomePageEnglish() {
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
-              The vertical platform for FRP / GFRP / CFRP procurement from
-              China — verified suppliers, ASTM ⇄ GB standards crosswalk,
-              CBAM-ready paperwork. Bilingual sourcing desk takes over when
-              you&apos;re ready to RFQ.
+              FRP, GFRP and CFRP procurement from China, with the parts
+              that usually take three phone calls already done: supplier
+              vetting, GB-to-ASTM mapping, CBAM data, sample paperwork.
+              When you&apos;re ready to RFQ, our China desk picks up.
             </p>
           </div>
 
@@ -298,19 +298,19 @@ export async function HomePageEnglish() {
                 Icon: Bot,
                 step: "01",
                 title: "Ask anything",
-                body: "Specs, suppliers, standards, compliance. The assistant answers in your unit system, with inline citations to the underlying source.",
+                body: "Specs, suppliers, GB-vs-ASTM mappings, CBAM questions. Answers come back in your unit system with links to the source row in our database, so you can verify before forwarding.",
               },
               {
                 Icon: Building2,
                 step: "02",
                 title: "We match verified suppliers",
-                body: "Every recommendation comes from a curated registry — business license cross-checked, scale tier field-validated, certifications on file.",
+                body: "Every supplier in the registry has a checked business license and a scale tier we set by visiting the plant. Certifications are on file. If we can't verify a claim, we say so.",
               },
               {
                 Icon: MessagesSquare,
                 step: "03",
-                title: "Our sourcing desk takes it from there",
-                body: "When you're ready to RFQ, our China-based sourcing desk handles paperwork, on-site QA, payment routing, and end-to-end logistics.",
+                title: "Hand off to a human for the RFQ",
+                body: "Once you've picked candidates, our China desk takes over: chasing samples, translating spec sheets, walking the floor for QA, and routing the payment. Most overseas RFQs fail at one of those four steps; that's where we earn our keep.",
               },
             ].map((s) => {
               const I = s.Icon;
@@ -351,15 +351,15 @@ export async function HomePageEnglish() {
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
             <div className="text-center">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                FEATURED FROM THE INDEX
+                FROM THE INDEX
               </div>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                A taste of the curated knowledge graph.
+                What&apos;s in the database, right now.
               </h2>
               <p className="mx-auto mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-                Standards crosswalk, top-cited composites research, and
-                verified Chinese FRP plants — every entry handpicked and kept
-                current.
+                A few sample entries from the standards, papers and suppliers
+                we&apos;ve indexed. Click through to see how the data is
+                structured. New rows land most weekdays.
               </p>
             </div>
 
@@ -532,10 +532,11 @@ export async function HomePageEnglish() {
             Let a human take over.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[14px] leading-relaxed text-background/80">
-            Our China sourcing desk is staffed by composites engineers
-            fluent in English and Mandarin, with a decade on the ground
-            in Chinese FRP plants. They handle paperwork, QA, payment
-            routing, and the conversations that sink most overseas RFQs.
+            Our sourcing desk is run out of China by bilingual composites
+            engineers. They&apos;ve been visiting these plants for a decade.
+            They&apos;ll chase the sample, translate the spec sheet, walk
+            the floor for QA, and route the payment. If your RFQ has ever
+            died in any of those steps, you know why this matters.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <a

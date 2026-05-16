@@ -188,8 +188,8 @@ export default async function SourceFromChinaPage({
 
       <PlatformHero
         eyebrow="FOR OVERSEAS BUYERS"
-        title="Source FRP from China — by category, ranked by scale"
-        description="Skip the cold-call grind. Every supplier below is independently verified, sorted by manufacturing scale, and tagged with the certifications your end-market actually screens for."
+        title="Source FRP from China, by category, ranked by scale"
+        description="Skip the cold-call grind. Each supplier below has been independently verified. They're sorted by manufacturing scale and tagged with the certifications your end-market actually screens for."
       />
 
       {/* Trust strip — lifted to top so Western readers see the proof before the chrome */}
@@ -262,10 +262,11 @@ export default async function SourceFromChinaPage({
           title="Verified suppliers by category, ranked by scale"
         />
         <p className="mb-8 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-          Each category below shows the largest verified suppliers first —
-          listed groups and Tier-1 manufacturers (Major), established mid-cap
-          producers (Large), regional specialists (Mid), and SME niche players
-          (Small). Pick the tier that matches your volume and risk profile.
+          Each category below lists the largest verified suppliers first.
+          Tiers run from Major (listed groups, Tier-1 manufacturers) down
+          through Large, Mid (regional specialists) and Small. Most overseas
+          RFQs go to Major or Large for low risk; Mid and Small are where
+          you find the niche capabilities the big plants won&apos;t bother with.
         </p>
 
         {/* Tier legend */}
@@ -313,9 +314,11 @@ export default async function SourceFromChinaPage({
           title="Where Chinese FRP capacity actually lives"
         />
         <p className="mb-6 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-          Chinese composites capacity is regionally clustered. Each province
-          specializes in a specific slice of the value chain — knowing this
-          saves weeks of RFQ blast.
+          Chinese composites capacity is regionally clustered. Jiangsu does
+          resin, Shandong does fiber, Zhejiang does mid-volume manufacturing,
+          Henan and Shanxi cover basalt. Knowing which province handles your
+          slice of the value chain saves weeks of RFQ blast and weeds out
+          three-quarters of the no-fit responses upfront.
         </p>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -410,9 +413,12 @@ export default async function SourceFromChinaPage({
         </div>
 
         <div className="mt-6 rounded-md border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-          <strong>Note:</strong> A certificate is necessary but not sufficient — always
-          cross-check scope (which products the cert covers), current status (not
-          expired), and issuing body accreditation (CNAS / IAF / ANAB).
+          <strong>Note:</strong> A certificate is necessary but not sufficient. Three
+          things still need cross-checking: the scope (which products the cert
+          covers), the current status (most lapses we see are mid-2-year
+          renewal cycles), and the issuing body&apos;s accreditation chain
+          (CNAS / IAF / ANAB). A &quot;ISO 9001 certified&quot; line item on a
+          factory profile usually means one of these three is missing.
         </div>
       </section>
 
@@ -499,11 +505,12 @@ export default async function SourceFromChinaPage({
       <section id="playbook" className="mt-20 scroll-mt-20">
         <PlatformSectionHeading
           eyebrow="MODULE 05 · SOURCING PLAYBOOK"
-          title="From specification to delivered cargo — the 6-step path"
+          title="From spec to delivered cargo: the 6-step path"
         />
         <p className="mb-8 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-          A condensed operational guide for first-time buyers of Chinese FRP. Each
-          step links to the platform tool that accelerates it.
+          A condensed operational guide if this is your first time buying FRP
+          from China. Each step links to the tool on this site that does the
+          heavy lifting for it.
         </p>
 
         <PlatformCardGrid columns={3}>
@@ -591,9 +598,10 @@ export default async function SourceFromChinaPage({
             Get a shortlist in 30 seconds
           </h2>
           <p className="mt-4 text-[15px] leading-relaxed text-background/80">
-            Describe your product, target market, and required certifications.
-            The AI will draw on the full supplier, material, and standards database
-            to return a matched shortlist with evidence links.
+            Describe what you need: product, target market, certifications you
+            care about. The AI pulls from the supplier, material and standards
+            tables and gives back a shortlist with the row link for each
+            claim, so you can verify before forwarding to procurement.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

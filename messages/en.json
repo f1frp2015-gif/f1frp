@@ -2,7 +2,7 @@
   "Site": {
     "name": "getfrp",
     "tagline": "AI-Native China Composites Supply-Chain Platform",
-    "description": "getfrp is the AI-native vertical platform for sourcing FRP / GFRP / CFRP composites from China. Verified suppliers, ASTM ⇄ GB standards crosswalk, CBAM-ready paperwork, and a bilingual sourcing desk for RFQ, on-site QA, payment, and logistics — in one platform."
+    "description": "getfrp is where overseas engineers go to source FRP, GFRP and CFRP composites from China. Ask an AI assistant in plain English; get back verified Chinese suppliers, GB-to-ASTM standard mappings, and CBAM paperwork. Our bilingual desk in China picks up the RFQ from there."
   },
   "Nav": {
     "materials": "Materials",
@@ -1712,17 +1712,17 @@
     "h1": "About f1frp",
     "lead": "AI-Native Advanced Composites Accelerator",
     "missionTitle": "Our mission",
-    "missionP1": "The global composites market is massive, yet the industry's digital infrastructure is almost non-existent. Most platforms are stuck in a decade-old tech stack: fragmented information, opaque pricing, inefficient buyer–supplier matching.",
-    "missionP2": "f1frp changes that. We build a structured material database covering all five fiber systems (glass, carbon, basalt, aramid, bio-based), a real-time pricing system, an AI-powered matching engine, and a high-signal engineer community — so information flows faster and collaboration gets easier.",
-    "advTitle": "Platform strengths",
-    "adv1Title": "Authoritative material data",
-    "adv1Desc": "A structured composites property database covering all five fiber systems with 300+ material records.",
-    "adv2Title": "Domain expertise",
-    "adv2Desc": "The team has lived the FRP industry for years — every link of the supply chain, every role, real knowledge.",
-    "adv3Title": "AI-powered",
-    "adv3Desc": "Smart material selection, process recommendations, auto-matching — data-driven decisions.",
-    "adv4Title": "Full-stack coverage",
-    "adv4Desc": "From raw materials to finished parts, from technology to trade — one platform, whole industry.",
+    "missionP1": "Composites is a $100B industry running on PDF datasheets and WeChat groups. Buyers can't compare suppliers without three phone calls. Pricing is opaque. The Chinese supply base is invisible to most overseas engineers, and the few directories that exist are out of date the day they ship.",
+    "missionP2": "We're trying to fix the part of that we can reach: a structured database of materials, formulas, standards, papers, patents, and verified Chinese suppliers, all linked, all queryable in plain English. Five fiber families covered (glass, carbon, basalt, aramid, bio). When you're ready to RFQ, a human takes over.",
+    "advTitle": "What's here",
+    "adv1Title": "Material data, structured",
+    "adv1Desc": "4,000+ material records with properties, processing, applications, and the suppliers who actually make them. All five fiber families.",
+    "adv2Title": "Standards crosswalk",
+    "adv2Desc": "GB ⇄ ASTM ⇄ ISO ⇄ EN mappings for the standards that matter in FRP procurement. Tells you which Chinese standard your spec maps to before you ask the factory.",
+    "adv3Title": "AI assistant, not chatbot",
+    "adv3Desc": "Ask in plain English. Answers cite the underlying data with links, so you can verify before forwarding to your team.",
+    "adv4Title": "Human escalation",
+    "adv4Desc": "Our China-based sourcing desk handles the messy part: RFQ paperwork, on-site QA, payment routing, CBAM data, and the conversations factory sales teams expect in Mandarin.",
     "roadmapTitle": "Roadmap",
     "roadmap": [
       {
