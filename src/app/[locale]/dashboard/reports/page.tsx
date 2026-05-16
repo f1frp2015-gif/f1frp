@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CONTACT_TECH } from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 import { formatYuan } from "@/lib/pricing";
 import { resolveReportViewer } from "@/lib/reports";
 
@@ -88,10 +88,10 @@ export default async function DashboardReportsPage({
                 <strong>支付通道接入中。</strong>
                 {" "}请发邮件至{" "}
                 <a
-                  href={`mailto:${CONTACT_TECH.email}`}
+                  href={`mailto:${CONTACT.email}`}
                   className="underline"
                 >
-                  {CONTACT_TECH.email}
+                  {CONTACT.email}
                 </a>
                 ，备注订单号，我们会在 1 个工作日内回复对公账户与开通下载权限。
               </div>
@@ -213,7 +213,7 @@ export default async function DashboardReportsPage({
 
       <Separator className="my-10" />
       <p className="text-xs text-muted-foreground">
-        电子发票请在购买后联系 {CONTACT_TECH.email} 由人工开具。
+        电子发票请在购买后联系 {CONTACT.email} 由人工开具。
       </p>
     </div>
   );

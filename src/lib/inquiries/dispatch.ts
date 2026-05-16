@@ -32,14 +32,12 @@ export interface RfqPayload {
   category: string;
 }
 
-import { SHOW_SALES_CONTACT } from "@/lib/contact";
-
 const FALLBACK_RECIPIENT = "f1frp2015@gmail.com";
-// CC 是收件人可见信息。zh 站不再 cc Doris（避免向供应商暴露 sourcing desk 身份），
-// en 站保留 Doris 在 CC（她是 sourcing desk 主联系人）。
-const CC_OPS = SHOW_SALES_CONTACT
-  ? ["doris.li@f1composite.com", "f1frp2015@gmail.com"]
-  : ["f1frp2015@gmail.com"];
+// 2026-05 simplification: single CC channel on both deploys.
+// (Previously routed to a named sourcing-desk inbox on en side; consolidated
+// to the tech mailbox after the anonymization policy made both sides
+// surface the same email anyway.)
+const CC_OPS = ["f1frp2015@gmail.com"];
 const FROM = "f1frp RFQ <noreply@f1frp.com>";
 
 const CATEGORY_TO_SUPPLIER: Record<string, string[]> = {

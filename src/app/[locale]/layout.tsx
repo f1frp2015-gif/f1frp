@@ -30,11 +30,7 @@ const geistMono = Geist_Mono({
 });
 
 import { CURRENT_SITE_URL, SITE_ZH, SITE_EN } from "@/lib/sites";
-import {
-  CONTACT,
-  CONTACT_TECH,
-  SHOW_SALES_CONTACT,
-} from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 
 const siteUrl = CURRENT_SITE_URL;
 const brandOverride = process.env.NEXT_PUBLIC_SITE_NAME;
@@ -195,22 +191,14 @@ export default async function LocaleLayout({
                 // profiles are wired up — empty array signals to Google we
                 // recognize the slot rather than that we've never thought of it.
                 sameAs: [],
-                // Anonymous team alias — no personal name, no phone.
-                // EN side surfaces sourcing-desk email; ZH side tech mailbox only.
-                contactPoint: SHOW_SALES_CONTACT
-                  ? {
-                      "@type": "ContactPoint",
-                      contactType: "customer support",
-                      email: CONTACT.email,
-                      availableLanguage: ["en", "zh-CN"],
-                      areaServed: ["US", "DE", "FR", "GB", "IT", "ES", "NL", "PL", "AU", "CA"],
-                    }
-                  : {
-                      "@type": "ContactPoint",
-                      contactType: "technical support",
-                      email: CONTACT_TECH.email,
-                      availableLanguage: ["zh-CN"],
-                    },
+                // Single contact: technical service hotline. Same on both
+                // deploys. Buyers who want a human go through /rfq first.
+                contactPoint: {
+                  "@type": "ContactPoint",
+                  contactType: "technical support",
+                  email: CONTACT.email,
+                  availableLanguage: ["en", "zh-CN"],
+                },
               },
               {
                 "@type": "WebSite",

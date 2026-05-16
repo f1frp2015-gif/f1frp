@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { CONTACT_TECH } from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 import {
   getPlan,
   personalPlans,
@@ -147,8 +147,8 @@ export default async function UpgradePage({
           </h2>
           <p className="text-sm text-emerald-700 dark:text-emerald-400">
             订阅已激活。可能需要 1–2 分钟同步。如有问题联系{" "}
-            <a href={`mailto:${CONTACT_TECH.email}`} className="underline">
-              {CONTACT_TECH.email}
+            <a href={`mailto:${CONTACT.email}`} className="underline">
+              {CONTACT.email}
             </a>
             。
           </p>
@@ -170,10 +170,10 @@ export default async function UpgradePage({
             <li>
               • 邮箱：
               <a
-                href={`mailto:${CONTACT_TECH.email}`}
+                href={`mailto:${CONTACT.email}`}
                 className="ml-1 text-emerald-600 hover:underline"
               >
-                {CONTACT_TECH.email}
+                {CONTACT.email}
               </a>
             </li>
           </ul>

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { personalPlans, formatPrice, type Plan } from "@/lib/pricing";
-import { CONTACT_TECH } from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 import { PaymentDialog } from "@/components/payment/payment-dialog";
 
 // 仅中文站（f1frp.com）需要套餐页 — getfrp.com 海外侧已取消会员/收费体系
@@ -237,9 +237,9 @@ export default async function PricingPage() {
           {lang === "zh" ? "联系：" : "Contact: "}
           <a
             className="text-emerald-600 hover:underline"
-            href={`mailto:${CONTACT_TECH.email}`}
+            href={`mailto:${CONTACT.email}`}
           >
-            {CONTACT_TECH.email}
+            {CONTACT.email}
           </a>
         </p>
       </section>

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { JsonLd } from "@/components/json-ld";
-import { CONTACT, CONTACT_TECH, SHOW_SALES_CONTACT } from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 
 export async function generateMetadata({
   params,
@@ -128,56 +128,28 @@ export default async function AboutPage({
 
         <section id="contact" className="mb-10">
           <h2 className="text-2xl font-bold">{t("contactTitle")}</h2>
-          {SHOW_SALES_CONTACT ? (
-            <div className="mt-6 grid gap-4 sm:grid-cols-1">
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <Mail
-                    size={24}
-                    strokeWidth={1.5}
-                    className="mx-auto text-foreground"
-                  />
-                  <div className="mt-3 text-sm font-medium">
-                    {t("contactBusiness")}
-                  </div>
-                  <div className="mt-1 text-sm text-muted-foreground">
-                    <div className="font-medium text-foreground">
-                      {CONTACT.name}
-                    </div>
-                    <a
-                      href={`mailto:${CONTACT.email}`}
-                      className="hover:text-foreground"
-                    >
-                      {CONTACT.email}
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            <div className="mt-6">
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <Mail
-                    size={24}
-                    strokeWidth={1.5}
-                    className="mx-auto text-foreground"
-                  />
-                  <div className="mt-3 text-sm font-medium">
-                    {t("contactTech")}
-                  </div>
-                  <div className="mt-1 text-sm text-muted-foreground">
-                    <a
-                      href={`mailto:${CONTACT_TECH.email}`}
-                      className="hover:text-foreground"
-                    >
-                      {CONTACT_TECH.email}
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          <div className="mt-6">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <Mail
+                  size={24}
+                  strokeWidth={1.5}
+                  className="mx-auto text-foreground"
+                />
+                <div className="mt-3 text-sm font-medium">
+                  {t("contactTech")}
+                </div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  <a
+                    href={`mailto:${CONTACT.email}`}
+                    className="hover:text-foreground"
+                  >
+                    {CONTACT.email}
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </section>
 
         <section
@@ -277,18 +249,20 @@ function EnglishTrustBlock() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              SOURCING DESK
+              TECHNICAL SERVICE HOTLINE
             </div>
-            <div className="mt-2 text-base font-semibold">F1 Composite sourcing desk</div>
+            <div className="mt-2 text-base font-semibold">{CONTACT.email}</div>
             <div className="mt-0.5 text-xs text-muted-foreground">
-              Composites engineers · English / Mandarin · in China
+              One channel for everything: pre-sales questions, RFQ, tech
+              spec discussion, post-shipment issues. Replies within 24h on
+              business days, English and Mandarin both fine.
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
               <a
-                href="mailto:f1frp2015@gmail.com"
+                href={`mailto:${CONTACT.email}`}
                 className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-background transition-colors hover:bg-foreground/90"
               >
-                <Mail size={12} /> Email sourcing desk
+                <Mail size={12} /> Email tech support
               </a>
             </div>
           </div>
