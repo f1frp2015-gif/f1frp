@@ -222,7 +222,7 @@ export default async function SourceFromChinaPage({
           href="mailto:f1frp2015@gmail.com"
           className="ml-auto inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          Or talk to our sourcing desk →
+          Or email tech support →
         </a>
       </div>
 
@@ -614,7 +614,7 @@ export default async function SourceFromChinaPage({
               href="mailto:f1frp2015@gmail.com"
               className="inline-flex items-center gap-1.5 rounded-md border border-background/30 px-4 py-2 text-sm text-background transition-colors hover:bg-background/10"
             >
-              Talk to our sourcing desk
+              Email tech support
             </a>
           </div>
         </div>

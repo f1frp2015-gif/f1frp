@@ -398,7 +398,7 @@ function AssistantAnswer({
               >
                 <MessagesSquare size={12} />
                 {isEn
-                  ? `Send these ${supplierHits.length} to sourcing desk as RFQ`
+                  ? `Send these ${supplierHits.length} as RFQ`
                   : `把这 ${supplierHits.length} 家发给询盘`}
               </a>
             )}

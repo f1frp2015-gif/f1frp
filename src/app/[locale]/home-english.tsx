@@ -543,7 +543,7 @@ export async function HomePageEnglish() {
               href="mailto:f1frp2015@gmail.com"
               className="inline-flex items-center gap-1.5 rounded-md bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background/90"
             >
-              Email sourcing desk
+              Email tech support
               <ArrowRight size={14} />
             </a>
             <Link

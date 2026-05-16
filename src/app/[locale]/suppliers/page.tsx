@@ -153,7 +153,7 @@ export default async function SuppliersPage({
         </h3>
         <p className="mt-2 text-sm text-muted-foreground">
           {isEn
-            ? "Tell our sourcing desk what you need. First reply within 24 hours, no account required."
+            ? "Email tech support with what you need. First reply within 24 hours, no account required."
             : t("ctaBoxSub")}
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
@@ -169,7 +169,7 @@ export default async function SuppliersPage({
                 href="mailto:f1frp2015@gmail.com"
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
-                Email sourcing desk
+                Email tech support
               </a>
             </>
           ) : (
