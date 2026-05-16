@@ -49,7 +49,13 @@ export async function generateMetadata({
   }
   const titleText = isEn ? row.titleEn ?? "" : row.title;
   const descText = isEn ? row.abstractEn ?? undefined : row.abstract ?? undefined;
-  return { title: titleText, description: descText };
+  // 缺英文 abstract → noindex (避免 thin content 拉低整站质量分)
+  const thinContent = isEn && (row.abstractEn ?? "").trim().length < 80;
+  return {
+    title: titleText,
+    description: descText,
+    ...(thinContent ? { robots: { index: false, follow: true } } : {}),
+  };
 }
 
 export default async function PatentDetailPage({

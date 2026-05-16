@@ -113,7 +113,7 @@ function TermsEn() {
       <h2>8. Contact</h2>
       <p>
         Email{" "}
-        <a href="mailto:doris.li@f1composite.com">doris.li@f1composite.com</a>{" "}
+        <a href="mailto:f1frp2015@gmail.com">f1frp2015@gmail.com</a>{" "}
         for any question regarding these Terms.
       </p>
     </div>

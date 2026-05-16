@@ -1,4 +1,4 @@
-import { sql, isNotNull, eq, and } from "drizzle-orm";
+import { sql, isNotNull, ne, eq, and, desc, asc } from "drizzle-orm";
 import {
   Sparkles,
   Bot,
@@ -9,6 +9,7 @@ import {
   MessagesSquare,
   Database,
   FileBadge,
+  BookOpen,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
@@ -20,6 +21,68 @@ import {
 } from "@/lib/db/schema";
 import { JsonLd } from "@/components/json-ld";
 import { ChatHero } from "./chat-hero";
+
+// 8 KB 是经验阈值: 超过此数字的内联 helper 抽到单独 module 才有意义。
+// 当前 helper 不大, 留在本文件里维持单一阅读路径。
+async function loadFeatured() {
+  const safe = async <T,>(p: Promise<T>): Promise<T | []> => {
+    try {
+      return await p;
+    } catch {
+      return [] as unknown as T;
+    }
+  };
+  const [topStandards, topPapers, topSuppliers] = await Promise.all([
+    safe(
+      db
+        .select({
+          id: standardsTable.id,
+          code: standardsTable.code,
+          titleEn: standardsTable.titleEn,
+        })
+        .from(standardsTable)
+        .where(and(isNotNull(standardsTable.titleEn), ne(standardsTable.titleEn, "")))
+        .orderBy(asc(standardsTable.code))
+        .limit(6),
+    ),
+    safe(
+      db
+        .select({
+          id: papersTable.id,
+          slug: papersTable.slug,
+          titleEn: papersTable.titleEn,
+          year: papersTable.year,
+        })
+        .from(papersTable)
+        .where(
+          and(
+            isNotNull(papersTable.titleEn),
+            ne(papersTable.titleEn, ""),
+            // 仅展示 abstract 已翻译的 paper, 与 sitemap 一致
+            sql`length(coalesce(${papersTable.abstractEn}, '')) >= 80`,
+          ),
+        )
+        .orderBy(desc(papersTable.citationCount), desc(papersTable.year))
+        .limit(6),
+    ),
+    safe(
+      db
+        .select({
+          id: supplierListings.id,
+          nameEn: supplierListings.nameEn,
+          locationEn: supplierListings.locationEn,
+          category: supplierListings.category,
+        })
+        .from(supplierListings)
+        .where(
+          and(eq(supplierListings.verified, true), isNotNull(supplierListings.nameEn)),
+        )
+        .orderBy(desc(supplierListings.brandPriority), desc(supplierListings.viewCount))
+        .limit(6),
+    ),
+  ]);
+  return { topStandards, topPapers, topSuppliers };
+}
 
 // English-side homepage — AI-Concierge first.
 //
@@ -76,12 +139,13 @@ async function countVerifiedSuppliersWithEn(): Promise<number> {
 }
 
 export async function HomePageEnglish() {
-  const [verifiedSupplierCount, materialsCount, standardsCount, papersCount] =
+  const [verifiedSupplierCount, materialsCount, standardsCount, papersCount, featured] =
     await Promise.all([
       countVerifiedSuppliersWithEn(),
       countOne(materialsTable),
       countOne(standardsTable),
       countOne(papersTable),
+      loadFeatured(),
     ]);
 
   return (
@@ -245,8 +309,8 @@ export async function HomePageEnglish() {
               {
                 Icon: MessagesSquare,
                 step: "03",
-                title: "Doris takes it from there",
-                body: "When you're ready to RFQ, our China sourcing desk handles paperwork, on-site QA, payment routing, and end-to-end logistics.",
+                title: "Our sourcing desk takes it from there",
+                body: "When you're ready to RFQ, our China-based sourcing desk handles paperwork, on-site QA, payment routing, and end-to-end logistics.",
               },
             ].map((s) => {
               const I = s.Icon;
@@ -273,6 +337,131 @@ export async function HomePageEnglish() {
           </div>
         </div>
       </section>
+
+      {/* ─────────── Featured deep links ──────────────────────
+          Three columns of real database entries, linking deep into
+          /standards/[id] /papers/[id] /suppliers#id. Purposes:
+            1) Distribute PageRank from homepage into deep pages so
+               Googlebot doesn't have to crawl 4 levels to find them.
+            2) Give returning visitors a fresh shelf each week (sort
+               keys change as new data is ingested).
+            3) Prove the database is real and curated, not a placeholder. */}
+      {(featured.topStandards.length || featured.topPapers.length || featured.topSuppliers.length) > 0 && (
+        <section className="border-b border-border/80">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+            <div className="text-center">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                FEATURED FROM THE INDEX
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                A taste of the curated knowledge graph.
+              </h2>
+              <p className="mx-auto mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
+                Standards crosswalk, top-cited composites research, and
+                verified Chinese FRP plants — every entry handpicked and kept
+                current.
+              </p>
+            </div>
+
+            <div className="mt-10 grid gap-6 md:grid-cols-3">
+              {/* Standards */}
+              <div className="rounded-xl border border-border/70 bg-background p-6">
+                <div className="flex items-center justify-between">
+                  <FileBadge size={18} strokeWidth={1.5} className="text-foreground" />
+                  <Link
+                    href={"/standards" as never}
+                    className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
+                  >
+                    Browse all →
+                  </Link>
+                </div>
+                <h3 className="mt-4 text-sm font-semibold tracking-tight">
+                  Standards crosswalk
+                </h3>
+                <ul className="mt-3 space-y-2 text-[13px]">
+                  {featured.topStandards.map((s) => (
+                    <li key={s.id}>
+                      <Link
+                        href={`/standards/${s.id}` as "/standards/[id]"}
+                        className="block leading-snug text-foreground/90 hover:text-foreground hover:underline"
+                      >
+                        <span className="font-mono text-[11px] text-muted-foreground">
+                          {s.code}
+                        </span>{" "}
+                        <span className="line-clamp-1">{s.titleEn}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Papers */}
+              <div className="rounded-xl border border-border/70 bg-background p-6">
+                <div className="flex items-center justify-between">
+                  <BookOpen size={18} strokeWidth={1.5} className="text-foreground" />
+                  <Link
+                    href={"/papers" as never}
+                    className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
+                  >
+                    Browse all →
+                  </Link>
+                </div>
+                <h3 className="mt-4 text-sm font-semibold tracking-tight">
+                  Top-cited papers
+                </h3>
+                <ul className="mt-3 space-y-2 text-[13px]">
+                  {featured.topPapers.map((p) => (
+                    <li key={p.id}>
+                      <Link
+                        href={`/papers/${p.slug ?? p.id}` as "/papers/[id]"}
+                        className="block leading-snug text-foreground/90 hover:text-foreground hover:underline"
+                      >
+                        <span className="line-clamp-2">{p.titleEn}</span>
+                        {p.year ? (
+                          <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                            {p.year}
+                          </span>
+                        ) : null}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Suppliers */}
+              <div className="rounded-xl border border-border/70 bg-background p-6">
+                <div className="flex items-center justify-between">
+                  <Building2 size={18} strokeWidth={1.5} className="text-foreground" />
+                  <Link
+                    href={"/suppliers?verified=1" as never}
+                    className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
+                  >
+                    Browse all →
+                  </Link>
+                </div>
+                <h3 className="mt-4 text-sm font-semibold tracking-tight">
+                  Verified Chinese suppliers
+                </h3>
+                <ul className="mt-3 space-y-2 text-[13px]">
+                  {featured.topSuppliers.map((s) => (
+                    <li key={s.id}>
+                      <Link
+                        href={"/suppliers" as never}
+                        className="block leading-snug text-foreground/90 hover:text-foreground hover:underline"
+                      >
+                        <span className="line-clamp-1">{s.nameEn}</span>
+                        <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                          {[s.category, s.locationEn].filter(Boolean).join(" · ")}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ─────────── Below-fold: prefer to browse? ─────────── */}
       <section className="border-b border-border/80 bg-muted/20">
@@ -333,7 +522,7 @@ export async function HomePageEnglish() {
         </div>
       </section>
 
-      {/* ─────────── Doris escalation ─────────── */}
+      {/* ─────────── Sourcing-desk escalation ─────────── */}
       <section className="bg-foreground py-14 text-background sm:py-16">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-background/70">
@@ -343,17 +532,17 @@ export async function HomePageEnglish() {
             Let a human take over.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[14px] leading-relaxed text-background/80">
-            Doris Li runs our China sourcing desk — composites engineer,
-            English / Mandarin, ten years on the ground. She handles
-            paperwork, QA, payment routing, and the conversations that
-            sink most overseas RFQs.
+            Our China sourcing desk is staffed by composites engineers
+            fluent in English and Mandarin, with a decade on the ground
+            in Chinese FRP plants. They handle paperwork, QA, payment
+            routing, and the conversations that sink most overseas RFQs.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <a
-              href="mailto:doris.li@f1composite.com"
+              href="mailto:f1frp2015@gmail.com"
               className="inline-flex items-center gap-1.5 rounded-md bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background/90"
             >
-              Email Doris
+              Email sourcing desk
               <ArrowRight size={14} />
             </a>
             <Link

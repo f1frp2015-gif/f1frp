@@ -132,7 +132,7 @@ export default async function DownloadsPage({
         <div className="mt-10 rounded-lg border bg-muted/30 p-6 text-center">
           <h3 className="text-lg font-bold">Need a custom spec sheet?</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Submit an RFQ — Doris replies within 24 hours with tailored docs.
+            Submit an RFQ — our sourcing desk replies within 24 hours with tailored docs.
           </p>
           <Link href={"/rfq" as never} className={buttonVariants() + " mt-4"}>
             Submit an RFQ

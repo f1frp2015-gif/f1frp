@@ -178,24 +178,32 @@ export default async function LocaleLayout({
                 "@type": "Organization",
                 "@id": `${siteUrl}/#organization`,
                 name: brand,
-                alternateName: ["f1frp", "getfrp", t("name")].filter(
+                legalName: "Chongqing Yaoyi Advanced Materials Technology Co., Ltd.",
+                alternateName: ["f1frp", "getfrp", "F1 Composite", t("name")].filter(
                   (v, i, a) => v && a.indexOf(v) === i,
                 ),
                 url: siteUrl,
                 logo: `${siteUrl}/og-icon.png`,
                 description,
+                foundingDate: "2015",
+                address: {
+                  "@type": "PostalAddress",
+                  addressCountry: "CN",
+                  addressRegion: "Chongqing",
+                },
+                // sameAs intentionally empty until LinkedIn / industry-body
+                // profiles are wired up — empty array signals to Google we
+                // recognize the slot rather than that we've never thought of it.
                 sameAs: [],
-                // ContactPoint exposes Doris (sourcing desk) only on the
-                // en side. zh side surfaces the tech mailbox only — no
-                // human name, no phone — to match the user-visible UI.
+                // Anonymous team alias — no personal name, no phone.
+                // EN side surfaces sourcing-desk email; ZH side tech mailbox only.
                 contactPoint: SHOW_SALES_CONTACT
                   ? {
                       "@type": "ContactPoint",
                       contactType: "customer support",
-                      name: CONTACT.name,
                       email: CONTACT.email,
-                      telephone: "+86-138-8333-8993",
-                      availableLanguage: ["zh-CN", "en"],
+                      availableLanguage: ["en", "zh-CN"],
+                      areaServed: ["US", "DE", "FR", "GB", "IT", "ES", "NL", "PL", "AU", "CA"],
                     }
                   : {
                       "@type": "ContactPoint",

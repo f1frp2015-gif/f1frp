@@ -40,6 +40,11 @@ export default async function SuppliersPage({
   const isEn = locale === "en";
   const baseQuery = db.select().from(supplierListings);
   const tierRank = sql`CASE ${supplierListings.scaleTier} WHEN 'XL' THEN 4 WHEN 'L' THEN 3 WHEN 'M' THEN 2 WHEN 'S' THEN 1 ELSE 0 END`;
+  // EN 侧 SSR payload 砍到 top 200 (按 verified+brand+规模+热度排序). 旧实现把
+  // 459 家供应商全部塞进 HTML, /suppliers SSR 体积 3.2MB → LCP 拖累, 移动端
+  // 首字节后还要解析 3MB 字符串. 200 已经覆盖全部 verified + 高优先级品牌,
+  // 普通搜索/过滤场景没有体验差异; 后续若需要看完整 459 家, 加 "Load all"
+  // 按钮做 client-side fetch 即可。ZH 侧无此问题, 保留全量。
   const rows = await (isEn
     ? baseQuery
         .where(isNotNull(supplierListings.nameEn))
@@ -50,6 +55,7 @@ export default async function SuppliersPage({
           desc(supplierListings.viewCount),
           asc(supplierListings.nameEn),
         )
+        .limit(200)
     : baseQuery.orderBy(
         desc(supplierListings.verified),
         desc(supplierListings.brandPriority),
@@ -118,7 +124,7 @@ export default async function SuppliersPage({
             }
             label={isEn ? "Ask AI to match a supplier" : "AI 智能匹配供应商"}
           />
-          {/* getfrp（en）侧无会员/收费体系，海外买家走 /rfq 给 Doris；
+          {/* getfrp（en）侧无会员/收费体系，海外买家走 /rfq 给 sourcing desk；
               dashboard/enterprise 仅对 zh 侧的中国工厂开放 */}
           {isEn ? (
             <Link href={"/rfq" as never} className={buttonVariants()}>
@@ -147,7 +153,7 @@ export default async function SuppliersPage({
         </h3>
         <p className="mt-2 text-sm text-muted-foreground">
           {isEn
-            ? "Tell Doris what you need. First reply within 24 hours, no account required."
+            ? "Tell our sourcing desk what you need. First reply within 24 hours, no account required."
             : t("ctaBoxSub")}
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
@@ -160,10 +166,10 @@ export default async function SuppliersPage({
                 Submit an RFQ
               </Link>
               <a
-                href="mailto:doris.li@f1composite.com"
+                href="mailto:f1frp2015@gmail.com"
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
-                Email Doris
+                Email sourcing desk
               </a>
             </>
           ) : (

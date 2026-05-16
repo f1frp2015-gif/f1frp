@@ -382,16 +382,16 @@ function AssistantAnswer({
 
             {SHOW_SALES_CONTACT && supplierHits.length > 0 && (
               <a
-                href={`mailto:doris.li@f1composite.com?subject=${encodeURIComponent(
+                href={`mailto:f1frp2015@gmail.com?subject=${encodeURIComponent(
                   isEn
                     ? `RFQ — ${question.slice(0, 80)}`
                     : `询盘 — ${question.slice(0, 80)}`,
                 )}&body=${encodeURIComponent(
                   (isEn
-                    ? `Hi Doris,\n\nI saw the following suppliers via the getfrp assistant and would like to RFQ them:\n\n${supplierHits
+                    ? `Hi,\n\nI saw the following suppliers via the getfrp assistant and would like to RFQ them:\n\n${supplierHits
                         .map((s) => `- ${s.title}`)
                         .join("\n")}\n\nMy question was:\n${question}\n\nSpec / volume / target country:\n[fill in]\n\nThanks,`
-                    : `Doris，你好，\n\n通过 复材 AI 看到以下供应商，想发起询盘：\n\n${supplierHits
+                    : `你好，\n\n通过 复材 AI 看到以下供应商，想发起询盘：\n\n${supplierHits
                         .map((s) => `- ${s.title}`)
                         .join("\n")}\n\n我的问题：\n${question}\n\n规格 / 数量 / 目标市场：\n[请补充]\n\n谢谢，`),
                 )}`}
@@ -399,8 +399,8 @@ function AssistantAnswer({
               >
                 <MessagesSquare size={12} />
                 {isEn
-                  ? `Send these ${supplierHits.length} to Doris as RFQ`
-                  : `把这 ${supplierHits.length} 家发给 Doris 询盘`}
+                  ? `Send these ${supplierHits.length} to sourcing desk as RFQ`
+                  : `把这 ${supplierHits.length} 家发给询盘`}
               </a>
             )}
 

@@ -814,7 +814,7 @@ export default async function OverseasPage({
               </Link>
             </div>
             <p className="mt-6 font-mono text-[11px] uppercase tracking-wider text-muted-foreground/80">
-              业务负责人 Doris Li · doris.li@f1composite.com · +86-138-8333-8993
+              业务对接 · f1frp2015@gmail.com
               <span className="mx-2 opacity-50">|</span>
               技术咨询 · f1frp2015@gmail.com
             </p>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
@@ -45,9 +45,28 @@ export async function generateMetadata({
   const descText = isEn
     ? std.descriptionEn ?? `${std.code} — ${titleText}`
     : std.description ?? `${std.code} — ${titleText}`;
+  // EN 侧若 description + sections.bodyEn 全空 → 页面仅有 code+title, 极薄
+  // 内容; 给 noindex 防止 Google 把它当 thin content 拉低整站质量分。
+  let thinContent = false;
+  if (isEn) {
+    const descLen = (std.descriptionEn ?? "").trim().length;
+    if (descLen < 80) {
+      const [{ n } = { n: 0 }] = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(standardSectionsTable)
+        .where(
+          and(
+            eq(standardSectionsTable.standardId, std.id),
+            sql`length(coalesce(${standardSectionsTable.bodyEn}, '')) > 0`,
+          ),
+        );
+      thinContent = (n ?? 0) === 0;
+    }
+  }
   return {
     title: `${std.code} ${titleText}`,
     description: descText,
+    ...(thinContent ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

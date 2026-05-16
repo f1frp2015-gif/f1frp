@@ -219,7 +219,7 @@ export default async function SourceFromChinaPage({
           Ask AI to match a supplier
         </Link>
         <a
-          href="mailto:doris.li@f1composite.com"
+          href="mailto:f1frp2015@gmail.com"
           className="ml-auto inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           Or talk to our sourcing desk →
@@ -603,7 +603,7 @@ export default async function SourceFromChinaPage({
               Try a sample sourcing query →
             </Link>
             <a
-              href="mailto:doris.li@f1composite.com"
+              href="mailto:f1frp2015@gmail.com"
               className="inline-flex items-center gap-1.5 rounded-md border border-background/30 px-4 py-2 text-sm text-background transition-colors hover:bg-background/10"
             >
               Talk to our sourcing desk

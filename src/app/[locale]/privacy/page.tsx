@@ -122,7 +122,7 @@ function PrivacyEn() {
       </ul>
       <p>
         To exercise any right, email{" "}
-        <a href="mailto:doris.li@f1composite.com">doris.li@f1composite.com</a>.
+        <a href="mailto:f1frp2015@gmail.com">f1frp2015@gmail.com</a>.
         We respond within 30 days.
       </p>
 
@@ -137,9 +137,9 @@ function PrivacyEn() {
       <h2>8. Contact</h2>
       <p>
         Chongqing Yaoyi Advanced Materials Technology Co., Ltd.<br />
-        Attn: Doris Li (Data Protection contact)<br />
+        Attn: Data Protection contact<br />
         Email:{" "}
-        <a href="mailto:doris.li@f1composite.com">doris.li@f1composite.com</a>
+        <a href="mailto:f1frp2015@gmail.com">f1frp2015@gmail.com</a>
       </p>
     </div>
   );

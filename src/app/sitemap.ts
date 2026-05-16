@@ -124,6 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             id: papers.id,
             slug: papers.slug,
             titleEn: papers.titleEn,
+            abstractEn: papers.abstractEn,
             updatedAt: papers.updatedAt,
           })
           .from(papers)
@@ -136,6 +137,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             id: patents.id,
             slug: patents.slug,
             titleEn: patents.titleEn,
+            abstractEn: patents.abstractEn,
             updatedAt: patents.updatedAt,
           })
           .from(patents)
@@ -176,17 +178,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     )
     .map((r) => ({ path: `/standards/${r.id}`, updatedAt: r.updatedAt }));
 
+  // 80 字符是 Google 对 thin content 的经验阈值; 低于此触发 noindex,
+  // 同时也从 sitemap 排除避免浪费爬取配额。
+  const MIN_ABSTRACT_LEN = 80;
+
   const paperEntries = (
     paperRows as Array<{
       id: string;
       slug: string | null;
       titleEn: string | null;
+      abstractEn: string | null;
       updatedAt: Date | null;
     }>
   )
-    .map((r) => ({ urlSlug: r.slug ?? r.id, titleEn: r.titleEn, updatedAt: r.updatedAt }))
+    .map((r) => ({
+      urlSlug: r.slug ?? r.id,
+      titleEn: r.titleEn,
+      abstractEn: r.abstractEn,
+      updatedAt: r.updatedAt,
+    }))
     .filter((r) =>
-      isEn ? isAsciiPath(r.urlSlug) && (r.titleEn ?? "").trim() !== "" : true,
+      isEn
+        ? isAsciiPath(r.urlSlug) &&
+          (r.titleEn ?? "").trim() !== "" &&
+          (r.abstractEn ?? "").trim().length >= MIN_ABSTRACT_LEN
+        : true,
     )
     .map((r) => ({ path: `/papers/${r.urlSlug}`, updatedAt: r.updatedAt }));
 
@@ -195,12 +211,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       id: string;
       slug: string | null;
       titleEn: string | null;
+      abstractEn: string | null;
       updatedAt: Date | null;
     }>
   )
-    .map((r) => ({ urlSlug: r.slug ?? r.id, titleEn: r.titleEn, updatedAt: r.updatedAt }))
+    .map((r) => ({
+      urlSlug: r.slug ?? r.id,
+      titleEn: r.titleEn,
+      abstractEn: r.abstractEn,
+      updatedAt: r.updatedAt,
+    }))
     .filter((r) =>
-      isEn ? isAsciiPath(r.urlSlug) && (r.titleEn ?? "").trim() !== "" : true,
+      isEn
+        ? isAsciiPath(r.urlSlug) &&
+          (r.titleEn ?? "").trim() !== "" &&
+          (r.abstractEn ?? "").trim().length >= MIN_ABSTRACT_LEN
+        : true,
     )
     .map((r) => ({ path: `/patents/${r.urlSlug}`, updatedAt: r.updatedAt }));
 

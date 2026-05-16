@@ -51,9 +51,12 @@ export async function generateMetadata({
   const descText = isEn
     ? row.abstractEn ?? row.titleEn ?? undefined
     : row.abstract ?? row.titleEn ?? undefined;
+  // 缺英文 abstract → 页面仅有题录, 内容过薄, noindex 避免拉低质量分
+  const thinContent = isEn && (row.abstractEn ?? "").trim().length < 80;
   return {
     title: titleText,
     description: descText,
+    ...(thinContent ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

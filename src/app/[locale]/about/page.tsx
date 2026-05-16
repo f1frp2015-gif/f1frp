@@ -197,9 +197,10 @@ export default async function AboutPage({
 // QA approach, contact. Inserted above the (auto-translated) generic body so
 // overseas buyers see proof of identity within the first viewport.
 //
-// TODO(user): supply ① Doris LinkedIn URL ② company unified social credit
-// code ③ a 12-15 sec factory walk-through video URL ④ 2-3 customer testimonial
-// quotes (anonymized OK). Until then, fields read "available on request".
+// TODO(user): supply ① company unified social credit code (USCC) for full
+// proof of identity ② a 12-15 sec factory walk-through video URL ③ 2-3
+// customer testimonial quotes (anonymized OK). Until then, fields read
+// "available on request".
 function EnglishTrustBlock() {
   return (
     <section className="mb-12 overflow-hidden rounded-xl border border-border/70">
@@ -219,9 +220,9 @@ function EnglishTrustBlock() {
           contactPoint: {
             "@type": "ContactPoint",
             contactType: "sales",
-            name: "Doris Li",
-            email: "doris.li@f1composite.com",
+            email: "f1frp2015@gmail.com",
             availableLanguage: ["English", "Mandarin"],
+            areaServed: ["US", "DE", "FR", "GB", "IT", "ES", "NL", "PL", "AU", "CA"],
           },
         }}
       />
@@ -239,8 +240,9 @@ function EnglishTrustBlock() {
           </strong>{" "}
           (founded 2015), a Chongqing-registered exporter that has been
           visiting Chinese FRP / GFRP / CFRP plants in person for a decade.
-          Sourcing desk led by Doris Li, a composites engineer who speaks
-          English and Mandarin and handles every overseas RFQ end-to-end.
+          Our bilingual sourcing desk handles every overseas RFQ end-to-end —
+          composites engineers fluent in English and Mandarin, on the ground
+          in China.
         </p>
       </div>
 
@@ -277,24 +279,16 @@ function EnglishTrustBlock() {
             <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               SOURCING DESK
             </div>
-            <div className="mt-2 text-base font-semibold">Doris Li</div>
+            <div className="mt-2 text-base font-semibold">F1 Composite sourcing desk</div>
             <div className="mt-0.5 text-xs text-muted-foreground">
-              Composites engineer · English / Mandarin
+              Composites engineers · English / Mandarin · in China
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
               <a
-                href="mailto:doris.li@f1composite.com"
+                href="mailto:f1frp2015@gmail.com"
                 className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-background transition-colors hover:bg-foreground/90"
               >
-                <Mail size={12} /> Email Doris
-              </a>
-              <a
-                href="https://wa.me/8613883338993"
-                target="_blank"
-                rel="noopener"
-                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 transition-colors hover:bg-muted"
-              >
-                WhatsApp
+                <Mail size={12} /> Email sourcing desk
               </a>
             </div>
           </div>
