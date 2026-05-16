@@ -33,6 +33,8 @@ import { InquiryButton } from "./inquiry-button";
 import { SaveButton } from "@/components/save-button";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
+import { alternates } from "@/lib/seo";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 3600;
 
@@ -167,6 +169,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle", { name }),
     description,
+    alternates: alternates(`/materials/${m.id}`),
   };
 }
 
@@ -216,7 +219,10 @@ export default async function MaterialDetailPage({
   const propEntries = Object.entries(props).filter(([, v]) => v);
 
   const inLanguage = locale === "en" ? "en" : "zh-CN";
-  const canonicalUrl = `https://f1frp.com/${locale}/materials/${m.id}`;
+  // canonicalUrl must point at the current deploy, not always f1frp.com.
+  // Was: `https://f1frp.com/${locale}/materials/${m.id}` — wrong on getfrp.com
+  // and added a /{locale} segment that doesn't exist in the URL structure.
+  const canonicalUrl = `${CURRENT_SITE_URL}/materials/${m.id}`;
 
   const productJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",

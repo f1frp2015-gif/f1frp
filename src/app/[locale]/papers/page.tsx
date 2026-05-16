@@ -3,6 +3,7 @@ import { and, desc, isNotNull, ne, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/lib/db";
 import { papers as papersTable } from "@/lib/db/schema";
+import { alternates } from "@/lib/seo";
 import { paperCategories } from "@/lib/data/papers";
 import { PapersClient, type SerializedPaper } from "./papers-client";
 
@@ -19,7 +20,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Papers" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: alternates("/papers"),
+  };
 }
 
 export default async function PapersPage({

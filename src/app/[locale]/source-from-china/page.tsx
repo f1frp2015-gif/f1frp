@@ -18,6 +18,8 @@ import {
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
 import { supplierListings } from "@/lib/db/schema";
+import { alternates } from "@/lib/seo";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 import { Badge } from "@/components/ui/badge";
 import {
   PlatformHero,
@@ -79,10 +81,10 @@ type VerifiedRow = {
 export function generateMetadata(): Metadata {
   return {
     title:
-      "Source FRP composites from China — verified suppliers by category, ranked by scale | f1frp",
+      "Source FRP composites from China: verified suppliers, ranked by scale",
     description:
-      "Browse verified Chinese FRP composite suppliers — manufacturers, fiber, resin, equipment, mold makers — ranked by scale tier. Plus GB ⇄ ASTM / ISO / EN standards crosswalk and a 6-step sourcing playbook for overseas buyers.",
-    alternates: { canonical: "https://f1frp.com/en/source-from-china" },
+      "A directory of independently verified Chinese FRP suppliers — fiber, resin, equipment, mold makers — sorted by manufacturing scale. Plus the GB ⇄ ASTM / ISO / EN standards crosswalk and a 6-step sourcing playbook for overseas buyers.",
+    alternates: alternates("/source-from-china"),
   };
 }
 
@@ -161,7 +163,7 @@ export default async function SourceFromChinaPage({
   }, {});
   const majorPlusLarge = (tierCounts.XL ?? 0) + (tierCounts.L ?? 0);
 
-  const url = "https://f1frp.com/en/source-from-china";
+  const url = `${CURRENT_SITE_URL}/source-from-china`;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
@@ -174,6 +176,66 @@ export default async function SourceFromChinaPage({
           name: "Source composites from China",
           description:
             "Verified Chinese FRP suppliers organized by category and ranked by scale tier, with export-ready certifications, standards crosswalk, and sourcing playbook for overseas buyers.",
+        }}
+      />
+      {/* FAQPage schema: explicit Q&A surface that Perplexity, Google AI
+          Overviews and ChatGPT search preferentially extract and cite.
+          Pulled from the questions overseas buyers actually ask the
+          sourcing desk; mirrors content visible on this page. */}
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "How do I source FRP composites from China without speaking Mandarin?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Use a curated directory like getfrp.com that has already verified suppliers and translated their certifications, then submit an RFQ in English. A bilingual sourcing desk handles the factory-side conversation in Mandarin and reports back in your unit system. Most overseas buyers shortlist 3-5 verified plants and request samples before placing the first PO.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Which Chinese province makes which FRP product?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Jiangsu dominates resin (unsaturated polyester, vinyl ester, epoxy) and downstream pultrusion. Shandong is the fiber heartland (E-glass, ECR-glass, S-glass, carbon fiber tow). Zhejiang covers mid-volume manufacturing, especially fabric and prepreg. Henan and Shanxi are the basalt fiber clusters. Knowing the province before the RFQ filters out three-quarters of the no-fit responses.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "What is the GB equivalent of ASTM D3039 for tensile testing?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "GB/T 1447-2005 is China's analog to ASTM D3039 for tensile properties of fiber-reinforced plastics. The specimen geometry and gripping requirements are similar but not identical; for safety-critical structural parts, request the test panel be cut to ASTM D3039 dimensions and tested at a CNAS-accredited lab (SGS / Bureau Veritas / Intertek / TUV China).",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "What documentation do I need from a Chinese FRP supplier for EU CBAM compliance?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "For CBAM Default Values you need: 1) verified business license + USCC, 2) Material Test Certificate per batch (composition, fiber/resin ratio), 3) energy mix declaration covering the production site, 4) embedded carbon calculation (kgCO2 per kg product) using the EU Commission's CBAM Default Values or installation-specific data. getfrp's sourcing desk pre-generates this pack on first shipment.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How are Chinese FRP suppliers tier-classified (Major / Large / Mid / Small)?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Major = publicly listed groups and Tier-1 manufacturers, annual output > 50,000 tons. Large = established mid-cap producers, 10,000-50,000 tons. Mid = regional specialists, 1,000-10,000 tons. Small = SME niche players, < 1,000 tons. The tier is field-validated by a site visit, not self-reported. Most overseas RFQs go to Major or Large for risk-managed volume; Mid and Small win when you need niche capability the big plants won't bother with.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "What payment terms are standard for first-time FRP imports from China?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Standard terms: 30% deposit against proforma invoice, 70% on B/L copy. For first-time orders above USD 50,000, prefer an LC at sight to limit counterparty risk. Always name in the contract: exact certifications required, batch traceability format, packaging spec, and the AQL sampling plan for pre-shipment inspection.",
+              },
+            },
+          ],
         }}
       />
 

@@ -29,7 +29,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-import { CURRENT_SITE_URL, SITE_ZH, SITE_EN } from "@/lib/sites";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 import { CONTACT } from "@/lib/contact";
 
 const siteUrl = CURRENT_SITE_URL;
@@ -55,9 +55,13 @@ export async function generateMetadata({
   const tagline = t("tagline");
   const description = t("description");
 
-  const isDefault = locale === routing.defaultLocale;
-  const canonical = isDefault ? siteUrl : `${siteUrl}/${locale}`;
-
+  // canonical / hreflang are NOT set in the layout's default metadata
+  // anymore. The old code set canonical to siteUrl (root) for every page,
+  // which told Google that /about, /materials/{id}, /papers/{id} etc.
+  // were all duplicates of the homepage — devastating for indexing.
+  // Each page now sets its own canonical + hreflang via @/lib/seo
+  // (path-aware). The layout still owns og:url for the homepage; we
+  // explicitly use siteUrl for that one place.
   const title = `${brand} — ${tagline}`;
 
   return {
@@ -79,7 +83,7 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       locale: locale === "zh" ? "zh_CN" : "en_US",
-      url: canonical,
+      url: siteUrl,
       siteName: brand,
       title,
       description,
@@ -100,25 +104,9 @@ export async function generateMetadata({
     verification: {
       google: process.env.GOOGLE_SITE_VERIFICATION,
     },
-    alternates: {
-      canonical,
-      // Cross-domain hreflang: zh content is canonical on f1frp.com, en
-      // content on getfrp.com. Regional en variants (US/GB/AU/CA) all
-      // point at the single en deploy — the Service schema's areaServed
-      // covers the rest. Without these, Google's regional SERPs (google.de
-      // for English, google.co.uk, etc.) often default to less-localized
-      // alternates.
-      languages: {
-        zh: SITE_ZH,
-        "zh-CN": SITE_ZH,
-        en: SITE_EN,
-        "en-US": SITE_EN,
-        "en-GB": SITE_EN,
-        "en-AU": SITE_EN,
-        "en-CA": SITE_EN,
-        "x-default": SITE_EN,
-      },
-    },
+    // alternates intentionally NOT set here — see comment above the
+    // generateMetadata return. Each page sets path-aware canonical +
+    // hreflang via @/lib/seo.alternates(path).
     other: {
       "mobile-web-app-capable": "yes",
       "apple-mobile-web-app-capable": "yes",

@@ -16,6 +16,8 @@ import { paperCategories } from "@/lib/data/papers";
 import { SaveButton } from "@/components/save-button";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
+import { alternates } from "@/lib/seo";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 600;
 
@@ -53,9 +55,11 @@ export async function generateMetadata({
     : row.abstract ?? row.titleEn ?? undefined;
   // 缺英文 abstract → 页面仅有题录, 内容过薄, noindex 避免拉低质量分
   const thinContent = isEn && (row.abstractEn ?? "").trim().length < 80;
+  const slug = row.slug ?? row.id;
   return {
     title: titleText,
     description: descText,
+    alternates: alternates(`/papers/${slug}`),
     ...(thinContent ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -137,8 +141,8 @@ export default async function PaperDetailPage({
       ? { "@type": "Organization", name: p.journal }
       : undefined,
     identifier: p.doi ? `doi:${p.doi}` : undefined,
-    url: p.sourceUrl ?? `https://f1frp.com/papers/${canonical}`,
-    mainEntityOfPage: `https://f1frp.com/papers/${canonical}`,
+    url: p.sourceUrl ?? `${CURRENT_SITE_URL}/papers/${canonical}`,
+    mainEntityOfPage: `${CURRENT_SITE_URL}/papers/${canonical}`,
   };
 
   return (
@@ -146,9 +150,9 @@ export default async function PaperDetailPage({
       <JsonLd data={jsonLd} />
       <BreadcrumbJsonLd
         items={[
-          { name: locale === "en" ? "Home" : "首页", url: "https://f1frp.com/" },
-          { name: t("detail.breadcrumb"), url: "https://f1frp.com/papers" },
-          { name: p.title, url: `https://f1frp.com/papers/${canonical}` },
+          { name: locale === "en" ? "Home" : "首页", url: `${CURRENT_SITE_URL}/` },
+          { name: t("detail.breadcrumb"), url: `${CURRENT_SITE_URL}/papers` },
+          { name: p.title, url: `${CURRENT_SITE_URL}/papers/${canonical}` },
         ]}
       />
       <nav className="mb-4 text-xs text-muted-foreground">

@@ -10,6 +10,7 @@ import {
   patentStatusLabelsEn,
 } from "@/lib/data/patents";
 import { PatentsClient, type SerializedPatent } from "./patents-client";
+import { alternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -21,6 +22,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: alternates("/patents"),
   };
 }
 

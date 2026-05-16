@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { StandardDetailClient } from "./standard-detail-client";
 import { AskAiButton } from "@/components/ask-ai-button";
+import { alternates } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -66,6 +67,7 @@ export async function generateMetadata({
   return {
     title: `${std.code} ${titleText}`,
     description: descText,
+    alternates: alternates(`/standards/${std.id}`),
     ...(thinContent ? { robots: { index: false, follow: true } } : {}),
   };
 }

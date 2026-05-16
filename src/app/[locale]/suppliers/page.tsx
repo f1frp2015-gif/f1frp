@@ -9,6 +9,7 @@ import { supplierCategories, provinces } from "@/lib/data/suppliers";
 import { SuppliersClient, type SerializedSupplier } from "./suppliers-client";
 import { JsonLd } from "@/components/json-ld";
 import { AskAiButton } from "@/components/ask-ai-button";
+import { alternates } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -22,6 +23,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: alternates("/suppliers"),
   };
 }
 

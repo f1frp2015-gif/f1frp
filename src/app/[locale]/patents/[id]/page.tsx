@@ -16,6 +16,8 @@ import { patentCategories, patentStatusLabels, patentStatusLabelsEn } from "@/li
 import { SaveButton } from "@/components/save-button";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
+import { alternates } from "@/lib/seo";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 600;
 
@@ -51,9 +53,11 @@ export async function generateMetadata({
   const descText = isEn ? row.abstractEn ?? undefined : row.abstract ?? undefined;
   // 缺英文 abstract → noindex (避免 thin content 拉低整站质量分)
   const thinContent = isEn && (row.abstractEn ?? "").trim().length < 80;
+  const slug = row.slug ?? row.id;
   return {
     title: titleText,
     description: descText,
+    alternates: alternates(`/patents/${slug}`),
     ...(thinContent ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -135,8 +139,8 @@ export default async function PatentDetailPage({
       : undefined,
     identifier: p.publicationNo || p.grantNo || p.applicationNo || undefined,
     datePublished: p.publicationDate || p.grantDate || p.filingDate || undefined,
-    url: p.sourceUrl ?? `https://f1frp.com/patents/${canonical}`,
-    mainEntityOfPage: `https://f1frp.com/patents/${canonical}`,
+    url: p.sourceUrl ?? `${CURRENT_SITE_URL}/patents/${canonical}`,
+    mainEntityOfPage: `${CURRENT_SITE_URL}/patents/${canonical}`,
   };
 
   return (
@@ -144,9 +148,9 @@ export default async function PatentDetailPage({
       <JsonLd data={jsonLd} />
       <BreadcrumbJsonLd
         items={[
-          { name: locale === "en" ? "Home" : "首页", url: "https://f1frp.com/" },
-          { name: t("detail.breadcrumb"), url: "https://f1frp.com/patents" },
-          { name: p.title, url: `https://f1frp.com/patents/${canonical}` },
+          { name: locale === "en" ? "Home" : "首页", url: `${CURRENT_SITE_URL}/` },
+          { name: t("detail.breadcrumb"), url: `${CURRENT_SITE_URL}/patents` },
+          { name: p.title, url: `${CURRENT_SITE_URL}/patents/${canonical}` },
         ]}
       />
       <nav className="mb-4 text-xs text-muted-foreground">

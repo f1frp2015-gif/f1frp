@@ -18,6 +18,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { JsonLd } from "@/components/json-ld";
 import { CONTACT } from "@/lib/contact";
+import { alternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -29,6 +30,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: alternates("/about"),
   };
 }
 

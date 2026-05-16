@@ -31,10 +31,19 @@ import { priceData } from "@/lib/data/materials";
 import { newsList } from "@/lib/data/news";
 import { ValueChainSection } from "@/components/value-chain-section";
 import { HomePageEnglish } from "./home-english";
+import { alternates } from "@/lib/seo";
+import type { Metadata } from "next";
 
 // Homepage live stats re-query DB on this cadence. DB count queries hit
 // indexed tables so 60s is safe even under traffic.
 export const revalidate = 60;
+
+// Path-aware canonical + hreflang for the homepage. Layout no longer sets
+// these (would have made every page point at root), so each route declares
+// its own.
+export const metadata: Metadata = {
+  alternates: alternates("/"),
+};
 
 // AI-native capability groups. AI first, then data, then delivery.
 const AI_CAPABILITIES = [

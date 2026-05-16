@@ -3,6 +3,7 @@ import { and, asc, isNotNull, ne } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/lib/db";
 import { standards as standardsTable } from "@/lib/db/schema";
+import { alternates } from "@/lib/seo";
 import { StandardsClient, type SerializedStandard } from "./standards-client";
 import {
   countryFilters,
@@ -17,7 +18,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Standards" });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: alternates("/standards"),
+  };
 }
 
 export const revalidate = 3600;

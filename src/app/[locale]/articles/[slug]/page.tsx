@@ -10,6 +10,8 @@ import { articles, authors } from "@/lib/db/schema";
 import { ArticleBody } from "@/components/article-body";
 import { JsonLd } from "@/components/json-ld";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import { alternates } from "@/lib/seo";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 600;
 
@@ -58,6 +60,7 @@ export async function generateMetadata({
     description: isEn
       ? row.article.excerptEn ?? undefined
       : row.article.excerpt ?? undefined,
+    alternates: alternates(`/articles/${row.article.slug}`),
   };
 }
 
@@ -110,10 +113,10 @@ export default async function ArticleDetailPage({
         },
     publisher: {
       "@type": "Organization",
-      name: isEn ? "f1frp" : "复材站",
-      url: "https://f1frp.com",
+      name: isEn ? "getfrp" : "复材站",
+      url: CURRENT_SITE_URL,
     },
-    mainEntityOfPage: `https://f1frp.com/articles/${encodeURIComponent(a.slug)}`,
+    mainEntityOfPage: `${CURRENT_SITE_URL}/articles/${encodeURIComponent(a.slug)}`,
   };
 
   return (
@@ -121,11 +124,11 @@ export default async function ArticleDetailPage({
       <JsonLd data={jsonLd} />
       <BreadcrumbJsonLd
         items={[
-          { name: isEn ? "Home" : "首页", url: "https://f1frp.com/" },
-          { name: t("detail.breadcrumb"), url: "https://f1frp.com/articles" },
+          { name: isEn ? "Home" : "首页", url: `${CURRENT_SITE_URL}/` },
+          { name: t("detail.breadcrumb"), url: `${CURRENT_SITE_URL}/articles` },
           {
             name: a.title,
-            url: `https://f1frp.com/articles/${encodeURIComponent(a.slug)}`,
+            url: `${CURRENT_SITE_URL}/articles/${encodeURIComponent(a.slug)}`,
           },
         ]}
       />
