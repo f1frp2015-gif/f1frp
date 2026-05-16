@@ -1,8 +1,8 @@
 {
   "Site": {
     "name": "getfrp",
-    "tagline": "AI-Native China Composites Supply-Chain Platform",
-    "description": "getfrp is where overseas engineers go to source FRP, GFRP and CFRP composites from China. Ask an AI assistant in plain English; get back verified Chinese suppliers, GB-to-ASTM standard mappings, and CBAM paperwork. Our bilingual desk in China picks up the RFQ from there."
+    "tagline": "Source FRP from China, verified and documented",
+    "description": "200+ independently verified Chinese FRP factories, with GB standards mapped to ASTM and EN, and CBAM-ready paperwork pre-generated. Ask in plain English. Our China desk handles the RFQ when you're ready to talk to a factory."
   },
   "Nav": {
     "materials": "Materials",
@@ -1706,11 +1706,11 @@
   },
   "About": {
     "pageTitle": "About",
-    "pageDescription": "f1frp is the AI-Native accelerator for advanced composites.",
-    "metaTitle": "About — f1frp",
-    "metaDescription": "f1frp is the AI-Native accelerator for advanced composites — an AI-first workbench that collapses material selection, formula design, standards, IP mining, supplier matching and RFQ into one loop. Accelerate composites innovation 10×.",
-    "h1": "About f1frp",
-    "lead": "AI-Native Advanced Composites Accelerator",
+    "pageDescription": "getfrp is a directory of verified Chinese FRP factories, with standards mapped to ASTM and EN and CBAM paperwork ready.",
+    "metaTitle": "About — getfrp",
+    "metaDescription": "getfrp indexes Chinese FRP factories so overseas engineers can source without the cold-call grind. Verified suppliers, GB/ASTM/EN standards crosswalk, CBAM-ready documentation, and a bilingual China desk for the RFQ.",
+    "h1": "About getfrp",
+    "lead": "FRP procurement from China, verified and documented",
     "missionTitle": "Our mission",
     "missionP1": "Composites is a $100B industry running on PDF datasheets and WeChat groups. Buyers can't compare suppliers without three phone calls. Pricing is opaque. The Chinese supply base is invisible to most overseas engineers, and the few directories that exist are out of date the day they ship.",
     "missionP2": "We're trying to fix the part of that we can reach: a structured database of materials, formulas, standards, papers, patents, and verified Chinese suppliers, all linked, all queryable in plain English. Five fiber families covered (glass, carbon, basalt, aramid, bio). When you're ready to RFQ, a human takes over.",

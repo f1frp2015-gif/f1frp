@@ -7,16 +7,16 @@ import { ImageResponse } from "next/og";
 // Static at build time (no Request-time APIs, no DB calls), so this is
 // generated once per deploy and cached by the platform.
 
-export const alt = "getfrp — AI sourcing assistant for FRP composites from China";
+export const alt = "getfrp — Source FRP from China, verified and documented";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const COPY = {
   en: {
-    eyebrow: "AI-NATIVE COMPOSITES SUPPLY-CHAIN PLATFORM",
-    h1Top: "China composites,",
-    h1Bottom: "AI-native supply chain.",
-    sub: "Verified suppliers · ASTM ⇄ GB · CBAM-ready · Sourcing desk",
+    eyebrow: "FRP FROM CHINA · FOR OVERSEAS ENGINEERS",
+    h1Top: "Source FRP from China,",
+    h1Bottom: "verified and documented.",
+    sub: "200+ verified plants · ASTM ⇄ GB · CBAM-ready · English RFQ",
     domain: "getfrp.com",
     brand: "getfrp",
   },

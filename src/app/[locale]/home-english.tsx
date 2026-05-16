@@ -158,17 +158,17 @@ export async function HomePageEnglish() {
               "@type": "WebPage",
               "@id": "https://getfrp.com/#webpage",
               url: "https://getfrp.com/",
-              name: "getfrp — AI-Native China Composites Supply-Chain Platform",
+              name: "getfrp — Source FRP from China, verified and documented",
               inLanguage: "en",
               description:
-                "The AI-native vertical platform for sourcing FRP / GFRP / CFRP composites from China — verified suppliers, ASTM ⇄ GB standards crosswalk, CBAM-ready paperwork, and a bilingual sourcing desk for RFQ, QA, payment, and logistics.",
+                "200+ independently verified Chinese FRP factories, with GB standards mapped to ASTM and EN, and CBAM-ready paperwork pre-generated. Ask in plain English. A bilingual China desk handles the RFQ.",
             },
             {
               "@type": "Service",
               "@id": "https://getfrp.com/#service",
-              name: "China composites supply-chain platform",
+              name: "China FRP sourcing service",
               serviceType:
-                "AI-native composites sourcing and supply chain (RFQ · QA · CBAM · logistics)",
+                "FRP / GFRP / CFRP supplier sourcing, standards crosswalk, CBAM documentation, and RFQ handling for overseas buyers",
               areaServed: [
                 "US",
                 "DE",
@@ -231,7 +231,7 @@ export async function HomePageEnglish() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
               <Sparkles size={11} />
-              AI-NATIVE CHINA COMPOSITES SUPPLY-CHAIN PLATFORM
+              FRP FROM CHINA · FOR OVERSEAS ENGINEERS
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-5xl lg:text-[56px]">
               Ask in plain English.
@@ -241,10 +241,11 @@ export async function HomePageEnglish() {
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
-              FRP, GFRP and CFRP procurement from China, with the parts
-              that usually take three phone calls already done: supplier
-              vetting, GB-to-ASTM mapping, CBAM data, sample paperwork.
-              When you&apos;re ready to RFQ, our China desk picks up.
+              Skip three weeks of cold-calling Chinese factories.
+              We&apos;ve indexed 200+ verified plants, mapped GB to ASTM
+              and EN, and pre-filled the CBAM paperwork. Ask in English.
+              Our China desk picks up the RFQ when you&apos;re ready to
+              talk to a factory.
             </p>
           </div>
 
