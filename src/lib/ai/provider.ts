@@ -1,18 +1,25 @@
-// AI provider 分流（2026-05-08 — host-aware chat routing）
+// AI provider 分流(2026-05-18 — direct Google for overseas, drop OpenRouter)
 //
-// 现在按 *host* 而不是部署 profile 来挑 chat model：
-//   - f1frp.com (国内站)  → DeepSeek (deepseek-chat)
-//   - getfrp.com (海外站) / preview → OpenRouter → google/gemini-2.5-flash
+// 按 *host* 挑 chat model:
+//   - f1frp.com (国内站)         → DeepSeek (deepseek-chat)
+//   - getfrp.com (海外站) / preview → Google Gemini direct (gemini-2.5-flash)
 //
-// 这样同一份代码、同一份 env 部署到双轨 (阿里云 ECS / Vercel) 都自动选对模型,
-// 不再依赖 AI_PROFILE / CHAT_PROVIDER 单值开关。两侧的 API key 都得配:
-//   - DEEPSEEK_API_KEY    (f1frp.com 必需)
-//   - OPENROUTER_API_KEY  (getfrp.com / preview 必需)
+// 历史:海外侧原走 OpenRouter → google/gemini-2.5-flash,加了一层不必要的代理
+// (额外 API key + 额外延迟 + OpenRouter 偶发抖动),2026-05-18 切回 @ai-sdk/google
+// 直连。OpenRouter 仍保留为显式覆盖路径(CHAT_PROVIDER=openrouter)以备万一。
 //
-// 显式覆盖：CHAT_PROVIDER=openrouter|google|deepseek 仍然有效，会无视 host
-// 强制走指定 provider —— 用于 cron / 后端脚本（无 host）和本地调试。
+// 必需的 API key:
+//   - GOOGLE_GENERATIVE_AI_API_KEY  (getfrp.com / preview 必需,Google AI Studio 申请)
+//   - DEEPSEEK_API_KEY              (f1frp.com 必需)
+//   - OPENROUTER_API_KEY            (可选 fallback,通过 CHAT_PROVIDER=openrouter 启用)
 //
-// 嵌入：始终用 Google gemini-embedding-001 (768d) 保持向量一致；
+// 显式覆盖:CHAT_PROVIDER=openrouter|google|deepseek 仍然有效,无视 host
+// 强制走指定 provider —— 用于 cron / 后端脚本(无 host)和本地调试。
+//
+// 模型版本:GEMINI_CHAT_MODEL / DEEPSEEK_CHAT_MODEL / OPENROUTER_CHAT_MODEL 三个
+// env var 可单独覆盖各 provider 的模型名,不需要代码改动就能切 2.5-pro / 2.0-flash 等。
+//
+// 嵌入:始终用 Google gemini-embedding-001 (768d) 保持向量一致;
 // 国内 ECS 通过 GOOGLE_AI_GATEWAY_URL 走代理。
 
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
@@ -46,11 +53,11 @@ function isDomesticHost(host?: string | null): boolean {
 function pickProviderForHost(host?: string | null): ChatProvider {
   if (explicitProvider) return explicitProvider;
   if (isDomesticHost(host)) return "deepseek";
-  // Default for overseas / preview / unknown host: keep existing OpenRouter
-  // path (gemini-2.5-flash). On the domestic ECS, host header always carries
-  // f1frp.com so we never hit this branch in production.
+  // Overseas / preview / unknown host → Google direct (was OpenRouter,
+  // switched 2026-05-18 to remove the middleman). Domestic ECS sets
+  // AI_PROFILE=domestic so the next branch covers cron/script paths there.
   if (profile === "domestic") return "deepseek";
-  return "openrouter";
+  return "google";
 }
 
 const CHAT_MODEL_GLOBAL = "gemini-2.5-flash";
@@ -60,8 +67,16 @@ const EMBED_MODEL = "gemini-embedding-001";
 export const EMBED_DIMS = 768;
 
 function buildGoogle(baseURL?: string) {
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "GOOGLE_GENERATIVE_AI_API_KEY required for the Google Gemini provider. " +
+        "Get one at https://aistudio.google.com/apikey and set it on Vercel " +
+        "for the getfrp.com / preview deployment.",
+    );
+  }
   return createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    apiKey,
     ...(baseURL ? { baseURL } : {}),
   });
 }
@@ -112,7 +127,10 @@ export function getChatModel(host?: string | null): LanguageModel {
       process.env.DEEPSEEK_CHAT_MODEL ?? CHAT_MODEL_DOMESTIC,
     );
   }
-  return buildGoogle(process.env.GOOGLE_AI_GATEWAY_URL)(CHAT_MODEL_GLOBAL);
+  // Google direct. GEMINI_CHAT_MODEL env override lets us swap 2.5-pro /
+  // 2.0-flash / experimental builds without a deploy.
+  const model = process.env.GEMINI_CHAT_MODEL ?? CHAT_MODEL_GLOBAL;
+  return buildGoogle(process.env.GOOGLE_AI_GATEWAY_URL)(model);
 }
 
 export function getChatModelForRequest(req: Request): LanguageModel {
