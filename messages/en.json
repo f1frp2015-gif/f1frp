@@ -1,8 +1,8 @@
 {
   "Site": {
     "name": "getfrp",
-    "tagline": "Source FRP from China, verified and documented",
-    "description": "200+ independently verified Chinese FRP factories, with GB standards mapped to ASTM and EN, and CBAM-ready paperwork pre-generated. Ask in plain English. Our China desk handles the RFQ when you're ready to talk to a factory."
+    "tagline": "Source FRP from China — verified suppliers",
+    "description": "FRP sourcing from China: 200+ verified Chinese FRP suppliers, GB ⇄ ASTM ⇄ EN standards mapped, CBAM paperwork ready. Ask in English; our China desk handles the RFQ."
   },
   "Nav": {
     "materials": "Materials",
@@ -455,8 +455,8 @@
     "pageTitle": "Suppliers",
     "pageDirectoryTitle": "Supplier Directory",
     "pageDescription": "67 verified composite supplier profiles — claimable and expandable.",
-    "metaTitle": "Supplier Directory — FRP composites company lookup",
-    "metaDescription": "Verified FRP composite industry suppliers: finished-goods manufacturers, raw-material suppliers, equipment and tooling makers.",
+    "metaTitle": "China FRP suppliers — verified factories, ranked by scale",
+    "metaDescription": "Verified Chinese FRP suppliers — pultrusion, GFRP / CFRP / basalt manufacturers, resin and fiber makers. Ranked by scale; export-ready certifications on file.",
     "subtitle": "Verified FRP composite companies — filter by type, region or keyword.",
     "ctaFreeList": "List your company (free)",
     "ctaBoxTitle": "Get your company into the f1frp directory",
@@ -1655,8 +1655,8 @@
     }
   },
   "HpRtm": {
-    "metaTitle": "HP-RTM Vertical — Papers · Patents · AI Commentary",
-    "metaDescription": "f1frp HP-RTM vertical: curated high-pressure resin transfer molding papers and patents with AI Chinese commentary — fast-cure resins, injection equipment, mold sealing, preform, automotive CFRP.",
+    "metaTitle": "HP-RTM supplier China — automotive CFRP manufacturers",
+    "metaDescription": "Source HP-RTM capacity from China: automotive CFRP manufacturers, fast-cure resin houses, preform and mold suppliers — papers, patents, verified factory shortlist.",
     "breadcrumbHome": "Home",
     "label": "HP-RTM SPOTLIGHT",
     "h1": "HP-RTM Vertical",
@@ -1680,8 +1680,8 @@
     "aiSuggestQuery": "What are typical HP-RTM injection pressure, mold temperature and cure time ranges? How to choose fast-cure epoxy for automotive CFRP structural parts?"
   },
   "Pultrusion": {
-    "metaTitle": "Pultrusion Vertical — Papers · Patents · AI Commentary",
-    "metaDescription": "f1frp's pultrusion vertical: 100+ curated pultrusion / RTM papers and patents with AI Chinese commentary — dies, resins, profiles, wind, solar frames, gratings, window frames.",
+    "metaTitle": "China pultrusion supplier — pultruded FRP profiles & dies",
+    "metaDescription": "Source pultruded FRP profiles from China: verified pultrusion makers for gratings, window frames, PV racks, cable trays — plus 100+ curated papers and patents.",
     "breadcrumbHome": "Home",
     "label": "PULTRUSION SPOTLIGHT",
     "h1": "Pultrusion Vertical",
@@ -1707,8 +1707,8 @@
   "About": {
     "pageTitle": "About",
     "pageDescription": "getfrp is a directory of verified Chinese FRP factories, with standards mapped to ASTM and EN and CBAM paperwork ready.",
-    "metaTitle": "About — getfrp",
-    "metaDescription": "getfrp indexes Chinese FRP factories so overseas engineers can source without the cold-call grind. Verified suppliers, GB/ASTM/EN standards crosswalk, CBAM-ready documentation, and a bilingual China desk for the RFQ.",
+    "metaTitle": "About getfrp — China FRP sourcing for overseas buyers",
+    "metaDescription": "getfrp indexes verified Chinese FRP factories so overseas engineers source without the cold-call grind. GB/ASTM/EN crosswalk, CBAM docs, China desk for the RFQ.",
     "h1": "About getfrp",
     "lead": "FRP procurement from China, verified and documented",
     "missionTitle": "Our mission",

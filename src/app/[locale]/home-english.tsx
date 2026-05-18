@@ -158,17 +158,28 @@ export async function HomePageEnglish() {
               "@type": "WebPage",
               "@id": "https://getfrp.com/#webpage",
               url: "https://getfrp.com/",
-              name: "getfrp — Source FRP from China, verified and documented",
+              name: "Source FRP from China — verified suppliers, mapped standards | getfrp",
               inLanguage: "en",
               description:
-                "200+ independently verified Chinese FRP factories, with GB standards mapped to ASTM and EN, and CBAM-ready paperwork pre-generated. Ask in plain English. A bilingual China desk handles the RFQ.",
+                "FRP sourcing from China done right: 200+ verified Chinese FRP suppliers, GB ⇄ ASTM ⇄ EN standards mapped, CBAM-ready paperwork. Ask in English; our China desk handles the RFQ.",
+              primaryImageOfPage: { "@id": "https://getfrp.com/og-icon.png" },
+              about: [
+                { "@type": "Thing", name: "FRP sourcing" },
+                { "@type": "Thing", name: "China FRP supplier" },
+                { "@type": "Thing", name: "Chinese FRP manufacturer" },
+              ],
             },
             {
               "@type": "Service",
               "@id": "https://getfrp.com/#service",
-              name: "China FRP sourcing service",
+              name: "FRP sourcing from China",
+              alternateName: [
+                "China FRP supplier matching",
+                "Chinese FRP manufacturer sourcing",
+                "GFRP / CFRP / BFRP sourcing from China",
+              ],
               serviceType:
-                "FRP / GFRP / CFRP supplier sourcing, standards crosswalk, CBAM documentation, and RFQ handling for overseas buyers",
+                "FRP / GFRP / CFRP / BFRP supplier sourcing, GB ⇄ ASTM ⇄ EN standards crosswalk, CBAM documentation, and RFQ handling for overseas buyers",
               areaServed: [
                 "US",
                 "DE",
@@ -217,6 +228,52 @@ export async function HomePageEnglish() {
                 ],
               },
             },
+            {
+              "@type": "FAQPage",
+              "@id": "https://getfrp.com/#faq",
+              mainEntity: [
+                {
+                  "@type": "Question",
+                  name: "How do I source FRP from China?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Start with a verified-supplier directory like getfrp.com that has independently checked the factory's business license, certifications, and manufacturing scale. Shortlist 3–5 plants by product category and Chinese province (Jiangsu = resin, Shandong = fiber, Zhejiang = mid-volume manufacturing). Submit identical RFQ packets with specification, target volume, Incoterms, and required documentation. Standard payment terms are 30% deposit / 70% on B/L copy; for first orders above USD 50,000, use an LC at sight.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "What is the best Chinese FRP supplier for export?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "The strongest export-ready Chinese FRP suppliers hold ISO 9001 plus the certification your end-market screens for (CE / EN 13706 for EU pultrusion, ASTM-tested mill sheets for North America, Lloyd's / CCS / DNV for marine). Scale tier matters: Major (publicly listed, >50,000 t/yr) and Large (10,000–50,000 t/yr) plants carry export documentation overhead easily, while Mid and Small plants win on niche capability. getfrp ranks every supplier by manufacturing scale and field-validates the tier with site visits.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "Is it safe to buy FRP from China?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "It is, if you separate the three failure modes overseas buyers usually conflate: (1) supplier legitimacy — checked once by verifying the business license, USCC, and certifications against the issuing authority; (2) product conformity — verified per shipment with a Material Test Certificate and pre-shipment inspection (SGS / Bureau Veritas / TÜV); (3) payment risk — handled with 30/70 terms or an LC at sight. getfrp pre-handles (1), advises on (2) and (3).",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "What is the GB equivalent of ASTM D3039?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "GB/T 1447-2005 is China's analog to ASTM D3039 for tensile properties of fiber-reinforced plastics. The specimen geometry and gripping conditions are similar but not identical; for safety-critical structural parts, request the test panel be cut to ASTM D3039 dimensions and tested at a CNAS-accredited lab (SGS / Bureau Veritas / Intertek / TÜV China). The getfrp standards crosswalk maps all common GB ⇄ ASTM ⇄ ISO ⇄ EN equivalents.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "What CBAM data do I need from a Chinese FRP supplier?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "For EU CBAM compliance, request: verified business license + USCC, Material Test Certificate per batch (composition, fiber/resin ratio), energy mix declaration covering the production site, and embedded carbon (kgCO₂ per kg product) calculated against the EU Commission's CBAM Default Values or installation-specific data. getfrp's sourcing desk pre-generates the CBAM document pack on first shipment so the importer's CBAM Registry entry is ready before customs.",
+                  },
+                },
+              ],
+            },
           ],
         }}
       />
@@ -234,18 +291,19 @@ export async function HomePageEnglish() {
               FRP FROM CHINA · FOR OVERSEAS ENGINEERS
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-5xl lg:text-[56px]">
-              Ask in plain English.
+              Source FRP from China —
               <br />
               <span className="text-muted-foreground">
-                Get a verified China FRP supplier.
+                without the cold-call grind.
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
-              Skip three weeks of cold-calling Chinese factories.
-              We&apos;ve indexed 200+ verified plants, mapped GB to ASTM
-              and EN, and pre-filled the CBAM paperwork. Ask in English.
-              Our China desk picks up the RFQ when you&apos;re ready to
-              talk to a factory.
+              FRP sourcing from China is hard for one reason: you can&apos;t
+              verify a Chinese factory from 8,000 miles away. We&apos;ve
+              already done it — <strong className="font-semibold text-foreground">200+ verified Chinese FRP
+              suppliers</strong>, GB ⇄ ASTM ⇄ EN standards mapped,
+              CBAM-ready paperwork. Ask in English; our China desk handles
+              the RFQ when you&apos;re ready to talk to a factory.
             </p>
           </div>
 

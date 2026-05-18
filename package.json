@@ -17,7 +17,9 @@
     "db:dedupe": "tsx --env-file=.env.local scripts/dedupe.ts",
     "db:dedupe-apply": "tsx --env-file=.env.local scripts/dedupe.ts --apply",
     "ingest:papers": "tsx --env-file=.env.local scripts/ingest-papers.ts",
-    "ingest:patents": "tsx --env-file=.env.local scripts/ingest-patents.ts"
+    "ingest:patents": "tsx --env-file=.env.local scripts/ingest-patents.ts",
+    "seo:check": "tsx scripts/seo-check.ts",
+    "seo:check:strict": "tsx scripts/seo-check.ts --strict"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",
