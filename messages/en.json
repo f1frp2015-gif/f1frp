@@ -128,7 +128,7 @@
     }
   },
   "Footer": {
-    "tagline": "AI-Native Advanced Composites Accelerator",
+    "tagline": "FRP sourcing from China — verified factories, mapped standards, RFQ handled.",
     "product": "Product",
     "resources": "Resources",
     "about": "About",
@@ -137,9 +137,15 @@
     "contact": "Contact",
     "contactEmail": "Support email",
     "bizLabel": "Business",
-    "techLabel": "Tech support",
-    "copyright": "© {year} f1frp · All Rights Reserved",
-    "signature": "built in Shanghai · deployed globally"
+    "techLabel": "Sourcing desk",
+    "copyright": "© {year} F1 Composite — operated by Chongqing Yaoyi Advanced Materials Technology Co., Ltd.",
+    "signature": "engineered in Chongqing · serving overseas buyers since 2015",
+    "deskHoursLabel": "Sourcing desk hours",
+    "deskHoursValue": "Mon-Fri · 09:00-18:00 CST (UTC+8) · email replies within 24h US/EU business time",
+    "bookCallLabel": "Book a 15-min sourcing call",
+    "bookCallHref": "/book",
+    "trustStripLabel": "Compliance & affiliations",
+    "complianceItems": "Business license verified · ISO 9001 audit · CBAM-ready · GDPR-aware · MTC per shipment"
   },
   "LanguageSwitcher": {
     "label": "Language",

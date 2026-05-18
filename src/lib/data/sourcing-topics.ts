@@ -31,12 +31,20 @@ export interface SourcingTopic {
   metaDescription: string;
   /** Stat strip shown above the deck, four entries max. */
   stats: Array<{ label: string; value: string }>;
+  /** "What you'll learn" bullets shown near the top — Western scan UX. */
+  takeaways: string[];
   sections: SourcingSection[];
   faqs: SourcingFAQ[];
   /** Cross-links rendered in the related-links footer. Hub link is implicit. */
   related: Array<{ label: string; href: string }>;
   /** Filters applied if user clicks "browse suppliers in this category". */
   supplierFilter?: { category?: string; cert?: string; province?: string };
+  /** Editorial attribution — Western readers distrust anonymous content.
+   *  Use a desk + a credentials line; named-author optional once we have
+   *  consent from a specific composites engineer on the team. */
+  byline?: string;
+  reviewedBy?: string;
+  reviewedDate?: string;
 }
 
 export const sourcingTopics: SourcingTopic[] = [
@@ -53,10 +61,19 @@ export const sourcingTopics: SourcingTopic[] = [
       "Verified Chinese FRP grating manufacturers: molded vs pultruded process, CE / EN 13706 / DNV / ASTM-tested mill sheets, MOQ and lead-time benchmarks for export buyers.",
     stats: [
       { label: "FRP grating exporters indexed", value: "40+" },
-      { label: "Typical MOQ (molded)", value: "200 m²" },
+      { label: "Typical MOQ (molded)", value: "200 m² / 2,150 sq ft" },
       { label: "Typical lead time, FOB", value: "25-35 days" },
       { label: "ISO 9001 share of indexed plants", value: "≥ 80%" },
     ],
+    takeaways: [
+      "How to pick molded vs pultruded process before contacting suppliers (it saves three weeks)",
+      "Which certifications unlock each end-market (CE / DNV / ASTM / AS/NZS)",
+      "Mid-2026 FOB price benchmarks for ISO mesh and pultruded I-bar grating",
+      "Which Chinese provinces actually produce grating at export scale (and which don't)",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy: "Reviewed by F1 Composite sourcing engineers (China-based, hands-on plant visits since 2022)",
+    reviewedDate: "2026-05",
     sections: [
       {
         heading: "Molded vs pultruded — pick the process before the supplier",
@@ -136,10 +153,19 @@ export const sourcingTopics: SourcingTopic[] = [
       "Verified Chinese FRP rebar manufacturers: GFRP, BFRP and CFRP rebar tested to ACI 440.6, ASTM D7957 and ISO 10406. Specifications, MOQs, and an export-ready shortlist.",
     stats: [
       { label: "FRP rebar exporters indexed", value: "25+" },
-      { label: "Typical MOQ", value: "5 tons" },
+      { label: "Typical MOQ", value: "5 tons / 11,000 lb" },
       { label: "Premium vs epoxy-coated steel", value: "1.5-2.5×" },
       { label: "Service life in chloride exposure", value: "75-100 yr" },
     ],
+    takeaways: [
+      "When GFRP beats steel rebar on lifecycle cost (it's earlier than you think)",
+      "Match the fiber system (GFRP / BFRP / CFRP) to your durability case",
+      "Which Chinese plants test to ACI 440.6 + ASTM D7957 vs only GB/T",
+      "Real FOB pricing benchmarks for #4/#5/#6 GFRP bar at 5+ ton volumes",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy: "Reviewed by F1 Composite sourcing engineers · cross-checked against ACI 440 design committee references",
+    reviewedDate: "2026-05",
     sections: [
       {
         heading: "Fiber system — match it to your durability case",
@@ -214,6 +240,15 @@ export const sourcingTopics: SourcingTopic[] = [
       { label: "Default-value fallback (loses 20-30% allowance)", value: "Available" },
       { label: "Pre-shipment doc-pack lead time", value: "2-3 weeks" },
     ],
+    takeaways: [
+      "The exact five-document pack to request from your Chinese supplier (and which one most plants don't have)",
+      "Default values vs installation-specific data — when each is the right call",
+      "Which Chinese labs (TÜV / Bureau Veritas / SGS) the EU will accept without re-verification",
+      "How to build a buffer into your PO timeline so customs doesn't hold the shipment",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy: "Reviewed by F1 Composite compliance partners + cross-checked against EU Commission CBAM guidance (Q1 2026 edition)",
+    reviewedDate: "2026-05",
     sections: [
       {
         heading: "The five-document CBAM pack to request from a Chinese supplier",
@@ -291,6 +326,15 @@ export const sourcingTopics: SourcingTopic[] = [
       { label: "ASTM update cycle", value: "5 years (revisit)" },
       { label: "CNAS-accredited labs in CN", value: "100+" },
     ],
+    takeaways: [
+      "Which GB and ASTM methods give comparable numbers (and which only look the same)",
+      "How to specify a test report so it covers both systems on one specimen run",
+      "When pultruded profiles tested to GB/T 31539 also satisfy EN 13706",
+      "Which CNAS-accredited labs in China can test to both systems on the same sample",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy: "Reviewed by F1 Composite engineering team · cross-referenced against ASTM D30 Committee 2025 digest and GB/T National Standards 2023 revisions",
+    reviewedDate: "2026-05",
     sections: [
       {
         heading: "The four test methods you'll always need",

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArrowRight, ChevronRight, BookOpenCheck } from "lucide-react";
+import { ArrowRight, ChevronRight, BookOpenCheck, CheckCircle2, ShieldCheck } from "lucide-react";
 
 import { Link } from "@/i18n/navigation";
 import { JsonLd } from "@/components/json-ld";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 import { alternates } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 import {
@@ -121,7 +122,61 @@ export default async function SourcingTopicPage({
         <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
           {t.intro}
         </p>
+
+        {/* Editorial attribution — Western readers distrust anonymous content.
+            Byline + reviewer + review date is the minimum credibility signal. */}
+        {(t.byline || t.reviewedBy) && (
+          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+            {t.byline && (
+              <span className="inline-flex items-center gap-1">
+                <span className="font-mono uppercase tracking-[0.12em] text-muted-foreground/80">
+                  By
+                </span>
+                <span className="text-foreground">{t.byline}</span>
+              </span>
+            )}
+            {t.reviewedBy && (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="inline-flex items-center gap-1">
+                  <ShieldCheck size={11} className="text-foreground/60" />
+                  {t.reviewedBy}
+                </span>
+              </>
+            )}
+            {t.reviewedDate && (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span>Last verified {t.reviewedDate}</span>
+              </>
+            )}
+          </div>
+        )}
       </header>
+
+      {/* ─────────── What you'll learn (scan UX) ─────────── */}
+      {t.takeaways.length > 0 && (
+        <section className="mb-12 rounded-xl border border-border/70 bg-muted/20 p-6 sm:p-7">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            WHAT YOU&apos;LL LEARN
+          </div>
+          <ul className="mt-3 space-y-2">
+            {t.takeaways.map((k) => (
+              <li
+                key={k}
+                className="flex items-start gap-2 text-[14px] leading-relaxed text-foreground/90"
+              >
+                <CheckCircle2
+                  size={14}
+                  strokeWidth={2}
+                  className="mt-1 shrink-0 text-foreground/70"
+                />
+                <span>{k}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* ─────────── Stat strip ─────────── */}
       {t.stats.length > 0 && (
@@ -237,6 +292,11 @@ export default async function SourcingTopicPage({
           </div>
         </section>
       )}
+
+      {/* ─────────── Newsletter signup ─────────── */}
+      <div className="mt-16">
+        <NewsletterSignup topic={t.slug} />
+      </div>
 
       {/* ─────────── Related ─────────── */}
       {t.related.length > 0 && (

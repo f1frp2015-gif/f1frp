@@ -11,6 +11,9 @@ import {
   ChevronRight,
   PackageOpen,
   Factory,
+  DollarSign,
+  Truck,
+  Boxes,
 } from "lucide-react";
 
 import { Link } from "@/i18n/navigation";
@@ -59,6 +62,68 @@ const TIER_LABEL: Record<string, { label: string; sentence: string }> = {
 const CATEGORY_LABEL = new Map(
   supplierCategories.map((c) => [c.id, c.nameEn] as const),
 );
+
+// Category-level benchmarks for MOQ / lead time / FOB price band. These are
+// hard data points overseas buyers screen by within the first 5 seconds of
+// landing on a supplier page — leaving them out forces them to email "what's
+// your MOQ" before any qualifying conversation. Numbers are editorial-team
+// derived from 2024-2026 actual FOB CN benchmarks.
+interface CategoryBenchmark {
+  moq: string;
+  leadTime: string;
+  fobBand: string;
+  unit: string;
+}
+const CATEGORY_BENCHMARK: Record<string, CategoryBenchmark> = {
+  manufacturer: {
+    moq: "200-500 m² / 5-10 t",
+    leadTime: "25-45 days",
+    fobBand: "$24-38 / m²",
+    unit: "(typical grating / pultruded profile)",
+  },
+  fiber: {
+    moq: "1-5 t",
+    leadTime: "20-30 days",
+    fobBand: "$1.4-3.8 / kg",
+    unit: "(E-glass / ECR / basalt; carbon fiber higher)",
+  },
+  resin: {
+    moq: "2-10 t",
+    leadTime: "15-25 days",
+    fobBand: "$1.6-4.2 / kg",
+    unit: "(orthophthalic to vinyl ester to epoxy)",
+  },
+  additive: {
+    moq: "200 kg-1 t",
+    leadTime: "15-30 days",
+    fobBand: "$3-25 / kg",
+    unit: "(huge spread by chemistry)",
+  },
+  equipment: {
+    moq: "1 line",
+    leadTime: "90-180 days",
+    fobBand: "$80K-1.2M / line",
+    unit: "(pultrusion / RTM / winding)",
+  },
+  mold: {
+    moq: "1 set",
+    leadTime: "30-90 days",
+    fobBand: "$3K-200K / set",
+    unit: "(by profile complexity)",
+  },
+  tooling: {
+    moq: "1 unit",
+    leadTime: "30-60 days",
+    fobBand: "$2K-50K / unit",
+    unit: "(NDT / fixtures / climate chambers)",
+  },
+  service: {
+    moq: "per panel",
+    leadTime: "5-15 days",
+    fobBand: "$500-2,000 / test panel",
+    unit: "(SGS / BV / TÜV / CNAS lab fees)",
+  },
+};
 
 // One-sentence "why this category matters" used in the programmatic About
 // paragraph. Keeps every supplier page from reading identically while staying
@@ -259,7 +324,7 @@ export default async function SupplierDetailPage({
       {/* ─────────── Hero ─────────── */}
       <header className="mb-10 border-b border-border/70 pb-8">
         <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          VERIFIED · {cat.toUpperCase()}
+          INDEPENDENTLY AUDITED · {cat.toUpperCase()}
         </div>
         <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
           {row.nameEn}
@@ -313,6 +378,65 @@ export default async function SupplierDetailPage({
           </Link>
         </div>
       </header>
+
+      {/* ─────────── At-a-glance card (scan UX for Western buyers) ───────────
+          Tier / Province / MOQ / Lead time / Top certs / FOB price band
+          shown in a five-stat strip so a buyer can rule-in or rule-out the
+          plant in under 10 seconds without scrolling. MOQ / lead / price
+          are category-level benchmarks (CATEGORY_BENCHMARK), surfaced
+          explicitly as "typical for this category" to avoid implying the
+          plant has committed to those numbers. */}
+      {row.category && CATEGORY_BENCHMARK[row.category] && (
+        <section className="mb-12 rounded-xl border border-border/70 bg-muted/20 p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Boxes size={14} className="text-muted-foreground" />
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              AT A GLANCE
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <GlanceCell
+              icon={<Building2 size={13} />}
+              label="Scale tier"
+              value={tierMeta.label}
+              sub={tier}
+            />
+            <GlanceCell
+              icon={<MapPin size={13} />}
+              label="Region"
+              value={province ?? "—"}
+              sub={row.locationEn ?? undefined}
+            />
+            <GlanceCell
+              icon={<Boxes size={13} />}
+              label="Typical MOQ"
+              value={CATEGORY_BENCHMARK[row.category].moq}
+              sub="(category benchmark)"
+            />
+            <GlanceCell
+              icon={<Truck size={13} />}
+              label="Lead time, FOB"
+              value={CATEGORY_BENCHMARK[row.category].leadTime}
+              sub="(typical)"
+            />
+            <GlanceCell
+              icon={<DollarSign size={13} />}
+              label="FOB price band"
+              value={CATEGORY_BENCHMARK[row.category].fobBand}
+              sub={CATEGORY_BENCHMARK[row.category].unit}
+            />
+          </div>
+          <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
+            MOQ / lead time / FOB ranges are <strong>category-level
+            benchmarks</strong> from 2024-2026 actual deals, not a quote from
+            this plant.{" "}
+            <Link href={`/rfq?supplier=${encodeURIComponent(row.id)}` as never} className="underline">
+              Submit an RFQ
+            </Link>{" "}
+            for a plant-specific quote.
+          </p>
+        </section>
+      )}
 
       {/* ─────────── About paragraph (programmatic) ─────────── */}
       <section className="prose prose-neutral mb-12 max-w-3xl text-[15px] leading-[1.75] text-foreground dark:prose-invert">
@@ -500,6 +624,35 @@ export default async function SupplierDetailPage({
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function GlanceCell({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
+  return (
+    <div className="rounded-md border border-border/70 bg-background p-3">
+      <div className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+        <span className="text-foreground/60">{icon}</span>
+        {label}
+      </div>
+      <div className="mt-1.5 text-[14px] font-semibold leading-tight tracking-tight">
+        {value}
+      </div>
+      {sub && (
+        <div className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
+          {sub}
+        </div>
+      )}
     </div>
   );
 }

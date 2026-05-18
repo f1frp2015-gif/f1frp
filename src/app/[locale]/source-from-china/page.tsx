@@ -29,6 +29,7 @@ import {
 } from "@/components/platform-card";
 import { JsonLd } from "@/components/json-ld";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 import {
   crosswalk,
   exportReadinessCerts,
@@ -247,16 +248,44 @@ export default async function SourceFromChinaPage({
       <PlatformHero
         eyebrow="FOR OVERSEAS BUYERS"
         title="Source FRP from China, by category, ranked by scale"
-        description="Skip the cold-call grind. Each supplier below has been independently verified. They're sorted by manufacturing scale and tagged with the certifications your end-market actually screens for."
+        description="Skip the cold-call grind. Each supplier below has been independently audited. They're sorted by manufacturing scale and tagged with the certifications your end-market actually screens for."
       />
+
+      {/* TL;DR — scan UX. Western B2B buyers triage in 5-8 seconds; surface
+          the four most actionable answers above everything else so a buyer
+          can rule the page in or out without scrolling. */}
+      <section className="mb-10 rounded-xl border border-border/70 bg-muted/20 p-6">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          TL;DR · WHAT THIS PAGE COVERS
+        </div>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {[
+            "A directory of independently audited Chinese FRP plants, sorted by manufacturing scale tier (Major / Large / Mid / Small)",
+            "Province-by-province map of where each FRP product category is actually made (resin = Jiangsu, fiber = Shandong, etc.)",
+            "GB ⇄ ASTM ⇄ ISO ⇄ EN standards crosswalk — set spec expectations before the RFQ, not after",
+            "A 6-step sourcing playbook from spec to delivered cargo, with payment / QC / Incoterms benchmarks",
+          ].map((line) => (
+            <li
+              key={line}
+              className="flex items-start gap-2 text-[13.5px] leading-relaxed text-foreground/90"
+            >
+              <ChevronRight
+                size={13}
+                className="mt-1 shrink-0 text-foreground/60"
+              />
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {/* Trust strip — lifted to top so Western readers see the proof before the chrome */}
       <div className="mb-12 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Verified suppliers" value={total} />
+        <StatCard label="Plants audited on the ground" value={total} />
         <StatCard label="Major + Large tier" value={majorPlusLarge} />
         <StatCard label="Provinces covered" value={provincesCovered} />
         <StatCard
-          label="ISO 9001 certified"
+          label="ISO 9001 holders"
           value={certCount("ISO 9001")}
         />
       </div>
@@ -705,8 +734,13 @@ export default async function SourceFromChinaPage({
         </div>
       </section>
 
+      {/* Newsletter signup */}
+      <div className="mt-20">
+        <NewsletterSignup topic="source-from-china" />
+      </div>
+
       {/* CTA */}
-      <section className="mt-20 border border-border/70 bg-foreground p-10 text-background sm:p-14">
+      <section className="mt-16 border border-border/70 bg-foreground p-10 text-background sm:p-14">
         <div className="max-w-3xl">
           <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-background/70">
             ASK THE AI

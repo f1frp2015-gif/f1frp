@@ -112,7 +112,13 @@
     "bizLabel": "业务负责人",
     "techLabel": "技术咨询",
     "copyright": "© {year} 复材站 · All Rights Reserved",
-    "signature": ""
+    "signature": "",
+    "deskHoursLabel": "服务时间",
+    "deskHoursValue": "周一至周五 09:00-18:00",
+    "bookCallLabel": "预约咨询",
+    "bookCallHref": "/book",
+    "trustStripLabel": "合规与资质",
+    "complianceItems": "营业执照已核验 · ISO 9001 · 按订单提供 MTC"
   },
   "LanguageSwitcher": {
     "label": "语言",

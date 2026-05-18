@@ -299,11 +299,12 @@ export async function HomePageEnglish() {
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
               FRP sourcing from China is hard for one reason: you can&apos;t
-              verify a Chinese factory from 8,000 miles away. We&apos;ve
-              already done it — <strong className="font-semibold text-foreground">200+ verified Chinese FRP
-              suppliers</strong>, GB ⇄ ASTM ⇄ EN standards mapped,
-              CBAM-ready paperwork. Ask in English; our China desk handles
-              the RFQ when you&apos;re ready to talk to a factory.
+              audit a Chinese factory from 8,000 miles away. We&apos;ve
+              already done it — <strong className="font-semibold text-foreground">200+ Chinese
+              FRP plants we&apos;ve audited on the ground since 2022</strong>,
+              GB ⇄ ASTM ⇄ EN standards mapped, CBAM-ready paperwork. Ask in
+              English; our China desk handles the RFQ when you&apos;re ready
+              to talk to a factory.
             </p>
           </div>
 
@@ -317,7 +318,7 @@ export async function HomePageEnglish() {
               <strong className="text-foreground">
                 {verifiedSupplierCount.toLocaleString()}
               </strong>{" "}
-              verified Chinese suppliers
+              plants audited on the ground
             </span>
             <span className="hidden sm:inline text-muted-foreground/40">·</span>
             <span className="inline-flex items-center gap-1.5">

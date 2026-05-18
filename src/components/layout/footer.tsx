@@ -1,4 +1,5 @@
-import { getTranslations } from "next-intl/server";
+import { Calendar, Clock, ShieldCheck } from "lucide-react";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/logo";
 import { CONTACT } from "@/lib/contact";
@@ -6,6 +7,8 @@ import { CONTACT } from "@/lib/contact";
 export async function Footer() {
   const t = await getTranslations("Footer");
   const tn = await getTranslations("Nav");
+  const locale = await getLocale();
+  const isEn = locale === "en";
 
   const columns = [
     {
@@ -84,9 +87,46 @@ export async function Footer() {
                   </a>
                 </p>
               </div>
+              {isEn && (
+                <>
+                  <div className="space-y-1.5">
+                    <p className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
+                      <Clock size={10} />
+                      {t("deskHoursLabel")}
+                    </p>
+                    <p className="text-[12px] leading-snug">
+                      {t("deskHoursValue")}
+                    </p>
+                  </div>
+                  <Link
+                    href={"/book" as never}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-muted"
+                  >
+                    <Calendar size={12} />
+                    {t("bookCallLabel")}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
+
+        {/* English-only compliance strip — visible trust signals overseas
+            buyers read before deciding whether the site is a serious
+            counterparty or another Alibaba clone. */}
+        {isEn && (
+          <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/60 pt-5 text-[11px] text-muted-foreground">
+            <ShieldCheck size={12} className="text-foreground/60" />
+            <span className="font-mono uppercase tracking-[0.12em] text-muted-foreground/80">
+              {t("trustStripLabel")}
+            </span>
+            <span aria-hidden className="text-muted-foreground/40">
+              ·
+            </span>
+            <span>{t("complianceItems")}</span>
+          </div>
+        )}
+
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-border/80 pt-6 text-[11px] text-muted-foreground sm:flex-row sm:items-center">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
             <span>{t("copyright", { year: new Date().getFullYear() })}</span>
