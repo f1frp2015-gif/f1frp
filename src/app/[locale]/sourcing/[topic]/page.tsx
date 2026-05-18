@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { JsonLd } from "@/components/json-ld";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { NewsletterSignup } from "@/components/newsletter-signup";
+import { TestimonialsBlock } from "@/components/testimonials-block";
 import { alternates } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 import {
@@ -292,6 +293,9 @@ export default async function SourcingTopicPage({
           </div>
         </section>
       )}
+
+      {/* ─────────── Buyer testimonials (renders null until populated) ─────────── */}
+      <TestimonialsBlock className="mt-16" />
 
       {/* ─────────── Newsletter signup ─────────── */}
       <div className="mt-16">

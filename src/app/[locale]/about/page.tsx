@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { JsonLd } from "@/components/json-ld";
+import { TeamBlock } from "@/components/team-block";
 import { CONTACT } from "@/lib/contact";
 import { alternates } from "@/lib/seo";
 
@@ -50,6 +51,7 @@ export default async function AboutPage({
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       {locale === "en" && <EnglishTrustBlock />}
+      {locale === "en" && <TeamBlock className="mb-12" />}
       <div className="mb-10 text-center">
         <h1 className="text-3xl font-bold">{t("h1")}</h1>
         <p className="mt-3 text-lg text-muted-foreground leading-relaxed">

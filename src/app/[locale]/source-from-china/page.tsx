@@ -30,6 +30,7 @@ import {
 import { JsonLd } from "@/components/json-ld";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { NewsletterSignup } from "@/components/newsletter-signup";
+import { TestimonialsBlock } from "@/components/testimonials-block";
 import {
   crosswalk,
   exportReadinessCerts,
@@ -734,8 +735,11 @@ export default async function SourceFromChinaPage({
         </div>
       </section>
 
+      {/* Buyer testimonials (renders null until populated) */}
+      <TestimonialsBlock className="mt-20" />
+
       {/* Newsletter signup */}
-      <div className="mt-20">
+      <div className="mt-16">
         <NewsletterSignup topic="source-from-china" />
       </div>
 
