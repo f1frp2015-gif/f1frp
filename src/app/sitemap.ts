@@ -52,6 +52,10 @@ const staticRoutes: StaticRoute[] = [
   { path: "/overseas", changeFrequency: "weekly", priority: 0.8, zhOnly: true },
   { path: "/source-from-china", changeFrequency: "weekly", priority: 0.8 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.6, zhOnly: true },
+  // S2 工厂 AI 询盘助手销售页 — ZH-only(海外侧买家不付费,买家是 getfrp 受众,
+  // 工厂端 SaaS 是 v4.1 主现金流,落地在 f1frp.com 中文域)。
+  { path: "/factories", changeFrequency: "weekly", priority: 0.9, zhOnly: true },
+  { path: "/factories/onboard", changeFrequency: "monthly", priority: 0.6, zhOnly: true },
 ];
 
 async function safeFetch<T>(fn: () => Promise<T>): Promise<T | []> {

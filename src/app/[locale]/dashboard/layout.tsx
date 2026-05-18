@@ -35,6 +35,11 @@ export default async function DashboardLayout({
   const isEn = locale === "en";
   const baseItems = [
     { href: "/dashboard" as const, label: t("nav.overview"), iconKey: "overview" },
+    {
+      href: "/dashboard/factory-inquiries" as const,
+      label: "AI 询盘助手",
+      iconKey: "messages",
+    },
     { href: "/dashboard/saved" as const, label: t("nav.saved"), iconKey: "bookmark" },
     { href: "/dashboard/posts/new" as const, label: t("nav.postNew"), iconKey: "post-new" },
     { href: "/dashboard/posts" as const, label: t("nav.posts"), iconKey: "post-list" },

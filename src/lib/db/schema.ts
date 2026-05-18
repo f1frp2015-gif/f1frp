@@ -1065,3 +1065,172 @@ export type RfqBilling = typeof rfqBilling.$inferSelect;
 export type NewRfqBilling = typeof rfqBilling.$inferInsert;
 export type OfflinePayment = typeof offlinePayments.$inferSelect;
 export type NewOfflinePayment = typeof offlinePayments.$inferInsert;
+
+// ═══════════════════════════════════════════
+// Factory product (S2 AI 询盘助手 — v4.1 主现金流)
+// ═══════════════════════════════════════════
+//
+// Three tables form the inquiry-handler product:
+//   1. factory_waitlist  → pre-payment signups from /factories/onboard
+//   2. factory_inquiries → external buyer inquiries the factory receives
+//   3. factory_inquiry_drafts → versioned AI reply drafts (+ human edits)
+//
+// Why separate from the existing user-to-user `inquiries` table:
+//   - external buyer emails aren't a getfrp user; can't satisfy fromUserId
+//   - drafts need versioning + AI metadata not present in inquiries
+//   - inquiry-handler is a paid SKU with distinct UX; modeling separately
+//     keeps both surfaces easy to evolve without coupling
+
+export const factoryWaitlistStatusEnum = pgEnum("factory_waitlist_status", [
+  "new",
+  "contacted",
+  "trial",
+  "paying",
+  "declined",
+  "churned",
+]);
+
+export const factoryWaitlistTierEnum = pgEnum("factory_waitlist_tier", [
+  "s1_starter",
+  "s2_pro",
+  "s5_enterprise",
+  "undecided",
+]);
+
+export const factoryWaitlist = pgTable(
+  "factory_waitlist",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    companyName: varchar("company_name", { length: 200 }).notNull(),
+    contactName: varchar("contact_name", { length: 100 }).notNull(),
+    contactPhone: varchar("contact_phone", { length: 32 }),
+    contactEmail: varchar("contact_email", { length: 200 }).notNull(),
+    contactWechat: varchar("contact_wechat", { length: 100 }),
+    factoryWebsite: varchar("factory_website", { length: 255 }),
+    province: varchar("province", { length: 32 }),
+    category: varchar("category", { length: 50 }),
+    monthlyInquiryEstimate: integer("monthly_inquiry_estimate"),
+    interestedTier: factoryWaitlistTierEnum("interested_tier")
+      .default("undecided")
+      .notNull(),
+    source: varchar("source", { length: 64 }),
+    note: text("note"),
+    status: factoryWaitlistStatusEnum("status").default("new").notNull(),
+    convertedToUserId: uuid("converted_to_user_id").references(() => users.id),
+    contactedAt: timestamp("contacted_at"),
+    convertedAt: timestamp("converted_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("factory_waitlist_status_idx").on(table.status),
+    index("factory_waitlist_email_idx").on(table.contactEmail),
+    index("factory_waitlist_created_idx").on(table.createdAt),
+  ],
+);
+
+export const factoryInquiryStatusEnum = pgEnum("factory_inquiry_status", [
+  "new",
+  "drafting",
+  "drafted",
+  "sent",
+  "replied_by_buyer",
+  "won",
+  "lost",
+  "spam",
+]);
+
+export const factoryInquirySourceEnum = pgEnum("factory_inquiry_source", [
+  "email_imap",
+  "email_forward",
+  "web_form",
+  "manual_paste",
+  "api",
+]);
+
+export const factoryInquiries = pgTable(
+  "factory_inquiries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    // The factory user receiving the inquiry. Clerk-authenticated user that
+    // owns the dashboard.
+    factoryUserId: uuid("factory_user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    // Optional enterprise mapping — if the factory owns a verified supplier
+    // listing this points to it so we can show their canonical profile.
+    factoryEnterpriseId: uuid("factory_enterprise_id").references(
+      () => enterprises.id,
+    ),
+    source: factoryInquirySourceEnum("source").notNull(),
+    // Raw buyer side — keep both name + email + country so the draft can
+    // address them by name and adapt formality.
+    buyerName: varchar("buyer_name", { length: 200 }),
+    buyerEmail: varchar("buyer_email", { length: 200 }),
+    buyerCountry: varchar("buyer_country", { length: 80 }),
+    buyerCompany: varchar("buyer_company", { length: 200 }),
+    // The original message (email body or web-form question text). Kept
+    // verbatim so we can re-parse with a new model later.
+    originalText: text("original_text").notNull(),
+    originalSubject: varchar("original_subject", { length: 300 }),
+    // AI-extracted structured fields. All nullable — the parser runs after
+    // ingestion and overwrites as new model versions ship.
+    parsedProduct: varchar("parsed_product", { length: 200 }),
+    parsedSpec: text("parsed_spec"),
+    parsedQuantity: varchar("parsed_quantity", { length: 100 }),
+    parsedIncoterm: varchar("parsed_incoterm", { length: 32 }),
+    parsedDeadline: varchar("parsed_deadline", { length: 80 }),
+    parsedTargetCountry: varchar("parsed_target_country", { length: 80 }),
+    // 0-100 confidence the AI has in this being a real, parseable inquiry
+    // (vs spam / wrong-product / unanswerable). Drives auto-triage UI.
+    aiConfidence: integer("ai_confidence"),
+    status: factoryInquiryStatusEnum("status").default("new").notNull(),
+    sentAt: timestamp("sent_at"),
+    closedAt: timestamp("closed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("factory_inquiries_factory_idx").on(table.factoryUserId),
+    index("factory_inquiries_status_idx").on(table.status),
+    index("factory_inquiries_created_idx").on(table.createdAt),
+  ],
+);
+
+export const factoryInquiryDrafts = pgTable(
+  "factory_inquiry_drafts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    inquiryId: uuid("inquiry_id")
+      .references(() => factoryInquiries.id, { onDelete: "cascade" })
+      .notNull(),
+    version: integer("version").default(1).notNull(),
+    // The drafted reply body — Markdown-ish, ready to copy/paste to email.
+    content: text("content").notNull(),
+    // Model + prompt fingerprint so we can correlate quality regressions
+    // with a specific provider / prompt version.
+    generatedBy: varchar("generated_by", { length: 100 }),
+    promptVersion: varchar("prompt_version", { length: 40 }),
+    // Human edits captured as the difference between AI draft and what
+    // the factory ultimately sent — this is the eval signal that feeds
+    // the prompt-tuning loop.
+    humanEditedContent: text("human_edited_content"),
+    editDistance: integer("edit_distance"),
+    sentAt: timestamp("sent_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("factory_inquiry_drafts_inquiry_idx").on(table.inquiryId),
+    uniqueIndex("factory_inquiry_drafts_version_uniq").on(
+      table.inquiryId,
+      table.version,
+    ),
+  ],
+);
+
+export type FactoryWaitlist = typeof factoryWaitlist.$inferSelect;
+export type NewFactoryWaitlist = typeof factoryWaitlist.$inferInsert;
+export type FactoryInquiry = typeof factoryInquiries.$inferSelect;
+export type NewFactoryInquiry = typeof factoryInquiries.$inferInsert;
+export type FactoryInquiryDraft = typeof factoryInquiryDrafts.$inferSelect;
+export type NewFactoryInquiryDraft = typeof factoryInquiryDrafts.$inferInsert;
