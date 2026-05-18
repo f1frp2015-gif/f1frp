@@ -1,0 +1,186 @@
+# Auto-deploy f1frp.com (国内侧 / 阿里云 ECS) on push to main.
+#
+# Mirrors deploy/build-standalone.sh + deploy/deploy.sh but runs from
+# GitHub Actions instead of the founder's laptop, so the Chinese-side
+# domain never falls behind the overseas Vercel deploy again.
+#
+# Flow:
+#   1. Checkout + pnpm install (with cache)
+#   2. pnpm build with BUILD_TARGET=ecs (standalone output)
+#   3. Assemble deploy/dist/
+#   4. rsync via SSH to ECS (preserves .env.production.local on the server)
+#   5. ssh ECS → pm2 reload
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   ECS_HOST            e.g. root@120.26.111.236   (user@host or just host)
+#   ECS_SSH_KEY         Full SSH private key (PEM/OpenSSH). Generate via:
+#                       ssh-keygen -t ed25519 -f gh-deploy -C github-actions
+#                       Then add gh-deploy.pub to ~/.ssh/authorized_keys on ECS.
+#   ECS_SSH_KNOWN_HOSTS ssh-keyscan -H 120.26.111.236 (run from your laptop,
+#                       paste the output here so we don't prompt yes/no in CI)
+#
+# Optional GitHub Variables (Settings → Secrets and variables → Variables tab):
+#   ECS_PATH            target dir on server. default: /var/www/f1frp
+#   ECS_PORT            ssh port. default: 22
+#   NEXT_PUBLIC_ICP_BEIAN  ICP filing number; if set, inlined into the bundle
+#                       (otherwise build reads from .env.production.local on
+#                       the server which doesn't exist on the GH runner — so
+#                       footer ICP will be empty until this var is set).
+
+name: Deploy to Aliyun ECS
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - "Personal Vault/**"
+      - "docs/**"
+      - ".gitignore"
+      - "LICENSE"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why are you triggering a manual deploy?"
+        required: false
+        default: "manual redeploy"
+
+concurrency:
+  group: deploy-ecs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ECS_PATH: ${{ vars.ECS_PATH || '/var/www/f1frp' }}
+      ECS_PORT: ${{ vars.ECS_PORT || '22' }}
+
+    steps:
+      - name: Validate required secrets
+        run: |
+          missing=()
+          [ -z "${{ secrets.ECS_HOST }}" ] && missing+=("ECS_HOST")
+          [ -z "${{ secrets.ECS_SSH_KEY }}" ] && missing+=("ECS_SSH_KEY")
+          [ -z "${{ secrets.ECS_SSH_KNOWN_HOSTS }}" ] && missing+=("ECS_SSH_KNOWN_HOSTS")
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "::error::Missing required GitHub Secrets: ${missing[*]}"
+            echo "See header of .github/workflows/deploy-ecs.yml for setup instructions."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build standalone bundle
+        env:
+          BUILD_TARGET: ecs
+          AI_PROFILE: domestic
+          # CHAT_PROVIDER intentionally unset — host-based routing (per
+          # 4120e6c) makes f1frp.com authoritatively pick DeepSeek
+          # regardless of this env. Setting it to "openrouter" would
+          # have routed f1frp.com chat through the geo-blocked Gemini
+          # endpoint (the bug we shipped on 2026-05-18).
+          NEXT_PUBLIC_LOCALES: zh
+          NEXT_PUBLIC_DEFAULT_LOCALE: zh
+          NEXT_PUBLIC_SITE_URL: https://f1frp.com
+          NEXT_PUBLIC_ICP_BEIAN: ${{ vars.NEXT_PUBLIC_ICP_BEIAN }}
+          # Build also runs prebuild scripts (build-llms-txt + seo-check).
+          # DATABASE_URL is required by build-llms-txt; use a no-op fallback
+          # so the script can run without a real DB connection from CI.
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://noop' }}
+        run: pnpm tsx scripts/build-llms-txt.ts && pnpm tsx scripts/seo-check.ts --strict && pnpm next build
+
+      - name: Assemble deploy bundle
+        run: |
+          set -euo pipefail
+          TARGET=./deploy/dist
+          rm -rf "$TARGET"
+          mkdir -p "$TARGET"
+          # Same broken-symlink scrub as build-standalone.sh
+          broken=$(find .next/standalone -xtype l 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$broken" != "0" ]; then
+            echo "Removing $broken broken symlinks in .next/standalone"
+            find .next/standalone -xtype l -delete
+          fi
+          rsync -a .next/standalone/ "$TARGET/"
+          mkdir -p "$TARGET/.next"
+          rsync -a .next/static/ "$TARGET/.next/static/"
+          rsync -a public/ "$TARGET/public/"
+          cp deploy/ecosystem.config.cjs "$TARGET/ecosystem.config.cjs"
+          cp deploy/nginx.conf "$TARGET/nginx.conf"
+          cp deploy/.env.production.example "$TARGET/.env.production.example"
+          mkdir -p "$TARGET/deploy"
+          cp -r deploy/systemd "$TARGET/deploy/systemd"
+          cp deploy/README.md "$TARGET/deploy/README.md"
+          du -sh "$TARGET"
+
+      - name: Install SSH key and known_hosts
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.ECS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.ECS_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+          echo "SSH key validated."
+
+      - name: Rsync to ECS
+        run: |
+          set -euo pipefail
+          # --delete removes stale files. Excludes preserve runtime secrets
+          # already on the server (.env.production.local).
+          rsync -avz --delete \
+            -e "ssh -p ${ECS_PORT} -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes" \
+            --exclude=".env.local" \
+            --exclude=".env.*.local" \
+            --exclude=".env" \
+            ./deploy/dist/ \
+            "${{ secrets.ECS_HOST }}:${ECS_PATH}/"
+
+      - name: PM2 reload on ECS
+        run: |
+          set -euo pipefail
+          ssh -p ${ECS_PORT} -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes \
+            "${{ secrets.ECS_HOST }}" \
+            "cd ${ECS_PATH} && pm2 reload ecosystem.config.cjs --update-env || pm2 start ecosystem.config.cjs"
+
+      - name: Smoke test live site
+        run: |
+          set -euo pipefail
+          # Give pm2 a moment to settle, then probe /api/healthz on the
+          # public domain. Fails the deploy if it doesn't come back 200
+          # within ~30 seconds — surfaces dead-on-arrival builds.
+          attempts=0
+          max=15
+          until status=$(curl -fsS -o /tmp/h.json -w "%{http_code}" https://f1frp.com/api/healthz 2>/dev/null); do
+            attempts=$((attempts + 1))
+            if [ $attempts -ge $max ]; then
+              echo "::error::Healthcheck never returned 200 (last status: ${status:-no-response})"
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "Healthcheck OK (HTTP $status):"
+          cat /tmp/h.json
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519 ~/.ssh/known_hosts
