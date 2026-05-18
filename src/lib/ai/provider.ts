@@ -44,18 +44,36 @@ const explicitProvider: ChatProvider | null =
         : null;
 
 const DOMESTIC_HOSTS = new Set(["f1frp.com", "www.f1frp.com"]);
+const OVERSEAS_HOSTS = new Set(["getfrp.com", "www.getfrp.com"]);
+
+function normalizeHost(host?: string | null): string | null {
+  if (!host) return null;
+  return host.toLowerCase().split(":")[0];
+}
 
 function isDomesticHost(host?: string | null): boolean {
-  if (!host) return false;
-  return DOMESTIC_HOSTS.has(host.toLowerCase().split(":")[0]);
+  const h = normalizeHost(host);
+  return h !== null && DOMESTIC_HOSTS.has(h);
+}
+
+function isOverseasHost(host?: string | null): boolean {
+  const h = normalizeHost(host);
+  return h !== null && OVERSEAS_HOSTS.has(h);
 }
 
 function pickProviderForHost(host?: string | null): ChatProvider {
-  if (explicitProvider) return explicitProvider;
+  // Known production hosts are authoritative — they win even over the
+  // CHAT_PROVIDER env var. This prevents a stale escape-hatch env (left
+  // over from a debug session) from silently routing prod traffic to the
+  // wrong provider, which is exactly the bug we hit 2026-05-18 when
+  // CHAT_PROVIDER=openrouter pinned getfrp.com to an out-of-credits
+  // OpenRouter account.
   if (isDomesticHost(host)) return "deepseek";
-  // Overseas / preview / unknown host → Google direct (was OpenRouter,
-  // switched 2026-05-18 to remove the middleman). Domestic ECS sets
-  // AI_PROFILE=domestic so the next branch covers cron/script paths there.
+  if (isOverseasHost(host)) return "google";
+
+  // For non-prod hosts (localhost, preview deploys, cron/scripts with no
+  // host header) we still honour CHAT_PROVIDER as a debug-friendly override.
+  if (explicitProvider) return explicitProvider;
   if (profile === "domestic") return "deepseek";
   return "google";
 }

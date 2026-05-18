@@ -14,10 +14,21 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 const DOMESTIC_HOSTS = new Set(["f1frp.com", "www.f1frp.com"]);
+const OVERSEAS_HOSTS = new Set(["getfrp.com", "www.getfrp.com"]);
+
+function normalizeHost(host?: string | null): string | null {
+  if (!host) return null;
+  return host.toLowerCase().split(":")[0];
+}
 
 function isDomesticHost(host?: string | null): boolean {
-  if (!host) return false;
-  return DOMESTIC_HOSTS.has(host.toLowerCase().split(":")[0]);
+  const h = normalizeHost(host);
+  return h !== null && DOMESTIC_HOSTS.has(h);
+}
+
+function isOverseasHost(host?: string | null): boolean {
+  const h = normalizeHost(host);
+  return h !== null && OVERSEAS_HOSTS.has(h);
 }
 
 export async function GET(req: Request) {
@@ -33,15 +44,18 @@ export async function GET(req: Request) {
 
   // Replicate pickProviderForHost logic — kept in sync manually so this
   // endpoint can detect when the live code disagrees with this expectation.
+  // Production hosts win over CHAT_PROVIDER (2026-05-18 hardening).
   let resolvedProvider: string;
-  if (explicitProvider) {
-    resolvedProvider = `${explicitProvider} (forced via CHAT_PROVIDER env)`;
-  } else if (isDomesticHost(host)) {
-    resolvedProvider = "deepseek (host=f1frp.com)";
+  if (isDomesticHost(host)) {
+    resolvedProvider = "deepseek (host=f1frp.com — authoritative)";
+  } else if (isOverseasHost(host)) {
+    resolvedProvider = "google (host=getfrp.com — authoritative)";
+  } else if (explicitProvider) {
+    resolvedProvider = `${explicitProvider} (forced via CHAT_PROVIDER env — non-prod host)`;
   } else if (profile === "domestic") {
-    resolvedProvider = "deepseek (AI_PROFILE=domestic)";
+    resolvedProvider = "deepseek (AI_PROFILE=domestic, non-prod host)";
   } else {
-    resolvedProvider = "google (default for overseas/preview)";
+    resolvedProvider = "google (default for non-prod / preview / unknown host)";
   }
 
   const envFlags: Record<string, boolean> = {
