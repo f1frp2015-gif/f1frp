@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { JsonLd } from "@/components/json-ld";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { alternates } from "@/lib/seo";
 
 export const revalidate = 600;
@@ -121,13 +122,10 @@ export default async function HpRtmPage({
         }}
       />
 
-      <nav className="mb-4 text-xs text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
-          {t("breadcrumbHome")}
-        </Link>
-        <span className="mx-1.5">/</span>
-        <span>{t("h1")}</span>
-      </nav>
+      <PageBreadcrumbs
+        homeLabel={t("breadcrumbHome")}
+        trail={[{ label: t("h1"), href: "/hp-rtm" }]}
+      />
 
       <header className="mb-10">
         <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">

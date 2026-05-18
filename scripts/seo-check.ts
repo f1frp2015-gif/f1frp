@@ -39,6 +39,10 @@ const S_TIER_PAGES: Record<string, string[]> = {
   HpRtm: ["hp-rtm", "china cfrp", "automotive cfrp"],
 };
 
+// Namespaces backing routes that are robots-disallowed (auth-gated, internal).
+// Length budgets don't apply — Google never sees these.
+const NOINDEX_NAMESPACES = new Set<string>(["Dashboard"]);
+
 // Brand tokens — at least one expected somewhere in the meta for entity grounding.
 const BRAND_TOKENS = ["getfrp", "f1 composite"];
 
@@ -131,6 +135,7 @@ function main() {
   // Page-level metaTitle / metaDescription, scanning every namespace.
   for (const [ns, body] of Object.entries(en)) {
     if (ns === "Site") continue;
+    if (NOINDEX_NAMESPACES.has(ns)) continue;
     if (typeof body !== "object" || body === null) continue;
     const mt = (body as Record<string, unknown>).metaTitle;
     const md = (body as Record<string, unknown>).metaDescription;

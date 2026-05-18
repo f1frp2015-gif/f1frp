@@ -7,8 +7,11 @@ import {
   papers,
   patents,
   materials,
+  supplierListings,
 } from "@/lib/db/schema";
+import { and, eq, isNotNull, ne } from "drizzle-orm";
 import { CURRENT_SITE_URL, ACTIVE_LOCALE, crossSiteUrls } from "@/lib/sites";
+import { sourcingTopicSlugs } from "@/lib/data/sourcing-topics";
 
 export const revalidate = 3600;
 
@@ -99,8 +102,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: alternatesFor(r.path, r.zhOnly),
     }));
 
-  const [articleRows, standardRows, paperRows, patentRows, materialRows] =
-    await Promise.all([
+  const [
+    articleRows,
+    standardRows,
+    paperRows,
+    patentRows,
+    materialRows,
+    supplierRows,
+  ] = await Promise.all([
       safeFetch(() =>
         db
           .select({ slug: articles.slug, updatedAt: articles.updatedAt })
@@ -153,6 +162,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           })
           .from(materials)
           .limit(2000),
+      ),
+      // /suppliers/[id] programmatic pages — only emit rows with an English
+      // name AND verified status, mirroring the page's notFound() gate.
+      safeFetch(() =>
+        db
+          .select({
+            id: supplierListings.id,
+            nameEn: supplierListings.nameEn,
+            updatedAt: supplierListings.updatedAt,
+          })
+          .from(supplierListings)
+          .where(
+            and(
+              eq(supplierListings.verified, true),
+              isNotNull(supplierListings.nameEn),
+              ne(supplierListings.nameEn, ""),
+            ),
+          )
+          .limit(500),
       ),
     ]);
 
@@ -244,6 +272,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     )
     .map((r) => ({ path: `/materials/${r.id}`, updatedAt: r.updatedAt }));
 
+  // Supplier detail pages — verified + English-name only on EN deploy.
+  // ID guaranteed ASCII (varchar 50 keyed slugs), so no ASCII filter needed.
+  const supplierEntries = (
+    supplierRows as Array<{
+      id: string;
+      nameEn: string | null;
+      updatedAt: Date | null;
+    }>
+  )
+    .filter((r) => (isEn ? (r.nameEn ?? "").trim() !== "" : true))
+    .map((r) => ({ path: `/suppliers/${r.id}`, updatedAt: r.updatedAt }));
+
   const toSitemapEntry = (
     e: { path: string; updatedAt: Date | null },
     priority: number,
@@ -255,6 +295,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: alternatesFor(e.path),
   });
 
+  // Hub-and-spoke /sourcing/[topic] landing pages. EN-only (curated English
+  // long-tail content); the zh deploy doesn't expose these routes.
+  const sourcingEntries =
+    isEn
+      ? sourcingTopicSlugs.map((slug) => ({
+          path: `/sourcing/${slug}`,
+          updatedAt: now,
+        }))
+      : [];
+
   return [
     ...staticEntries,
     ...articleEntries.map((e) => toSitemapEntry(e, 0.6)),
@@ -262,7 +312,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...paperEntries.map((e) => toSitemapEntry(e, 0.6)),
     ...patentEntries.map((e) => toSitemapEntry(e, 0.6)),
     ...materialEntries.map((e) => toSitemapEntry(e, 0.6)),
-    // /suppliers 列表页已经在 staticRoutes 里收录一次; 不再为每个 listing 重复发同一 URL。
-    // (旧实现给每行发一次 /suppliers, 造成 sitemap 里同一 URL 重复 459 次, 直接被 Google 判为低质量 sitemap)
+    // Each verified supplier now has a dedicated /suppliers/[id] page — emit
+    // those distinct URLs (priority 0.7, higher than papers/patents because
+    // they're commercial-intent landing pages, not reference content).
+    ...supplierEntries.map((e) => toSitemapEntry(e, 0.7)),
+    // Sourcing topics — commercial-intent long-tail. Same priority as supplier
+    // detail pages, refresh weekly (content authored, not data-driven).
+    ...sourcingEntries.map((e) => ({
+      ...toSitemapEntry(e, 0.75),
+      changeFrequency: "weekly" as const,
+    })),
   ];
 }

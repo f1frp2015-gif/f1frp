@@ -28,6 +28,7 @@ import {
   PlatformCardGrid,
 } from "@/components/platform-card";
 import { JsonLd } from "@/components/json-ld";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import {
   crosswalk,
   exportReadinessCerts,
@@ -239,14 +240,9 @@ export default async function SourceFromChinaPage({
         }}
       />
 
-      {/* Breadcrumb */}
-      <nav className="mb-4 text-xs text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
-          Home
-        </Link>
-        <span className="mx-1.5">/</span>
-        <span>Source from China</span>
-      </nav>
+      <PageBreadcrumbs
+        trail={[{ label: "Source from China", href: "/source-from-china" }]}
+      />
 
       <PlatformHero
         eyebrow="FOR OVERSEAS BUYERS"
@@ -289,13 +285,14 @@ export default async function SourceFromChinaPage({
       </div>
 
       {/* TOC */}
-      <div className="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         {[
           { id: "directory", num: "01", label: "Suppliers by category", sub: "Ranked by scale tier" },
           { id: "regions", num: "02", label: "Suppliers by region", sub: "China's FRP clusters" },
           { id: "certs", num: "03", label: "Export readiness", sub: "Certifications decoded" },
           { id: "standards", num: "04", label: "Standards crosswalk", sub: "GB ⇄ ASTM / ISO / EN" },
           { id: "playbook", num: "05", label: "Sourcing playbook", sub: "Spec → PO → Delivery" },
+          { id: "topics", num: "06", label: "Topic deep dives", sub: "Grating · Rebar · CBAM · GB-vs-ASTM" },
         ].map((i) => (
           <a
             key={i.id}
@@ -650,6 +647,64 @@ export default async function SourceFromChinaPage({
         </PlatformCardGrid>
       </section>
 
+      {/* ═══ 06 — Sourcing topic deep dives ═══ */}
+      <section id="topics" className="mt-20 scroll-mt-20">
+        <PlatformSectionHeading
+          eyebrow="MODULE 06 · DEEP DIVES"
+          title="Topic-specific sourcing guides"
+        />
+        <p className="mb-8 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
+          Buying-intent guides for the specific FRP product, compliance, and
+          standards questions overseas buyers ask the sourcing desk most often.
+          Each page covers process choice, certifications, pricing benchmarks,
+          and the verified Chinese plants that already ship into the target
+          market.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              slug: "frp-grating",
+              title: "FRP grating supplier shortlist",
+              sub: "Molded vs pultruded, CE / EN 13706 / DNV — pricing & MOQs",
+            },
+            {
+              slug: "frp-rebar",
+              title: "FRP rebar (GFRP / BFRP / CFRP)",
+              sub: "ACI 440.6 / ASTM D7957 — fiber system selection",
+            },
+            {
+              slug: "cbam-frp-china",
+              title: "CBAM compliance document pack",
+              sub: "Default values vs installation data, accredited verifiers",
+            },
+            {
+              slug: "gb-vs-astm-frp",
+              title: "GB ⇄ ASTM ⇄ ISO ⇄ EN test method crosswalk",
+              sub: "30+ FRP test methods mapped side-by-side",
+            },
+          ].map((it) => (
+            <Link
+              key={it.slug}
+              href={`/sourcing/${it.slug}` as never}
+              className="group flex items-start justify-between gap-4 border border-border/70 bg-background p-5 transition-colors hover:border-foreground"
+            >
+              <div>
+                <div className="text-sm font-semibold tracking-tight">
+                  {it.title}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {it.sub}
+                </div>
+              </div>
+              <ChevronRight
+                size={14}
+                className="mt-1 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              />
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="mt-20 border border-border/70 bg-foreground p-10 text-background sm:p-14">
         <div className="max-w-3xl">
@@ -739,7 +794,7 @@ function CategoryBlock({
           return (
             <li key={s.id}>
               <Link
-                href={`/suppliers#${s.id}` as never}
+                href={`/suppliers/${s.id}` as "/suppliers/[id]"}
                 className="group grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-muted/40"
               >
                 <span className="font-mono text-[11px] tabular-nums text-muted-foreground">

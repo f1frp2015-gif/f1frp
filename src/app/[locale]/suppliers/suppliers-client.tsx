@@ -14,7 +14,8 @@ import {
 import { SupplierClaimButton } from "@/components/supplier-claim-button";
 import { ProgressiveCollapse } from "@/components/progressive-collapse";
 import { provincesEn } from "@/lib/data/suppliers";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 
 export type SerializedSupplier = {
   id: string;
@@ -253,6 +254,16 @@ export function SuppliersClient({
                     <ExternalLink size={12} />
                     {s.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                   </a>
+                )}
+
+                {isEn && (
+                  <Link
+                    href={`/suppliers/${s.id}` as "/suppliers/[id]"}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
+                  >
+                    View supplier profile
+                    <ArrowRight size={12} />
+                  </Link>
                 )}
 
                 {(s.enterpriseId || !isEn) && (

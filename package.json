@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "tsx scripts/build-llms-txt.ts",
+    "prebuild": "tsx scripts/build-llms-txt.ts && tsx scripts/seo-check.ts --strict",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

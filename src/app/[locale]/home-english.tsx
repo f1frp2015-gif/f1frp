@@ -505,7 +505,7 @@ export async function HomePageEnglish() {
                   {featured.topSuppliers.map((s) => (
                     <li key={s.id}>
                       <Link
-                        href={"/suppliers" as never}
+                        href={`/suppliers/${s.id}` as "/suppliers/[id]"}
                         className="block leading-snug text-foreground/90 hover:text-foreground hover:underline"
                       >
                         <span className="line-clamp-1">{s.nameEn}</span>
