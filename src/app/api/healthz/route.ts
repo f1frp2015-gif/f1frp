@@ -70,6 +70,7 @@ export async function GET(req: Request) {
     GOOGLE_AI_GATEWAY_URL: Boolean(process.env.GOOGLE_AI_GATEWAY_URL),
     CHAT_PROVIDER: Boolean(process.env.CHAT_PROVIDER),
     AI_PROFILE: Boolean(process.env.AI_PROFILE),
+    TAVILY_API_KEY: Boolean(process.env.TAVILY_API_KEY),
   };
 
   // Show non-secret env var values (provider + model names + profile) so

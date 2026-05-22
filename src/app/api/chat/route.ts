@@ -1,10 +1,16 @@
-import { streamText, convertToModelMessages, type UIMessage } from "ai";
+import {
+  streamText,
+  convertToModelMessages,
+  stepCountIs,
+  type UIMessage,
+} from "ai";
 import {
   getChatModelForRequest,
   isChatConfiguredForRequest,
 } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
+import { webSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 
 export const runtime = "nodejs";
@@ -127,11 +133,24 @@ export async function POST(req: Request) {
       systemParts.push(lines.join("\n"));
     }
 
+    // Web search is opt-in via TAVILY_API_KEY env. When absent we omit
+    // tools entirely so the LLM behaves exactly as before — graceful
+    // degrade, no errors.
+    const toolsConfig = isWebSearchConfigured()
+      ? {
+          tools: { web_search: webSearchTool },
+          // Cap multi-step tool calling so the model can't recursion-loop
+          // through web searches on a single user turn.
+          stopWhen: stepCountIs(3),
+        }
+      : {};
+
     const result = streamText({
       model: getChatModelForRequest(req),
       system: systemParts.join("\n\n"),
       messages: await convertToModelMessages(uiMessages),
       maxOutputTokens: 2000,
+      ...toolsConfig,
     });
 
     return result.toUIMessageStreamResponse({

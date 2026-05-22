@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { generateText } from "ai";
+import { generateText, stepCountIs } from "ai";
 import {
   getChatModelForRequest,
   isChatConfiguredForRequest,
 } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext } from "@/lib/ai/retrieve";
+import { webSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
@@ -71,6 +72,13 @@ export async function POST(req: Request) {
       ? `${langInstruction}\n\nUser question: ${question}\n\nProvide a professional, concise, well-cited answer (≈ 400-600 words).`
       : `${langInstruction}\n\n用户问题：${question}\n\n请给出专业、简明、有引用的回答（约 400-600 字）。`;
 
+  const toolsConfig = isWebSearchConfigured()
+    ? {
+        tools: { web_search: webSearchTool },
+        stopWhen: stepCountIs(3),
+      }
+    : {};
+
   let answer = "";
   try {
     const { text } = await generateText({
@@ -78,6 +86,7 @@ export async function POST(req: Request) {
       system: systemForAsk,
       prompt,
       maxOutputTokens: 800,
+      ...toolsConfig,
     });
     answer = text.trim();
   } catch (e) {
