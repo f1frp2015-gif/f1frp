@@ -101,6 +101,12 @@ jobs:
           NEXT_PUBLIC_DEFAULT_LOCALE: zh
           NEXT_PUBLIC_SITE_URL: https://f1frp.com
           NEXT_PUBLIC_ICP_BEIAN: ${{ vars.NEXT_PUBLIC_ICP_BEIAN }}
+          # Build-time inline so /api/healthz can report the deployed commit
+          # without depending on runtime env vars on the ECS box (Next.js
+          #字面替换 NEXT_PUBLIC_* during compilation, so the SHA ends up
+          # baked into the standalone bundle).
+          NEXT_PUBLIC_COMMIT_SHA: ${{ github.sha }}
+          NEXT_PUBLIC_DEPLOYED_AT: ${{ github.event.head_commit.timestamp }}
           # Build also runs prebuild scripts (build-llms-txt + seo-check).
           # DATABASE_URL is required by build-llms-txt; use a no-op fallback
           # so the script can run without a real DB connection from CI.

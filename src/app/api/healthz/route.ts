@@ -100,8 +100,20 @@ export async function GET(req: Request) {
       expectedKey,
       envFlags,
       envValues,
-      commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "(unset)",
-      deployedAt: process.env.VERCEL_GIT_COMMIT_MESSAGE?.split("\n")[0] ?? null,
+      // Commit SHA sources, in priority order:
+      //   1. VERCEL_GIT_COMMIT_SHA — set by Vercel runtime (getfrp.com side)
+      //   2. NEXT_PUBLIC_COMMIT_SHA — baked in at build time by the
+      //      GitHub Actions workflow (ECS side, see deploy-ecs.yml)
+      commit:
+        (
+          process.env.VERCEL_GIT_COMMIT_SHA ??
+          process.env.NEXT_PUBLIC_COMMIT_SHA ??
+          ""
+        ).slice(0, 7) || "(unset)",
+      deployedAt:
+        process.env.NEXT_PUBLIC_DEPLOYED_AT ??
+        process.env.VERCEL_GIT_COMMIT_MESSAGE?.split("\n")[0] ??
+        null,
     },
     { status: ok ? 200 : 503 },
   );
