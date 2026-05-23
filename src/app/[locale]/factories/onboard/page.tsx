@@ -72,8 +72,8 @@ export default async function OnboardPage({
           告诉我们你工厂的情况
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          1 个工作日内有人联系你 —— 我们的客户成功团队(P1 阶段创始人亲自接)
-          会先 30 分钟电话/微信确认是否合适合作。不合适我们直说不浪费你时间。
+          1 个工作日内有人联系你 —— 客户成功团队会先 30 分钟电话 / 微信
+          确认是否合适合作。不合适我们直说不浪费你时间。
         </p>
         <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
           <strong className="font-medium text-foreground">隐私承诺:</strong>{" "}

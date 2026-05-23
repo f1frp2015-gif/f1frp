@@ -339,12 +339,12 @@ export default async function FactoriesPage({
         </div>
         <ul className="grid gap-3 text-[14px] leading-relaxed text-muted-foreground sm:grid-cols-2">
           {[
-            "团队复材行业 10 年+(主要创始人主职业为重庆纤居复材营销 VP)",
-            "已有 f1composite.com / getfrp.com 双站 + 海外 SEO/GEO 资产做引流底座",
-            "208 家中国 FRP 工厂的现场审计档案 + 标准/产品/认证图谱(2022+)",
-            "AI 模型分流:海外侧 Claude/Gemini + 国内侧 DeepSeek/通义,质量 + 合规双保",
+            "团队复材行业 10 年+,深耕拉挤 / RTM / 手糊 / 缠绕全工艺,熟悉 200+ 家国内 FRP 工厂运营",
+            "已积累海外 SEO / GEO 资产做引流底座,可直接对接欧美 / 中东 / 东南亚买家",
+            "208 家中国 FRP 工厂的现场审计档案 + 标准 / 产品 / 认证图谱(2022+)",
+            "AI 模型分流:海外侧 Claude / Gemini + 国内侧 DeepSeek / 通义,质量 + 合规双保",
             "60 天验证窗口透明,paying 工厂 < 10 → 退款 + 公开承认假设错误",
-            "前 30 家有问题随时直连创始人微信 / 电话,P1 阶段不存在客服外包",
+            "前 30 家工厂享 4 小时内响应、客户成功团队直接对接,不外包客服",
           ].map((line) => (
             <li key={line} className="flex items-start gap-2">
               <CheckCircle2
