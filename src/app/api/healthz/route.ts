@@ -71,6 +71,8 @@ export async function GET(req: Request) {
     CHAT_PROVIDER: Boolean(process.env.CHAT_PROVIDER),
     AI_PROFILE: Boolean(process.env.AI_PROFILE),
     TAVILY_API_KEY: Boolean(process.env.TAVILY_API_KEY),
+    DASHSCOPE_API_KEY: Boolean(process.env.DASHSCOPE_API_KEY),
+    EMBEDDING_PROVIDER: Boolean(process.env.EMBEDDING_PROVIDER),
   };
 
   // Show non-secret env var values (provider + model names + profile) so
@@ -81,6 +83,7 @@ export async function GET(req: Request) {
     GEMINI_CHAT_MODEL: process.env.GEMINI_CHAT_MODEL,
     DEEPSEEK_CHAT_MODEL: process.env.DEEPSEEK_CHAT_MODEL,
     OPENROUTER_CHAT_MODEL: process.env.OPENROUTER_CHAT_MODEL,
+    EMBEDDING_PROVIDER: process.env.EMBEDDING_PROVIDER,
   };
 
   const expectedKey = (() => {

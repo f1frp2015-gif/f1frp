@@ -81,8 +81,22 @@ function pickProviderForHost(host?: string | null): ChatProvider {
 const CHAT_MODEL_GLOBAL = "gemini-2.5-flash";
 const CHAT_MODEL_DOMESTIC = "deepseek-chat";
 const CHAT_MODEL_OPENROUTER = "google/gemini-2.5-flash";
-const EMBED_MODEL = "gemini-embedding-001";
+
+// Embedding provider — picked via EMBEDDING_PROVIDER env. Default 'google'
+// preserves historical behaviour; switch to 'dashscope' for国产 + no-gateway
+// access (Alibaba's OpenAI-compatible endpoint, same Hangzhou region as ECS
+// so domestic latency drops to ~100ms vs Google's 5s timeout).
+//
+// IMPORTANT: switching providers invalidates the existing vector space —
+// must run `pnpm tsx scripts/reindex-embeddings.ts` after flipping this env,
+// otherwise RAG retrieval will return semantically garbage matches.
+const EMBED_MODEL_GOOGLE = "gemini-embedding-001";
+const EMBED_MODEL_DASHSCOPE = "text-embedding-v3";
 export const EMBED_DIMS = 768;
+type EmbeddingProvider = "google" | "dashscope";
+const embeddingProvider: EmbeddingProvider =
+  process.env.EMBEDDING_PROVIDER === "dashscope" ? "dashscope" : "google";
+export const activeEmbeddingProvider = embeddingProvider;
 
 function buildGoogle(baseURL?: string) {
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
@@ -111,6 +125,24 @@ function buildDeepseek() {
     name: "deepseek",
     apiKey,
     baseURL: process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com/v1",
+  });
+}
+
+function buildDashscope() {
+  const apiKey = process.env.DASHSCOPE_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "DASHSCOPE_API_KEY required for embedding provider=dashscope. " +
+        "Get one at https://bailian.console.aliyun.com (model studio → " +
+        "API-KEY). Free quota: 100M tokens / model / 90 days.",
+    );
+  }
+  return createOpenAICompatible({
+    name: "dashscope",
+    apiKey,
+    baseURL:
+      process.env.DASHSCOPE_BASE_URL ??
+      "https://dashscope.aliyuncs.com/compatible-mode/v1",
   });
 }
 
@@ -158,17 +190,29 @@ export function getChatModelForRequest(req: Request): LanguageModel {
 }
 
 export function getEmbeddingModel(): EmbeddingModel {
-  // Both profiles use Google embedding for vector consistency.
-  // Domestic side MUST set GOOGLE_AI_GATEWAY_URL to a reachable proxy,
-  // otherwise embedding requests will fail (Google API blocked in CN).
+  // DashScope branch — selected when EMBEDDING_PROVIDER=dashscope. Lives in
+  // the same Aliyun region as our ECS box, so ~100ms vs Google's GFW-induced
+  // 5s timeout. text-embedding-v3 supports 768-dim output via the
+  // `dimensions` provider option (Matryoshka), matching the existing
+  // knowledge_chunks.embedding vector(768) schema — no migration required.
+  if (embeddingProvider === "dashscope") {
+    return buildDashscope().textEmbeddingModel(EMBED_MODEL_DASHSCOPE);
+  }
+
+  // Google branch (default) — historical behaviour. Domestic side STILL
+  // needs GOOGLE_AI_GATEWAY_URL since direct Google API is blocked from CN.
+  // If both EMBEDDING_PROVIDER and GOOGLE_AI_GATEWAY_URL are unset on ECS
+  // this will throw at first embed attempt (the chat route catches this
+  // and continues without RAG context).
   const baseURL = process.env.GOOGLE_AI_GATEWAY_URL;
   if (profile === "domestic" && !baseURL) {
     throw new Error(
-      "GOOGLE_AI_GATEWAY_URL is required when AI_PROFILE=domestic. " +
-        "Set up an AI Gateway proxy and put its URL here.",
+      "Embedding misconfigured on domestic side: either set " +
+        "EMBEDDING_PROVIDER=dashscope (+ DASHSCOPE_API_KEY) or " +
+        "GOOGLE_AI_GATEWAY_URL to a reachable Google AI Studio proxy.",
     );
   }
-  return buildGoogle(baseURL).textEmbeddingModel(EMBED_MODEL);
+  return buildGoogle(baseURL).textEmbeddingModel(EMBED_MODEL_GOOGLE);
 }
 
 export function isChatConfigured(host?: string | null): boolean {
