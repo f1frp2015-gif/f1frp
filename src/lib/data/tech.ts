@@ -303,6 +303,67 @@ export const processes: Process[] = [
     ],
   },
   {
+    id: "roll-wrapping",
+    name: "卷管工艺",
+    nameEn: "Roll Wrapping (Sheet Rolling)",
+    description:
+      "卷管工艺将预浸料按设计角度裁剪后卷绕在抛光金属芯轴上，外层缠绕收缩带提供压实力，入烘箱固化后脱模、磨削、切割得到高质量复合材料管材。是制造碳纤维杆/管类制品（钓鱼竿、自行车架管、高尔夫杆身、无人机臂、滑雪杖）的主流工艺。",
+    descriptionEn:
+      "Roll wrapping cuts prepreg sheets at designed fiber angles, rolls them onto a polished steel mandrel, wraps the outside with shrink tape for consolidation pressure, oven-cures, then demolds, sands, and cuts to produce high-quality composite tubes. It is the mainstream process for carbon-fiber tubular goods — fishing rods, bicycle frame tubes, golf shafts, UAV booms, ski poles.",
+    advantages: [
+      "纤维角度自由组合（0/±θ/90），壁厚和铺层精确可控",
+      "纤维含量高（60-70%），管材比强度/比刚度优异",
+      "芯轴侧表面光滑、近镜面，外观与同轴度好",
+      "适合多规格小批量定制和快速打样",
+    ],
+    advantagesEn: [
+      "Free combination of fiber angles (0/±θ/90); precise wall-thickness and lay-up control",
+      "High fiber content (60–70 %), excellent specific strength and stiffness",
+      "Near-mirror inner surface (mandrel side) with tight concentricity",
+      "Well suited to multi-spec, small-batch customization and rapid prototyping",
+    ],
+    disadvantages: [
+      "仅适合等截面圆管/锥管，异形截面难做",
+      "预浸料成本高，且需冷藏运输与保质期管理",
+      "依赖人工卷制，操作技能直接影响一致性",
+      "脱芯困难时易划伤内壁，芯轴需定期维护或重新镀铬",
+    ],
+    disadvantagesEn: [
+      "Limited to constant-section round or tapered tubes — non-circular sections are difficult",
+      "Prepreg is expensive and requires cold-chain handling plus shelf-life tracking",
+      "Manual rolling — operator skill directly impacts consistency",
+      "Demolding can scratch the inner wall; mandrels need regular maintenance or re-chroming",
+    ],
+    applications: [
+      "钓鱼竿",
+      "自行车架/座管",
+      "高尔夫杆身",
+      "无人机臂/桨轴",
+      "羽毛球/网球拍杆",
+      "登山杖/滑雪杖",
+    ],
+    applicationsEn: [
+      "Fishing rods",
+      "Bicycle frame and seat tubes",
+      "Golf shafts",
+      "UAV booms / propeller shafts",
+      "Badminton & tennis racket shafts",
+      "Trekking & ski poles",
+    ],
+    keyParameters: [
+      "预浸料铺层角度与顺序",
+      "芯轴锥度与表面粗糙度",
+      "收缩带张力与缠绕角",
+      "固化温度曲线",
+    ],
+    keyParametersEn: [
+      "Prepreg ply orientation and stacking sequence",
+      "Mandrel taper and surface roughness",
+      "Shrink-tape tension and wrap angle",
+      "Cure temperature profile",
+    ],
+  },
+  {
     id: "3d-printing",
     name: "3D打印复合材料",
     nameEn: "Composite 3D Printing",

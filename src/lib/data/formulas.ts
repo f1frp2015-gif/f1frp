@@ -61,6 +61,7 @@ export const processFilters = [
   { id: "compression", name: "模压成型", nameEn: "Compression Molding", iconKey: "compression" },
   { id: "rtm", name: "RTM成型", nameEn: "RTM", iconKey: "rtm" },
   { id: "vacuum-infusion", name: "真空导入", nameEn: "Vacuum Infusion (VARTM)", iconKey: "vacuum-infusion" },
+  { id: "roll-wrapping", name: "卷管工艺", nameEn: "Roll Wrapping", iconKey: "roll-wrapping" },
   { id: "3d-printing", name: "3D打印", nameEn: "3D Printing", iconKey: "3d-printing" },
   { id: "repair", name: "修补/防腐", nameEn: "Repair / Anti-corrosion", iconKey: "repair" },
 ];

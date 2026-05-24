@@ -63,6 +63,7 @@ const REGISTRY: Record<string, IconComponent | LucideIcon> = {
   compression: CompressionIcon,
   rtm: SyringeIcon,
   "vacuum-infusion": VacuumIcon,
+  "roll-wrapping": WindingIcon,
   "3d-printing": PrinterIcon,
   repair: WrenchIcon,
   "all-process": LayoutGrid,
