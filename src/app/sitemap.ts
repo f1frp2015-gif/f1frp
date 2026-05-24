@@ -44,6 +44,8 @@ const staticRoutes: StaticRoute[] = [
   { path: "/tech", changeFrequency: "weekly", priority: 0.7 },
   { path: "/articles", changeFrequency: "daily", priority: 0.8 },
   { path: "/downloads", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/fibers", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/matrix", changeFrequency: "monthly", priority: 0.6 },
   { path: "/ai", changeFrequency: "monthly", priority: 0.7 },
   { path: "/news", changeFrequency: "weekly", priority: 0.6 },
   { path: "/community", changeFrequency: "weekly", priority: 0.5 },

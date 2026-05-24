@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateText, stepCountIs } from "ai";
+import { auth } from "@clerk/nextjs/server";
 import {
   getChatModelForRequest,
   isChatConfiguredForRequest,
@@ -10,6 +11,10 @@ import { webSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search"
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
+import {
+  consumeAnonChatCredit,
+  ANON_LIMIT_RESPONSE_BODY,
+} from "@/lib/auth-gate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +26,26 @@ export const dynamic = "force-dynamic";
 const AI_AUTHOR_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function POST(req: Request) {
+  // 匿名访客超过 3 条 AI 提问后引导注册;登录用户跳过。
+  // 注:这里和 /api/chat 共享同一个 cookie 计数器,跨端口/路径累计。
+  let anonCookieToSet: string | null = null;
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      const gate = consumeAnonChatCredit(req);
+      if (!gate.ok) {
+        return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
+      }
+      anonCookieToSet = gate.cookieHeader;
+    }
+  } catch {
+    const gate = consumeAnonChatCredit(req);
+    if (!gate.ok) {
+      return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
+    }
+    anonCookieToSet = gate.cookieHeader;
+  }
+
   let body: { question?: string; locale?: string };
   try {
     body = await req.json();
@@ -117,9 +142,13 @@ export async function POST(req: Request) {
     console.error("[community/ask] db insert failed:", e);
   }
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     id: insertedId,
     answer,
     citations,
   });
+  if (anonCookieToSet) {
+    response.headers.append("Set-Cookie", anonCookieToSet);
+  }
+  return response;
 }

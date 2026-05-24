@@ -41,7 +41,7 @@ export async function GET(
         {
           error: `该资源需要 ${tierLabel(asset.requiredTier)} 及以上会员`,
           currentTier: tier,
-          upgradeUrl: "/pricing",
+          upgradeUrl: "/sign-up",
         },
         { status: 403 }
       );

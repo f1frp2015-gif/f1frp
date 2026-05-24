@@ -7,6 +7,7 @@ import { getMessageText } from "@/lib/ai/utils";
 import { AiMessage, type Citation } from "@/components/ai-message";
 import { SourceCards } from "@/components/ai-source-cards";
 import { AiFollowups } from "@/components/ai-followups";
+import { AuthRequiredNotice } from "@/components/auth-required-notice";
 import { useState, useRef, useEffect, useMemo } from "react";
 import {
   ArrowUp,
@@ -65,7 +66,9 @@ export function AiAssistantClient({
     [locale],
   );
 
-  const { messages, sendMessage, setMessages, status } = useChat({ transport });
+  const { messages, sendMessage, setMessages, status, error } = useChat({
+    transport,
+  });
 
   const busy = status === "streaming" || status === "submitted";
   const hasMessages = messages.length > 0;
@@ -171,6 +174,7 @@ export function AiAssistantClient({
             {busy && messages[messages.length - 1]?.role === "user" && (
               <ThinkingIndicator label={t("thinking")} />
             )}
+            <AuthRequiredNotice error={error} />
           </div>
         )}
       </div>

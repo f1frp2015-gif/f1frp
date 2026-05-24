@@ -8,6 +8,7 @@ import { ArrowUp, Sparkles, ExternalLink, Plus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { AiMessage, type Citation } from "@/components/ai-message";
 import { SourceCards } from "@/components/ai-source-cards";
+import { AuthRequiredNotice } from "@/components/auth-required-notice";
 import { getMessageText } from "@/lib/ai/utils";
 
 // Perplexity-style hero. First action on getfrp is to type a sourcing
@@ -40,7 +41,9 @@ export function ChatHero({ examples }: { examples: string[] }) {
     [],
   );
 
-  const { messages, sendMessage, setMessages, status } = useChat({ transport });
+  const { messages, sendMessage, setMessages, status, error } = useChat({
+    transport,
+  });
   const busy = status === "streaming" || status === "submitted";
   const hasMessages = messages.length > 0;
 
@@ -177,6 +180,8 @@ export function ChatHero({ examples }: { examples: string[] }) {
               </div>
             </div>
           )}
+
+          <AuthRequiredNotice error={error} />
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-3 text-[12px] text-muted-foreground">
             <button

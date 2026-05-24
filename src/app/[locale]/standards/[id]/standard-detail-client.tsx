@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { AiMessage } from "@/components/ai-message";
+import { AuthRequiredNotice } from "@/components/auth-required-notice";
 import { getMessageText } from "@/lib/ai/utils";
 
 type Section = {
@@ -232,7 +233,7 @@ function AiDock({
     [standard.code, standard.title, active]
   );
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
       body: () => ({ context }),
@@ -287,6 +288,8 @@ function AiDock({
             )}
           </div>
         )}
+
+        <AuthRequiredNotice error={error} />
 
         {messages.length === 0 && (
           <div className="flex flex-wrap gap-1.5">

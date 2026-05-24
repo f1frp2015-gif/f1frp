@@ -4,6 +4,7 @@ import {
   stepCountIs,
   type UIMessage,
 } from "ai";
+import { auth } from "@clerk/nextjs/server";
 import {
   getChatModelForRequest,
   isChatConfiguredForRequest,
@@ -12,6 +13,10 @@ import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
 import { webSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
+import {
+  consumeAnonChatCredit,
+  ANON_LIMIT_RESPONSE_BODY,
+} from "@/lib/auth-gate";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -63,6 +68,28 @@ function citationGuidance(locale: string): string {
 export async function POST(req: Request) {
   if (!isChatConfiguredForRequest(req)) {
     return Response.json({ error: "AI not configured" }, { status: 503 });
+  }
+
+  // 匿名访客超过免费额度后引导注册;登录用户跳过。
+  // 我们检查 Clerk userId 即可,不再查 DB 等级(membership 已 neuter 为全直通)。
+  let anonCookieToSet: string | null = null;
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      const gate = consumeAnonChatCredit(req);
+      if (!gate.ok) {
+        return Response.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
+      }
+      anonCookieToSet = gate.cookieHeader;
+    }
+  } catch {
+    // auth() 偶发抖动不应 hard-fail 聊天 — 失败时降级为"按匿名处理",
+    // 即仍然走匿名计数,极小概率出现已登录用户被误计数。
+    const gate = consumeAnonChatCredit(req);
+    if (!gate.ok) {
+      return Response.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
+    }
+    anonCookieToSet = gate.cookieHeader;
   }
 
   try {
@@ -153,7 +180,7 @@ export async function POST(req: Request) {
       ...toolsConfig,
     });
 
-    return result.toUIMessageStreamResponse({
+    const streamResponse = result.toUIMessageStreamResponse({
       messageMetadata: () => ({
         citations: retrieved.map((r, i) => ({
           n: i + 1,
@@ -164,6 +191,10 @@ export async function POST(req: Request) {
         })),
       }),
     });
+    if (anonCookieToSet) {
+      streamResponse.headers.append("Set-Cookie", anonCookieToSet);
+    }
+    return streamResponse;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     console.error("Chat API error:", msg);

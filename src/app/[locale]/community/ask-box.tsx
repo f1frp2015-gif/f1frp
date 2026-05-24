@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import { AuthRequiredNotice } from "@/components/auth-required-notice";
 
 type Citation = { index: number; title: string; url: string };
 
@@ -32,7 +33,13 @@ export function AskBox({ locale }: { locale: string }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Unknown error");
+        // 401 + AUTH_REQUIRED → 让 AuthRequiredNotice 接管渲染,
+        // 用 error.message 携带服务端 body 关键字。
+        if (res.status === 401 || data.error === "AUTH_REQUIRED") {
+          setError("AUTH_REQUIRED");
+        } else {
+          setError(data.error ?? "Unknown error");
+        }
       } else {
         setAnswer(data.answer);
         setCitations(data.citations ?? []);
@@ -70,9 +77,11 @@ export function AskBox({ locale }: { locale: string }) {
               maxLength={1000}
               disabled={loading}
             />
-            {error && (
+            {error === "AUTH_REQUIRED" ? (
+              <AuthRequiredNotice error={new Error("AUTH_REQUIRED")} />
+            ) : error ? (
               <p className="text-xs text-destructive">{error}</p>
-            )}
+            ) : null}
             <Button
               type="submit"
               size="sm"

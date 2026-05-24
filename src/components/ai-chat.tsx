@@ -6,6 +6,7 @@ import { DefaultChatTransport } from "ai";
 import { useLocale, useTranslations } from "next-intl";
 import { getMessageText } from "@/lib/ai/utils";
 import { AiMessage } from "@/components/ai-message";
+import { AuthRequiredNotice } from "@/components/auth-required-notice";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -42,7 +43,7 @@ export function AiChatWidget() {
     [locale]
   );
 
-  const { messages, sendMessage, status } = useChat({ transport });
+  const { messages, sendMessage, status, error } = useChat({ transport });
 
   const busy = status === "streaming" || status === "submitted";
   const quickQuestions = QUICK_QUESTIONS[locale];
@@ -151,6 +152,7 @@ export function AiChatWidget() {
                 </div>
               </div>
             )}
+            <AuthRequiredNotice error={error} />
           </div>
 
           <div className="border-t p-3">
