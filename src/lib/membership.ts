@@ -1,64 +1,46 @@
-import { eq } from "drizzle-orm";
+/**
+ * Tier-gating shim — 2026-05-24
+ *
+ * 当前阶段全站取消收费,所有用户视为同一权限层。本文件保留 type/导出名以维持
+ * 历史调用点兼容(避免一次性大改),但所有 gate 检查都直通,benefit 全部解锁,
+ * 等级标签固定为「免费」。日后重启商业化时:
+ *   1) 恢复 TIER_RANK / TIER_LABEL / TIER_BENEFITS 的分层值
+ *   2) 让 gateByTier 真正校验 effectiveTier
+ *   3) 在调用点(目前都假定 ok:true)上层补 UI/CTA 引导
+ */
+
 import { auth } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, type User } from "@/lib/db/schema";
 
 export type MembershipTier = "free" | "basic" | "pro" | "enterprise";
 
-const TIER_RANK: Record<MembershipTier, number> = {
-  free: 0,
-  basic: 1,
-  pro: 2,
-  enterprise: 3,
-};
-
-const TIER_LABEL: Record<MembershipTier, string> = {
-  free: "免费版",
-  basic: "学生版",
-  pro: "专业版",
-  enterprise: "团队版",
-};
-
-const TIER_LABEL_EN: Record<MembershipTier, string> = {
-  free: "Free",
-  basic: "Student",
-  pro: "Pro",
-  enterprise: "Team",
-};
-
-export function tierLabel(tier: MembershipTier, lang: "zh" | "en" = "zh"): string {
-  return (lang === "en" ? TIER_LABEL_EN : TIER_LABEL)[tier] ?? "Free";
+export function tierLabel(_tier: MembershipTier, lang: "zh" | "en" = "zh"): string {
+  return lang === "en" ? "Free" : "免费";
 }
 
-export function isExpired(expiry: Date | null | undefined): boolean {
-  if (!expiry) return false;
-  return expiry.getTime() < Date.now();
+export function isExpired(_expiry: Date | null | undefined): boolean {
+  return false;
 }
 
-export function isOnTrial(user: Pick<User, "trialUntil">): boolean {
-  if (!user.trialUntil) return false;
-  return user.trialUntil.getTime() > Date.now();
+export function isOnTrial(_user: Pick<User, "trialUntil">): boolean {
+  return false;
 }
 
 export function effectiveTier(
-  user: Pick<User, "membershipTier" | "membershipExpiry" | "trialUntil">
+  _user: Pick<User, "membershipTier" | "membershipExpiry" | "trialUntil">,
 ): MembershipTier {
-  // 试用期内享 pro 权益
-  if (isOnTrial(user)) return "pro";
-  // 过期则降回 free（学生白名单除外，由 studentVerified 升回 basic）
-  if (isExpired(user.membershipExpiry)) return "free";
-  return user.membershipTier;
+  return "free";
 }
 
-export function meetsTier(current: MembershipTier, required: MembershipTier): boolean {
-  return TIER_RANK[current] >= TIER_RANK[required];
+export function meetsTier(_current: MembershipTier, _required: MembershipTier): boolean {
+  return true;
 }
-
-// ─── Tier-based benefit limits ──────────────────────────────────────
 
 export type TierBenefits = {
-  aiCallsPerDay: number; // -1 = unlimited
-  downloadsPerMonth: number; // -1 = unlimited
+  aiCallsPerDay: number;
+  downloadsPerMonth: number;
   hasRfq: boolean;
   hasFullPapers: boolean;
   hasFullPatents: boolean;
@@ -67,88 +49,49 @@ export type TierBenefits = {
   hasApi: boolean;
 };
 
-export const TIER_BENEFITS: Record<MembershipTier, TierBenefits> = {
-  free: {
-    aiCallsPerDay: 5,
-    downloadsPerMonth: 5,
-    hasRfq: false,
-    hasFullPapers: false,
-    hasFullPatents: false,
-    hasMaterialRecommender: false,
-    hasTeamWorkspace: false,
-    hasApi: false,
-  },
-  basic: {
-    aiCallsPerDay: 30,
-    downloadsPerMonth: 50,
-    hasRfq: false,
-    hasFullPapers: true,
-    hasFullPatents: true,
-    hasMaterialRecommender: true,
-    hasTeamWorkspace: false,
-    hasApi: false,
-  },
-  pro: {
-    aiCallsPerDay: -1,
-    downloadsPerMonth: -1,
-    hasRfq: true,
-    hasFullPapers: true,
-    hasFullPatents: true,
-    hasMaterialRecommender: true,
-    hasTeamWorkspace: false,
-    hasApi: false,
-  },
-  enterprise: {
-    aiCallsPerDay: -1,
-    downloadsPerMonth: -1,
-    hasRfq: true,
-    hasFullPapers: true,
-    hasFullPatents: true,
-    hasMaterialRecommender: true,
-    hasTeamWorkspace: true,
-    hasApi: true,
-  },
+const UNLIMITED: TierBenefits = {
+  aiCallsPerDay: -1,
+  downloadsPerMonth: -1,
+  hasRfq: true,
+  hasFullPapers: true,
+  hasFullPatents: true,
+  hasMaterialRecommender: true,
+  hasTeamWorkspace: true,
+  hasApi: true,
 };
 
-export function benefitsFor(tier: MembershipTier): TierBenefits {
-  return TIER_BENEFITS[tier];
-}
+export const TIER_BENEFITS: Record<MembershipTier, TierBenefits> = {
+  free: UNLIMITED,
+  basic: UNLIMITED,
+  pro: UNLIMITED,
+  enterprise: UNLIMITED,
+};
 
-// ─── Auth-gated tier check ──────────────────────────────────────────
+export function benefitsFor(_tier: MembershipTier): TierBenefits {
+  return UNLIMITED;
+}
 
 export type GateResult =
   | { ok: true; user: User; tier: MembershipTier }
   | { ok: false; status: 401 | 403; reason: string };
 
-export async function gateByTier(required: MembershipTier): Promise<GateResult> {
+// 全直通版 gateByTier — 仍然要求登录(401),但不再校验等级。
+// 仍读一次 users 行,因为下游调用点会用 user.id / user.email。
+export async function gateByTier(_required: MembershipTier): Promise<GateResult> {
   const { userId } = await auth();
   if (!userId) {
     return { ok: false, status: 401, reason: "未登录" };
   }
-
   const [row] = await db
     .select()
     .from(users)
     .where(eq(users.clerkId, userId))
     .limit(1);
-
   if (!row) {
-    return { ok: false, status: 401, reason: "用户资料未同步，请稍后重试" };
+    return { ok: false, status: 401, reason: "用户资料未同步,请稍后重试" };
   }
-
-  const tier = effectiveTier(row);
-  if (!meetsTier(tier, required)) {
-    return {
-      ok: false,
-      status: 403,
-      reason: `此功能需要 ${tierLabel(required)} 及以上会员`,
-    };
-  }
-
-  return { ok: true, user: row, tier };
+  return { ok: true, user: row, tier: "free" };
 }
-
-// ─── Student email detection ────────────────────────────────────────
 
 const STUDENT_EMAIL_PATTERNS = [
   /\.edu\.cn$/i,

@@ -15,7 +15,6 @@ const NAV_KEYS = [
   "standards",
   "papers",
   "patents",
-  "reports",
   "suppliers",
   "tech",
   "downloads",
@@ -31,7 +30,6 @@ const NAV_HREFS: Record<NavKey, string> = {
   standards: "/standards",
   papers: "/papers",
   patents: "/patents",
-  reports: "/reports",
   suppliers: "/suppliers",
   tech: "/tech",
   downloads: "/downloads",
@@ -39,8 +37,8 @@ const NAV_HREFS: Record<NavKey, string> = {
   ai: "/ai",
 };
 
-// 仅国内侧（zh）显示的导航项 — 研报库是中文付费产品，海外侧 getfrp.com 隐藏
-const ZH_ONLY_NAV: ReadonlySet<NavKey> = new Set(["reports"]);
+// 当前阶段无收费,所有导航项中外侧通用 — 留空集合作为未来再分流时的扩展点
+const ZH_ONLY_NAV: ReadonlySet<NavKey> = new Set();
 
 function AuthButtons() {
   const { isSignedIn, isLoaded } = useAuth();

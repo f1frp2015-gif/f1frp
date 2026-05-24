@@ -182,12 +182,12 @@ export default async function SuppliersPage({
               >
                 {t("ctaFreeEnroll")}
               </Link>
-              <Link
-                href={"/pricing" as "/"}
+              <a
+                href="mailto:f1frp2015@gmail.com?subject=%E4%BE%9B%E5%BA%94%E5%95%86%E5%85%A5%E9%A9%BB%E5%92%A8%E8%AF%A2"
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
-                {t("ctaMembership")}
-              </Link>
+                联系咨询
+              </a>
             </>
           )}
         </div>

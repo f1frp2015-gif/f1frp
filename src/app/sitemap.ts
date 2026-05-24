@@ -49,13 +49,11 @@ const staticRoutes: StaticRoute[] = [
   { path: "/community", changeFrequency: "weekly", priority: 0.5 },
   { path: "/trade", changeFrequency: "weekly", priority: 0.6 },
   { path: "/about", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/overseas", changeFrequency: "weekly", priority: 0.8, zhOnly: true },
+  { path: "/overseas", changeFrequency: "weekly", priority: 0.9, zhOnly: true },
   { path: "/source-from-china", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/pricing", changeFrequency: "monthly", priority: 0.6, zhOnly: true },
-  // S2 工厂 AI 询盘助手销售页 — ZH-only(海外侧买家不付费,买家是 getfrp 受众,
-  // 工厂端 SaaS 是 v4.1 主现金流,落地在 f1frp.com 中文域)。
-  { path: "/factories", changeFrequency: "weekly", priority: 0.9, zhOnly: true },
-  { path: "/factories/onboard", changeFrequency: "monthly", priority: 0.6, zhOnly: true },
+  // /pricing 已永久重定向 /overseas,不再单独出 sitemap 条目
+  // 工厂 AI 助手产品方向页 — ZH-only(海外侧 buyer 场景,不投放此 page)
+  { path: "/factories", changeFrequency: "weekly", priority: 0.7, zhOnly: true },
 ];
 
 async function safeFetch<T>(fn: () => Promise<T>): Promise<T | []> {

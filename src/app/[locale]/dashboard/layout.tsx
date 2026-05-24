@@ -32,27 +32,18 @@ export default async function DashboardLayout({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Dashboard" });
 
-  const isEn = locale === "en";
   const baseItems = [
     { href: "/dashboard" as const, label: t("nav.overview"), iconKey: "overview" },
-    {
-      href: "/dashboard/factory-inquiries" as const,
-      label: "AI 询盘助手",
-      iconKey: "messages",
-    },
     { href: "/dashboard/saved" as const, label: t("nav.saved"), iconKey: "bookmark" },
     { href: "/dashboard/posts/new" as const, label: t("nav.postNew"), iconKey: "post-new" },
     { href: "/dashboard/posts" as const, label: t("nav.posts"), iconKey: "post-list" },
     { href: "/dashboard/messages" as const, label: t("nav.messages"), iconKey: "messages" },
     { href: "/dashboard/enterprise" as const, label: t("nav.enterprise"), iconKey: "enterprise" },
     { href: "/dashboard/claims" as const, label: t("nav.claims"), iconKey: "claims" },
-    { href: "/dashboard/upgrade" as const, label: isEn ? "Upgrade" : "升级订阅", iconKey: "overview" },
-    { href: "/dashboard/verify-student" as const, label: isEn ? "Student verify" : "学生认证", iconKey: "overview" },
   ];
 
   const adminItems = [
     { href: "/dashboard/admin/claims" as const, label: t("nav.adminClaims"), iconKey: "admin-claims" },
-    { href: "/dashboard/admin/subscriptions" as const, label: isEn ? "Subscriptions" : "订阅记录", iconKey: "admin-claims" },
   ];
 
   const { userId: clerkId } = await auth();
