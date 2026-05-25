@@ -12,10 +12,11 @@
 //
 // 安全:AppSecret 只从 env 读,绝不入库、不入码、不进日志。AppID 非密,可有默认值。
 
-const APPID = process.env.WECHAT_MP_APPID ?? "wx981c6e3aa7bb9647";
+// 复用 ECS 现有公众号凭据变量名(WECHAT_APP_ID / WECHAT_APP_SECRET)。
+const APPID = process.env.WECHAT_APP_ID ?? "wx981c6e3aa7bb9647";
 
 export function isWechatMpConfigured(): boolean {
-  return Boolean(process.env.WECHAT_MP_APPSECRET);
+  return Boolean(process.env.WECHAT_APP_SECRET);
 }
 
 export type WechatScope = "snsapi_base" | "snsapi_userinfo";
@@ -55,7 +56,7 @@ export interface WechatToken {
 }
 
 export async function exchangeCodeForToken(code: string): Promise<WechatToken> {
-  const secret = process.env.WECHAT_MP_APPSECRET;
+  const secret = process.env.WECHAT_APP_SECRET;
   if (!secret) throw new Error("WECHAT_MP_APPSECRET not set");
   const url =
     `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${APPID}` +
