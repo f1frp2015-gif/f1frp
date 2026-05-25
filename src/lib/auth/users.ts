@@ -45,3 +45,18 @@ export async function upsertWechatUser(p: {
     .returning({ id: users.id });
   return inserted[0].id;
 }
+
+// 手机号用户 upsert —— 国内手机 OTP 登录用。按 phone 认人,clerkId 留空。
+export async function upsertPhoneUser(phone: string): Promise<string> {
+  const existing = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.phone, phone))
+    .limit(1);
+  if (existing[0]) return existing[0].id;
+  const inserted = await db
+    .insert(users)
+    .values({ phone })
+    .returning({ id: users.id });
+  return inserted[0].id;
+}

@@ -120,6 +120,21 @@ export const users = pgTable(
   ]
 );
 
+// 手机号 OTP —— 国内 Auth.js 手机登录用(签发/校验见 lib/auth/otp.ts)。
+export const phoneOtps = pgTable(
+  "phone_otps",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    code: varchar("code", { length: 10 }).notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    consumedAt: timestamp("consumed_at"),
+    attempts: integer("attempts").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("phone_otps_phone_idx").on(table.phone)]
+);
+
 // ═══════════════════════════════════════════
 // Enterprises — company profiles (UGC-submitted)
 // ═══════════════════════════════════════════
