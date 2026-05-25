@@ -1,7 +1,13 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
+
+// 认证按部署 profile 分流(getfrp/Clerk 不变):
+//   global   (getfrp.com / Vercel) → clerkMiddleware(原逻辑逐字保留)
+//   domestic (f1frp.com / ECS)     → 仅 intl + host-locale;鉴权不放中间件,
+//     改在 dashboard layout 用 getCurrentUser() 做(避免 Auth.js 在 edge 拉入 node:crypto)。
+const isDomestic = process.env.AI_PROFILE === "domestic";
 
 const isProtectedRoute = createRouteMatcher(["/:locale?/dashboard(.*)"]);
 const isApiRoute = createRouteMatcher(["/api/(.*)"]);
@@ -57,7 +63,8 @@ function enforceHostLocale(request: Request): NextResponse | undefined {
   }
 }
 
-export default clerkMiddleware(async (auth, request) => {
+// ── 海外 (getfrp.com):Clerk —— 原逻辑逐字保留 ──
+const clerkProxy = clerkMiddleware(async (auth, request) => {
   if (isApiRoute(request)) {
     return;
   }
@@ -78,6 +85,16 @@ export default clerkMiddleware(async (auth, request) => {
 
   return handleIntlRouting(request);
 });
+
+// ── 国内 (f1frp.com):仅 intl + host-locale。鉴权在 dashboard layout 做 ──
+function domesticProxy(request: NextRequest) {
+  const hostRedirect = enforceHostLocale(request);
+  if (hostRedirect) return hostRedirect;
+  if (isApiRoute(request)) return;
+  return handleIntlRouting(request);
+}
+
+export default isDomestic ? domesticProxy : clerkProxy;
 
 export const config = {
   matcher: [
