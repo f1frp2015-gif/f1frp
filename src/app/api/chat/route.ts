@@ -11,7 +11,7 @@ import {
 } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
-import { webSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search";
+import { makeWebSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 import {
   consumeAnonChatCredit,
@@ -163,9 +163,10 @@ export async function POST(req: Request) {
     // Web search is opt-in via TAVILY_API_KEY env. When absent we omit
     // tools entirely so the LLM behaves exactly as before — graceful
     // degrade, no errors.
-    const toolsConfig = isWebSearchConfigured()
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    const toolsConfig = isWebSearchConfigured(host)
       ? {
-          tools: { web_search: webSearchTool },
+          tools: { web_search: makeWebSearchTool(host) },
           // Cap multi-step tool calling so the model can't recursion-loop
           // through web searches on a single user turn.
           stopWhen: stepCountIs(3),
