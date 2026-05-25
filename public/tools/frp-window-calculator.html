@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<title>FRP 门窗 U 值计算器 | 复材站</title>
+<meta name="description" content="按 EN ISO 10077-1 计算 FRP/铝/PVC/木门窗整窗传热系数 Uw，对照中/欧/美/加节能标准合规判定。">
+<style>
+  :root{
+    --ink:#1b1b1b; --muted:#6b7280; --line:#e6e7e9; --bg:#fff; --soft:#f7f7f8;
+    --ok:#16a34a; --ok-bg:#f0fdf4; --ok-bd:#bbf7d0;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;background:var(--soft);color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;}
+  .wrap{max-width:720px;margin:0 auto;padding:18px 14px 40px;}
+  header h1{font-size:21px;font-weight:800;margin:0 0 4px;letter-spacing:-.01em;}
+  header p{margin:0;color:var(--muted);font-size:13px;}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .card-t{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;}
+  label.f{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted);margin:0 0 5px;}
+  select,input{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);
+    font-size:15px;color:var(--ink);outline:none;-webkit-appearance:none;appearance:none;}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 11px center;padding-right:30px;}
+  input:focus,select:focus{border-color:var(--ink);}
+  .grid{display:grid;gap:11px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .field{margin-bottom:12px;} .field:last-child{margin-bottom:0;}
+  .hint{display:block;font-size:11px;color:var(--muted);margin-top:5px;}
+  .sizebox{display:flex;align-items:center;gap:10px;}
+  .sizebox .col{flex:1;} .sizebox .x{color:var(--muted);font-weight:700;}
+  .sizebox .col .hint{text-align:center;}
+  .formula{background:var(--soft);border-radius:9px;padding:11px 12px;font-size:12px;line-height:1.6;color:var(--muted);}
+  .result-big{border-radius:12px;padding:24px 16px;text-align:center;border:1px solid var(--line);}
+  .result-big .lab{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+  .result-big .num{font-size:46px;font-weight:800;line-height:1;margin:8px 0 2px;letter-spacing:-.02em;}
+  .result-big .unit{font-size:13px;color:var(--muted);}
+  .badge{display:inline-block;margin-top:12px;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:800;}
+  dl{margin:0;} dl .r{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+  dl .r dt{color:var(--muted);} dl .r dd{margin:0;font-weight:600;}
+  dl .r.top{border-top:1px solid var(--line);margin-top:4px;padding-top:10px;}
+  .vs{background:var(--ok-bg);border:1px solid var(--ok-bd);border-radius:10px;padding:13px;}
+  .vs .lab{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ok);}
+  .vs p{margin:6px 0 0;font-size:13px;color:var(--muted);}
+  .vs b{color:var(--ink);}
+  .cmp .row{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:12px;}
+  .cmp .row .lbl{color:var(--muted);}
+  .cmp .row .v{font-weight:700;white-space:nowrap;}
+  .cmp .row .v.pass{color:var(--ok);} .cmp .row .v.no{color:var(--muted);}
+  .err{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:10px;padding:14px;font-size:14px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+  tr.frp{background:var(--ok-bg);}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  details{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:0 16px;margin-bottom:14px;}
+  summary{padding:15px 0;font-size:14px;font-weight:700;cursor:pointer;list-style:none;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"＋";float:right;color:var(--muted);font-weight:400;}
+  details[open] summary::after{content:"－";}
+  details .inner{padding-bottom:16px;}
+  h3.sec{font-size:16px;font-weight:800;margin:0 0 4px;}
+  p.sub{font-size:12px;color:var(--muted);margin:0 0 12px;}
+  .disc{font-size:11px;color:var(--muted);line-height:1.55;margin:12px 0 0;}
+  sub{font-size:.72em;} .nowrap{white-space:nowrap;}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px;}
+  footer a{color:var(--ink);text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>FRP 门窗 U 值计算器</h1>
+    <p>按 EN ISO 10077-1 计算整窗传热系数 Uw · 中/欧/美/加节能标准合规</p>
+  </header>
+
+  <div class="card">
+    <p class="card-t">门窗配置</p>
+    <div class="grid g2">
+      <div class="field">
+        <label class="f">框料系统</label>
+        <select id="frame"></select>
+        <span class="hint" id="frame-hint"></span>
+      </div>
+      <div class="field">
+        <label class="f">玻璃配置</label>
+        <select id="glass"></select>
+        <span class="hint" id="glass-hint"></span>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="field">
+        <label class="f">间隔条</label>
+        <select id="spacer"></select>
+        <span class="hint" id="spacer-hint"></span>
+      </div>
+      <div class="field">
+        <label class="f">开启方式</label>
+        <select id="wintype"></select>
+        <span class="hint" id="wintype-hint"></span>
+      </div>
+    </div>
+    <div class="field">
+      <label class="f">洞口尺寸 (mm)</label>
+      <div class="sizebox">
+        <div class="col"><input type="number" id="w" value="1200" min="200" max="4000" step="50"><span class="hint">宽 W</span></div>
+        <span class="x">×</span>
+        <div class="col"><input type="number" id="h" value="1400" min="200" max="4000" step="50"><span class="hint">高 H</span></div>
+      </div>
+    </div>
+    <div class="formula">
+      <b>EN ISO 10077-1：</b>
+      U<sub>w</sub> = (A<sub>g</sub>·U<sub>g</sub> + A<sub>f</sub>·U<sub>f</sub> + l<sub>g</sub>·Ψ<sub>g</sub>) / (A<sub>g</sub> + A<sub>f</sub>)<br>
+      <span style="opacity:.75">GB 50189 / GB 50176（中）· EN ISO 10077 / EPBD（欧）· IECC / ENERGY STAR（美）· CSA A440（加）</span>
+    </div>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="card">
+    <h3 class="sec">框料系统 U<sub>f</sub> 对比</h3>
+    <p class="sub">框料本身的传热系数决定窗的"底子"——FRP 拉挤型材低导热、免隔热条。</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>框料系统</th><th>U<sub>f</sub></th><th>厚度</th><th>面宽</th><th>隔热说明</th></tr></thead>
+        <tbody id="frame-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <details>
+    <summary>各国门窗节能标准 Uw 限值对照</summary>
+    <div class="inner">
+      <div class="scroll">
+        <table>
+          <thead><tr><th>地区</th><th>标准</th><th>气候区</th><th>限值</th><th>备注</th></tr></thead>
+          <tbody id="std-table"></tbody>
+        </table>
+      </div>
+      <p class="disc">数据为各标准代表性限值，仅供方案阶段参考；实际项目须以现行版本规范、当地节能审查与 NFRC/PHI 等认证测试结果为准。SHGC（太阳得热系数）在夏热地区同为关键指标，本表未列。</p>
+    </div>
+  </details>
+
+  <footer>
+    复材站 · FRP 工程工具 &nbsp;|&nbsp; <a href="https://f1frp.com">f1frp.com</a>
+  </footer>
+</div>
+
+<script>
+"use strict";
+var FRAMES=[
+  {id:"frp-65",label:"FRP 65系列 (65mm, 2腔)",Uf:1.4,depth:65,fw:54,grp:"frp"},
+  {id:"frp-70",label:"FRP 70系列 (70mm, 3腔)",Uf:1.2,depth:70,fw:58,grp:"frp"},
+  {id:"frp-80",label:"FRP 80系列 (80mm, 3腔)",Uf:1.0,depth:80,fw:65,grp:"frp"},
+  {id:"frp-90",label:"FRP 90系列 (90mm, 3腔)",Uf:0.85,depth:90,fw:72,grp:"frp"},
+  {id:"alu-no-break",label:"铝合金（无隔热条）",Uf:5.9,depth:65,fw:50,grp:"o"},
+  {id:"alu-break",label:"铝合金（PA隔热条）",Uf:3.2,depth:70,fw:55,grp:"o"},
+  {id:"pvc-multi",label:"PVC多腔型",Uf:1.5,depth:70,fw:62,grp:"o"},
+  {id:"pvc-steel",label:"PVC钢衬型",Uf:1.8,depth:70,fw:65,grp:"o"},
+  {id:"timber",label:"木材（软木, 68mm）",Uf:1.4,depth:75,fw:65,grp:"o"}
+];
+var GLASS=[
+  {id:"dg-air",label:"双层 — 4/12Air/4",Ug:2.8,th:20,grp:"dg"},
+  {id:"dg-ar",label:"双层 — 4/16Ar/4 Low-E",Ug:1.1,th:24,grp:"dg"},
+  {id:"dg-ar-6",label:"双层 — 6/20Ar/6 Low-E",Ug:1.0,th:32,grp:"dg"},
+  {id:"tg-ar",label:"三层 — 4/14Ar/4/14Ar/4 双Low-E",Ug:0.6,th:40,grp:"tg"},
+  {id:"tg-kr",label:"三层 — 4/12Kr/4/12Kr/4 双Low-E",Ug:0.5,th:36,grp:"tg"},
+  {id:"tg-ar-wide",label:"三层 — 4/18Ar/4/18Ar/4 双Low-E",Ug:0.55,th:48,grp:"tg"},
+  {id:"qg-kr",label:"四层 — 3/12Kr×3 三Low-E",Ug:0.3,th:48,grp:"qg"}
+];
+var SPACERS=[
+  {id:"alu",label:"铝间隔条",psi:0.08},
+  {id:"steel",label:"钢间隔条",psi:0.06},
+  {id:"warm-basic",label:"暖边间隔条（标准）",psi:0.04},
+  {id:"warm-premium",label:"暖边间隔条（高端/TGI/Swisspacer）",psi:0.03}
+];
+var WINTYPES=[
+  {id:"fixed",label:"固定窗",sw:0},
+  {id:"casement",label:"平开窗 / 内倒窗",sw:58},
+  {id:"sliding",label:"推拉门",sw:70},
+  {id:"entrance",label:"入户门（带玻璃）",sw:85}
+];
+var COMPLIANCE=[
+  {r:"🇨🇳 中国",l:"严寒地区（哈尔滨）",max:1.50},
+  {r:"🇨🇳 中国",l:"寒冷地区（北京）",max:2.00},
+  {r:"🇨🇳 中国",l:"夏热冬冷（上海）",max:2.30},
+  {r:"🇨🇳 中国",l:"夏热冬暖（广州）",max:3.00},
+  {r:"🇪🇺 欧洲",l:"被动房",max:0.80},
+  {r:"🇪🇺 欧洲",l:"近零能耗指令",max:1.30},
+  {r:"🇺🇸 美国",l:"ENERGY STAR 北方",max:1.70},
+  {r:"🇨🇦 加拿大",l:"A区（最冷）",max:1.20}
+];
+var STANDARDS=[
+  ["中国","GB 50189-2015","严寒地区（哈尔滨）","≤ 1.50","公建；住宅按GB 50176"],
+  ["中国","GB 50189-2015","寒冷地区（北京）","≤ 2.00","公共建筑"],
+  ["中国","GB 50189-2015","夏热冬冷（上海）","≤ 2.30","公建；同时限制SHGC"],
+  ["中国","GB 50189-2015","夏热冬暖（广州）","≤ 3.00","公建；SHGC为主控"],
+  ["中国","GB 50176-2016","住宅（严寒）","≤ 1.50","民用建筑热工设计规范"],
+  ["中国","GB 50176-2016","住宅（寒冷）","≤ 2.00","民用建筑热工设计规范"],
+  ["中国","GB/T 8484-2020","测试方法","—","门窗热工性能测试标准"],
+  ["欧洲","EN ISO 10077-1","被动房高端","≤ 0.80","PHI认证；含安装"],
+  ["欧洲","EN ISO 10077-1","被动房经典","≤ 0.85","PHI认证"],
+  ["欧洲","EPBD 2024","近零能耗（中欧）","≤ 1.30","各成员国有差异"],
+  ["美国","IECC 2024","4区（纽约）","≤ 1.99","NFRC测试"],
+  ["美国","IECC 2024","7-8区（阿拉斯加）","≤ 1.70","极寒区"],
+  ["美国","ENERGY STAR v7.0","北方区","≤ 1.70","NFRC测试；最严格"],
+  ["加拿大","CSA A440/NEB","A区（最冷）","≤ 1.20","通常需三层玻璃"],
+  ["加拿大","CSA A440/NEB","C区（最暖）","≤ 1.60","温哥华/安省南部"]
+];
+
+function $(id){return document.getElementById(id);}
+function optGroups(arr,groups){
+  return groups.map(function(g){
+    var opts=arr.filter(function(o){return o.grp===g.k;})
+      .map(function(o){return '<option value="'+o.id+'">'+o.label+'</option>';}).join("");
+    return '<optgroup label="'+g.label+'">'+opts+'</optgroup>';
+  }).join("");
+}
+function plain(arr){return arr.map(function(o){return '<option value="'+o.id+'">'+o.label+'</option>';}).join("");}
+
+$("frame").innerHTML=optGroups(FRAMES,[{k:"frp",label:"FRP 复合材料"},{k:"o",label:"对比材料"}]);
+$("glass").innerHTML=optGroups(GLASS,[{k:"dg",label:"双层中空"},{k:"tg",label:"三层中空"},{k:"qg",label:"四层中空"}]);
+$("spacer").innerHTML=plain(SPACERS);
+$("wintype").innerHTML=plain(WINTYPES);
+$("frame").value="frp-70"; $("glass").value="tg-ar"; $("spacer").value="warm-basic"; $("wintype").value="casement";
+
+function calcUw(width,height,faceWidth,Uf,Ug,psi,sashWidth){
+  var W=width/1000,H=height/1000,fw=faceWidth/1000,sw=sashWidth/1000;
+  var tfw=fw+sw, Aw=W*H, gW=W-2*tfw, gH=H-2*tfw;
+  if(gW<=0||gH<=0) return null;
+  var Ag=gW*gH, Af=Aw-Ag, lg=2*(gW+gH);
+  var Uw=(Ag*Ug+Af*Uf+lg*psi)/(Ag+Af);
+  return {Uw:Math.round(Uw*1000)/1000,Ag:Ag,Af:Af,glassRatio:Math.round(Ag/Aw*100),lg:lg};
+}
+function ratingLabel(u){
+  if(u<=0.8)return"被动房高端级"; if(u<=1.0)return"被动房级"; if(u<=1.3)return"近零能耗级";
+  if(u<=1.8)return"节能达标"; if(u<=2.5)return"基础级"; return"不达标";
+}
+function ratingColor(u){
+  if(u<=1.0)return{c:"#059669",bg:"#ecfdf5",bd:"#a7f3d0"};
+  if(u<=1.3)return{c:"#16a34a",bg:"#f0fdf4",bd:"#bbf7d0"};
+  if(u<=1.8)return{c:"#2563eb",bg:"#eff6ff",bd:"#bfdbfe"};
+  if(u<=2.5)return{c:"#d97706",bg:"#fffbeb",bd:"#fde68a"};
+  return{c:"#dc2626",bg:"#fef2f2",bd:"#fecaca"};
+}
+function breakNote(f){
+  if(f.grp==="frp"||f.id==="timber")return"材料低导热，免隔热条";
+  if(f.id==="alu-break")return"依赖 PA 隔热条";
+  if(f.id==="pvc-steel")return"钢衬形成热桥";
+  if(f.id==="pvc-multi")return"多腔保温好但刚度偏低";
+  return"金属高导热，热桥严重";
+}
+
+function render(){
+  var f=FRAMES.find(function(x){return x.id===$("frame").value;});
+  var g=GLASS.find(function(x){return x.id===$("glass").value;});
+  var s=SPACERS.find(function(x){return x.id===$("spacer").value;});
+  var w=WINTYPES.find(function(x){return x.id===$("wintype").value;});
+  var width=Math.max(200,+$("w").value), height=Math.max(200,+$("h").value);
+
+  $("frame-hint").innerHTML="U<sub>f</sub> = "+f.Uf+" W/m²K · 面宽 "+f.fw+" mm";
+  $("glass-hint").innerHTML="U<sub>g</sub> = "+g.Ug+" W/m²K · "+g.th+" mm";
+  $("spacer-hint").innerHTML="Ψ<sub>g</sub> = "+s.psi+" W/mK";
+  $("wintype-hint").textContent="框扇遮挡 "+w.sw+" mm"+(w.sw===0?"（无开启扇）":"");
+
+  var res=calcUw(width,height,f.fw,f.Uf,g.Ug,s.psi,w.sw);
+  var base=calcUw(width,height,50,5.9,g.Ug,0.08,0);
+
+  if(!res){
+    $("result").innerHTML='<div class="card"><div class="err">框料尺寸超过洞口，玻璃面积不足，请增大洞口或更换更窄的框扇方案。</div></div>';
+    return;
+  }
+  var col=ratingColor(res.Uw);
+  var imp=base?Math.round((base.Uw-res.Uw)/base.Uw*100):0;
+
+  var html='<div class="card">';
+  html+='<div class="result-big" style="background:'+col.bg+';border-color:'+col.bd+'">';
+  html+='<div class="lab">整窗传热系数 U<sub>w</sub></div>';
+  html+='<div class="num" style="color:'+col.c+'">'+res.Uw.toFixed(2)+'</div>';
+  html+='<div class="unit">W/m²K</div>';
+  html+='<span class="badge" style="color:'+col.c+';background:#fff">'+ratingLabel(res.Uw)+'</span>';
+  html+='</div>';
+
+  html+='<div style="height:14px"></div><dl>';
+  html+='<div class="r"><dt>玻璃面积 A<sub>g</sub></dt><dd>'+res.Ag.toFixed(2)+' m²</dd></div>';
+  html+='<div class="r"><dt>框面积 A<sub>f</sub></dt><dd>'+res.Af.toFixed(2)+' m²</dd></div>';
+  html+='<div class="r"><dt>玻璃占比</dt><dd>'+res.glassRatio+'%</dd></div>';
+  html+='<div class="r"><dt>玻璃边缘周长 l<sub>g</sub></dt><dd>'+res.lg.toFixed(2)+' m</dd></div>';
+  html+='<div class="r top"><dt>框料 U<sub>f</sub></dt><dd>'+f.Uf+' W/m²K</dd></div>';
+  html+='<div class="r"><dt>玻璃 U<sub>g</sub></dt><dd>'+g.Ug+' W/m²K</dd></div>';
+  html+='<div class="r"><dt>间隔条 Ψ<sub>g</sub></dt><dd>'+s.psi+' W/mK</dd></div>';
+  html+='</dl></div>';
+
+  if(base&&imp>0){
+    html+='<div class="card"><div class="vs"><div class="lab">对比普通铝合金窗</div>';
+    html+='<p>相同尺寸与玻璃下，普通铝合金（无隔热条）整窗约 <b>'+base.Uw.toFixed(2)+' W/m²K</b>；本方案降低约 <b>'+imp+'%</b>，显著减少冷桥与结露风险。</p></div></div>';
+  }
+
+  html+='<div class="card"><p class="card-t">各国标准合规判定</p><div class="cmp">';
+  COMPLIANCE.forEach(function(c){
+    var pass=res.Uw<=c.max;
+    html+='<div class="row"><span class="lbl">'+c.r+' '+c.l+'</span><span class="v '+(pass?"pass":"no")+'">≤ '+c.max.toFixed(2)+(pass?' ✓':'')+'</span></div>';
+  });
+  html+='</div></div>';
+  $("result").innerHTML=html;
+}
+
+// 框料对比表
+$("frame-table").innerHTML=FRAMES.map(function(f){
+  return '<tr class="'+(f.grp==="frp"?"frp":"")+'"><td>'+f.label+'</td><td>'+f.Uf+'</td><td>'+f.depth+'</td><td>'+f.fw+'</td><td>'+breakNote(f)+'</td></tr>';
+}).join("");
+// 标准对照表
+$("std-table").innerHTML=STANDARDS.map(function(r){
+  return '<tr><td class="nowrap">'+r[0]+'</td><td class="nowrap">'+r[1]+'</td><td>'+r[2]+'</td><td class="nowrap">'+r[3]+'</td><td>'+r[4]+'</td></tr>';
+}).join("");
+
+document.querySelectorAll("#frame,#glass,#spacer,#wintype,#w,#h").forEach(function(el){el.addEventListener("input",render);});
+render();
+</script>
+</body>
+</html>

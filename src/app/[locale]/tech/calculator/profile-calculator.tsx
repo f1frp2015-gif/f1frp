@@ -127,7 +127,8 @@ export default function ProfileCalculator() {
     ? (lt.factor_d * load * span ** 4) / (mat.E * 1000 * Ix)
     : (lt.factor_d * load * 1000 * span ** 3) / (mat.E * 1000 * Ix);
   const deflRatio = span / (defl || 1);
-  const weightPerM = (area / 1e6) * mat.density;
+  // kg/m = 截面积(mm²)/1e3 × 密度(g/cm³)。此前写作 /1e6 少乘 1000，绝对重量偏小 1000 倍。
+  const weightPerM = (area / 1e3) * mat.density;
 
   const stressOk = sigma_max <= mat.sigma;
   const deflOk = deflRatio >= deflLimit;
@@ -163,10 +164,10 @@ export default function ProfileCalculator() {
 
   const stiffArea = calcArea(eqShape, stiffH, stiffB, stiffTw, stiffTf);
   const strengthArea = calcArea(eqShape, strengthH, strengthB, strengthTw, strengthTf);
-  const stiffWeight = (stiffArea / 1e6) * tgtMat.density;
-  const strengthWeight = (strengthArea / 1e6) * tgtMat.density;
+  const stiffWeight = (stiffArea / 1e3) * tgtMat.density;
+  const strengthWeight = (strengthArea / 1e3) * tgtMat.density;
   const tgtWeight = governingIsStiffness ? stiffWeight : strengthWeight;
-  const srcWeight = (srcArea / 1e6) * srcMat.density;
+  const srcWeight = (srcArea / 1e3) * srcMat.density;
   const weightSaving = srcWeight > 0 ? (1 - tgtWeight / srcWeight) * 100 : 0;
 
   const isAluminumSource = eqSourceMat.startsWith("alu-");

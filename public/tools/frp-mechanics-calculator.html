@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<title>FRP 力学计算器 | 复材站</title>
+<meta name="description" content="FRP 拉挤型材梁强度/挠度校核 + 钢/铝→FRP 等效替代选型，支持 EN 13706 / GB/T 31539 / ASCE 多标准。">
+<style>
+  :root{
+    --ink:#1b1b1b; --muted:#6b7280; --line:#e6e7e9; --bg:#fff; --soft:#f7f7f8;
+    --ok:#16a34a; --ok-bg:#f0fdf4; --ok-bd:#bbf7d0;
+    --bad:#dc2626; --bad-bg:#fef2f2; --bad-bd:#fecaca;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--soft); color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:18px 14px 40px;}
+  header h1{font-size:21px;font-weight:800;margin:0 0 4px;letter-spacing:-.01em;}
+  header p{margin:0;color:var(--muted);font-size:13px;}
+  .tabs{display:flex;gap:8px;margin:18px 0 14px;}
+  .tab{flex:1;padding:11px 8px;border:1px solid var(--line);background:var(--bg);border-radius:10px;
+    font-size:14px;font-weight:700;color:var(--muted);text-align:center;cursor:pointer;transition:.15s;}
+  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .card-t{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;}
+  label.f{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted);margin:0 0 5px;}
+  select,input{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);
+    font-size:15px;color:var(--ink);outline:none;-webkit-appearance:none;appearance:none;}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 11px center;padding-right:30px;}
+  input:focus,select:focus{border-color:var(--ink);}
+  .grid{display:grid;gap:11px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  .field{margin-bottom:12px;}
+  .field:last-child{margin-bottom:0;}
+  .stat3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;
+    background:var(--soft);border-radius:9px;padding:12px 6px;margin-bottom:10px;}
+  .stat3 .v{font-size:19px;font-weight:800;line-height:1.1;}
+  .stat3 .v.sm{font-size:16px;}
+  .stat3 .k{font-size:11px;color:var(--muted);margin-top:3px;}
+  .chk{border:1px solid var(--line);border-radius:10px;padding:13px;margin-bottom:10px;}
+  .chk.ok{background:var(--ok-bg);border-color:var(--ok-bd);}
+  .chk.bad{background:var(--bad-bg);border-color:var(--bad-bd);}
+  .chk .lab{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+  .chk .big{font-size:23px;font-weight:800;margin-top:2px;}
+  .chk.ok .big{color:var(--ok);} .chk.bad .big{color:var(--bad);}
+  .chk .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .summary{display:flex;gap:14px;background:var(--soft);border-radius:9px;padding:11px 13px;font-size:13px;color:var(--muted);flex-wrap:wrap;}
+  .summary b{color:var(--ink);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);}
+  th{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+  .tgt{color:var(--ink);font-weight:700;}
+  .mini{border:1px solid var(--line);border-radius:9px;padding:11px;}
+  .mini .lab{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+  .mini .row{display:flex;gap:12px;margin-top:6px;font-size:14px;}
+  .mini .row b{font-weight:800;}
+  .mini .formula{font-size:11px;color:var(--muted);margin-top:5px;}
+  .gov{background:var(--ok-bg);border:1px solid var(--ok-bd);border-radius:10px;padding:12px;margin-bottom:10px;}
+  .gov .lab{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ok);}
+  .gov .big{font-size:15px;font-weight:800;margin-top:3px;}
+  .gov .sub{font-size:11px;color:var(--muted);margin-top:4px;}
+  .disc{font-size:11px;color:var(--muted);line-height:1.55;margin:6px 0 0;}
+  .hide{display:none!important;}
+  sub{font-size:.72em;} sup{font-size:.72em;}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px;}
+  footer a{color:var(--ink);text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>FRP 力学计算器</h1>
+    <p>拉挤型材梁强度/挠度校核 · 钢/铝 → FRP 等效替代选型</p>
+  </header>
+
+  <div class="tabs">
+    <div class="tab on" data-mode="beam" id="tab-beam">梁计算</div>
+    <div class="tab" data-mode="equiv" id="tab-equiv">等效替代</div>
+  </div>
+
+  <!-- ============ 梁计算 ============ -->
+  <div id="beam">
+    <div class="card">
+      <p class="card-t">输入条件</p>
+      <div class="grid g2">
+        <div class="field">
+          <label class="f">材料</label>
+          <select id="b-mat">
+            <optgroup label="FRP — EN 13706">
+              <option value="frp-e17">EN 13706 E17 级</option>
+              <option value="frp-e23" selected>EN 13706 E23 级</option>
+            </optgroup>
+            <optgroup label="FRP — GB/T 31539-2015">
+              <option value="frp-gb-i">GB/T 31539 I 级</option>
+              <option value="frp-gb-ii">GB/T 31539 II 级</option>
+            </optgroup>
+            <optgroup label="FRP — ASCE">
+              <option value="frp-standard">ASCE 标准级</option>
+              <option value="frp-high">ASCE 高性能级</option>
+            </optgroup>
+            <optgroup label="钢材 — EN">
+              <option value="steel-s235">S235 (EN 10025)</option>
+              <option value="steel-s355">S355 (EN 10025)</option>
+            </optgroup>
+            <optgroup label="钢材 — 国标">
+              <option value="steel-q235">Q235 (GB/T 700)</option>
+              <option value="steel-q345">Q345 (GB/T 1591)</option>
+            </optgroup>
+            <optgroup label="铝合金">
+              <option value="alu-6061">6061-T6</option>
+              <option value="alu-6063">6063-T5</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field">
+          <label class="f">荷载类型</label>
+          <select id="b-load"></select>
+        </div>
+      </div>
+      <div class="grid g3">
+        <div class="field"><label class="f">跨度 (mm)</label><input type="number" id="b-span" value="3000"></div>
+        <div class="field"><label class="f" id="b-load-lab">荷载 (kN/m)</label><input type="number" id="b-loadv" value="5" step="0.1"></div>
+        <div class="field"><label class="f">挠度限值 L/</label><input type="number" id="b-defl" value="250"></div>
+      </div>
+      <div class="field">
+        <label class="f">截面形状</label>
+        <select id="b-shape"></select>
+      </div>
+      <div class="grid g3">
+        <div class="field" id="b-h-f"><label class="f" id="b-h-lab">高 H (mm)</label><input type="number" id="b-h" value="200"></div>
+        <div class="field" id="b-b-f"><label class="f">宽 B (mm)</label><input type="number" id="b-b" value="100"></div>
+        <div class="field"><label class="f" id="b-tw-lab">腹板厚 tw (mm)</label><input type="number" id="b-tw" value="10"></div>
+        <div class="field" id="b-tf-f"><label class="f">翼缘厚 tf (mm)</label><input type="number" id="b-tf" value="10"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-t">计算结果</p>
+      <div class="stat3">
+        <div><div class="v" id="r-E">–</div><div class="k">E (GPa)</div></div>
+        <div><div class="v" id="r-sig">–</div><div class="k">σ (MPa)</div></div>
+        <div><div class="v" id="r-rho">–</div><div class="k">ρ (g/cm³)</div></div>
+      </div>
+      <div class="stat3">
+        <div><div class="v sm" id="r-ix">–</div><div class="k">Ix (cm⁴)</div></div>
+        <div><div class="v sm" id="r-wx">–</div><div class="k">Wx (cm³)</div></div>
+        <div><div class="v sm" id="r-kg">–</div><div class="k">kg/m</div></div>
+      </div>
+      <div class="grid g2">
+        <div class="chk" id="r-stress-card">
+          <div class="lab">最大弯曲应力</div>
+          <div class="big" id="r-stress">–</div>
+          <div class="sub" id="r-stress-sub"></div>
+        </div>
+        <div class="chk" id="r-defl-card">
+          <div class="lab">最大挠度</div>
+          <div class="big" id="r-defl">–</div>
+          <div class="sub" id="r-defl-sub"></div>
+        </div>
+      </div>
+      <div class="summary">
+        <div>最大弯矩 <b id="r-m">–</b></div>
+        <div>总荷载 <b id="r-tf">–</b></div>
+      </div>
+      <p class="disc">本工具用于初步选型与方案比选，采用简支/悬臂理想边界与线弹性假设，未计入剪切变形、局部屈曲、连接与长期蠕变。FRP 实际工程须按 EN 13706 / GB 50608 / ASCE 拉挤标准复核并取适当安全系数。</p>
+    </div>
+  </div>
+
+  <!-- ============ 等效替代 ============ -->
+  <div id="equiv" class="hide">
+    <div class="card">
+      <p class="card-t">原方案（金属）</p>
+      <div class="grid g2">
+        <div class="field">
+          <label class="f">原材料</label>
+          <select id="e-src">
+            <optgroup label="钢材 — EN">
+              <option value="steel-s235">S235 (EN 10025)</option>
+              <option value="steel-s355">S355 (EN 10025)</option>
+            </optgroup>
+            <optgroup label="钢材 — 国标">
+              <option value="steel-q235" selected>Q235 (GB/T 700)</option>
+              <option value="steel-q345">Q345 (GB/T 1591)</option>
+            </optgroup>
+            <optgroup label="铝合金">
+              <option value="alu-6061">6061-T6</option>
+              <option value="alu-6063">6063-T5</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field">
+          <label class="f">目标 FRP</label>
+          <select id="e-tgt">
+            <optgroup label="EN 13706">
+              <option value="frp-e17">EN 13706 E17</option>
+              <option value="frp-e23">EN 13706 E23</option>
+            </optgroup>
+            <optgroup label="GB/T 31539-2015">
+              <option value="frp-gb-i" selected>GB/T 31539 I 级</option>
+              <option value="frp-gb-ii">GB/T 31539 II 级</option>
+            </optgroup>
+            <optgroup label="ASCE">
+              <option value="frp-standard">ASCE 标准级</option>
+              <option value="frp-high">ASCE 高性能级</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="f">截面形状</label>
+        <select id="e-shape"></select>
+      </div>
+      <div class="grid g3">
+        <div class="field" id="e-h-f"><label class="f" id="e-h-lab">高 H (mm)</label><input type="number" id="e-h" value="200"></div>
+        <div class="field" id="e-b-f"><label class="f">宽 B (mm)</label><input type="number" id="e-b" value="100"></div>
+        <div class="field"><label class="f" id="e-tw-lab">腹板厚 tw (mm)</label><input type="number" id="e-tw" value="8"></div>
+        <div class="field" id="e-tf-f"><label class="f">翼缘厚 tf (mm)</label><input type="number" id="e-tf" value="12"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-t">等效替代结果</p>
+      <table>
+        <thead><tr><th>属性</th><th id="e-src-name">原材料</th><th class="tgt" id="e-tgt-name">FRP</th></tr></thead>
+        <tbody>
+          <tr><td>弹性模量 E (GPa)</td><td id="e-Es">–</td><td class="tgt" id="e-Et">–</td></tr>
+          <tr><td>许用应力 σ (MPa)</td><td id="e-ss">–</td><td class="tgt" id="e-st">–</td></tr>
+          <tr><td>密度 ρ (g/cm³)</td><td id="e-rs">–</td><td class="tgt" id="e-rt">–</td></tr>
+          <tr><td>所需 Ix (cm⁴)</td><td id="e-ixs">–</td><td class="tgt" id="e-ixt">–</td></tr>
+          <tr><td>所需 Wx (cm³)</td><td id="e-wxs">–</td><td class="tgt" id="e-wxt">–</td></tr>
+        </tbody>
+      </table>
+      <div class="grid g2" style="margin-top:12px">
+        <div class="mini">
+          <div class="lab">等刚度建议尺寸</div>
+          <div class="row"><span>H: <b id="e-sh-h">–</b></span><span>B: <b id="e-sh-b">–</b></span></div>
+          <div class="formula">k = (E<sub>原</sub>/E<sub>FRP</sub>)<sup>1/4</sup> = ×<span id="e-sh-k">–</span></div>
+        </div>
+        <div class="mini">
+          <div class="lab">等强度建议尺寸</div>
+          <div class="row"><span>H: <b id="e-st-h">–</b></span><span>B: <b id="e-st-b">–</b></span></div>
+          <div class="formula">k = (σ<sub>原</sub>/σ<sub>FRP</sub>)<sup>1/3</sup> = ×<span id="e-st-k">–</span></div>
+        </div>
+      </div>
+      <div class="gov" style="margin-top:10px">
+        <div class="lab">控制准则</div>
+        <div class="big" id="e-gov">–</div>
+        <div class="sub" id="e-gov-sub"></div>
+      </div>
+      <div class="stat3">
+        <div><div class="v" id="e-ws">–</div><div class="k">原方案 kg/m</div></div>
+        <div><div class="v" id="e-wt" style="color:var(--ink)">–</div><div class="k">FRP（控制）kg/m</div></div>
+        <div style="background:var(--ok-bg);border-radius:8px;padding:6px 2px"><div class="v" id="e-save" style="color:var(--ok)">–</div><div class="k">减重</div></div>
+      </div>
+      <p class="disc">几何相似缩放下 I∝k⁴、W∝k³，故等刚度 k=(E比)<sup>1/4</sup>、等强度 k=(σ比)<sup>1/3</sup>，取两者较大值为控制准则。本结果为快速选型估算，FRP 须另行复核挠度、局部屈曲与连接节点。</p>
+    </div>
+  </div>
+
+  <footer>
+    复材站 · FRP 工程工具 &nbsp;|&nbsp; <a href="https://f1frp.com">f1frp.com</a>
+  </footer>
+</div>
+
+<script>
+"use strict";
+// 材料库：E(GPa) σ(许用,MPa) density(g/cm³)
+var MAT = {
+  "frp-e17":{n:"FRP EN 13706 E17",E:17,s:170,d:1.9},
+  "frp-e23":{n:"FRP EN 13706 E23",E:23,s:240,d:1.9},
+  "frp-standard":{n:"FRP ASCE 标准级",E:17.2,s:207,d:1.8},
+  "frp-high":{n:"FRP ASCE 高性能级",E:27.6,s:345,d:1.9},
+  "frp-gb-i":{n:"FRP GB/T 31539 I级",E:20,s:200,d:1.9},
+  "frp-gb-ii":{n:"FRP GB/T 31539 II级",E:15,s:150,d:1.8},
+  "steel-s235":{n:"钢材 S235",E:210,s:235,d:7.85},
+  "steel-s355":{n:"钢材 S355",E:210,s:355,d:7.85},
+  "steel-q235":{n:"钢材 Q235",E:206,s:235,d:7.85},
+  "steel-q345":{n:"钢材 Q345",E:206,s:345,d:7.85},
+  "alu-6061":{n:"铝合金 6061-T6",E:69,s:276,d:2.7},
+  "alu-6063":{n:"铝合金 6063-T5",E:69,s:186,d:2.7}
+};
+var LOADS = [
+  {id:"udl",label:"均布荷载 (UDL)",fM:1/8,fd:5/384,dist:true},
+  {id:"point-mid",label:"跨中集中荷载",fM:1/4,fd:1/48,dist:false},
+  {id:"cantilever-point",label:"悬臂梁 — 端部集中",fM:1,fd:1/3,dist:false},
+  {id:"cantilever-udl",label:"悬臂梁 — 均布荷载",fM:1/2,fd:1/8,dist:true}
+];
+var SHAPES = [
+  {id:"i-beam",label:"工字型 (I-Beam)"},
+  {id:"channel",label:"槽型 (Channel)"},
+  {id:"angle",label:"角型 (L-Profile)"},
+  {id:"square-tube",label:"方管 / 矩形管"},
+  {id:"round-tube",label:"圆管"}
+];
+
+function calcIx(shape,h,b,tw,tf){
+  if(shape==="i-beam"||shape==="channel")
+    return (b*Math.pow(h,3) - (b-tw)*Math.pow(h-2*tf,3))/12;
+  if(shape==="angle"){
+    var t=tw;
+    var yBar=(h*t*h/2 + (b-t)*t*t/2)/(h*t+(b-t)*t);
+    var Iv=(t*Math.pow(h,3))/12 + h*t*Math.pow(h/2-yBar,2);
+    var Ih=((b-t)*Math.pow(t,3))/12 + (b-t)*t*Math.pow(yBar-t/2,2);
+    return Iv+Ih;
+  }
+  if(shape==="square-tube")
+    return (b*Math.pow(h,3) - (b-2*tw)*Math.pow(h-2*tw,3))/12;
+  if(shape==="round-tube"){
+    var Ro=h/2, Ri=Ro-tw;
+    return (Math.PI/4)*(Math.pow(Ro,4)-Math.pow(Ri,4));
+  }
+  return 0;
+}
+function calcWx(Ix,h,shape,b,tw){
+  if(shape==="angle"){
+    var t=tw;
+    var yBar=(h*t*h/2 + (b-t)*t*t/2)/(h*t+(b-t)*t);
+    return Ix/Math.max(yBar,h-yBar);
+  }
+  return Ix/(h/2);
+}
+function calcArea(shape,h,b,tw,tf){
+  if(shape==="i-beam"||shape==="channel") return 2*b*tf+(h-2*tf)*tw;
+  if(shape==="angle") return h*tw+(b-tw)*tw;
+  if(shape==="square-tube") return b*h-(b-2*tw)*(h-2*tw);
+  if(shape==="round-tube"){var Ro=h/2,Ri=Ro-tw;return Math.PI*(Ro*Ro-Ri*Ri);}
+  return 0;
+}
+// 单位重量 kg/m：截面积(mm²)×密度(g/cm³)/1000。源站 profile-calculator.tsx 同步修正。
+function kgPerM(area,density){return area*density/1000;}
+
+function $(id){return document.getElementById(id);}
+function fillSelect(el,arr){el.innerHTML=arr.map(function(o){return '<option value="'+o.id+'">'+o.label+'</option>';}).join("");}
+
+// 形状字段可见性
+function applyShape(prefix,shape){
+  var isRound=shape==="round-tube", isIC=(shape==="i-beam"||shape==="channel");
+  $(prefix+"-b-f").classList.toggle("hide",isRound);
+  $(prefix+"-tf-f").classList.toggle("hide",!isIC);
+  $(prefix+"-h-lab").textContent=isRound?"外径 OD (mm)":"高 H (mm)";
+  $(prefix+"-tw-lab").textContent=isIC?"腹板厚 tw (mm)":"壁厚 t (mm)";
+}
+
+fillSelect($("b-load"),LOADS);
+fillSelect($("b-shape"),SHAPES);
+fillSelect($("e-shape"),SHAPES);
+
+function renderBeam(){
+  var mat=MAT[$("b-mat").value];
+  var lt=LOADS.find(function(l){return l.id===$("b-load").value;});
+  var span=+$("b-span").value, load=+$("b-loadv").value, deflLimit=+$("b-defl").value;
+  var shape=$("b-shape").value;
+  var h=+$("b-h").value, b=+$("b-b").value, tw=+$("b-tw").value, tf=+$("b-tf").value;
+  applyShape("b",shape);
+  $("b-load-lab").textContent=lt.dist?"荷载 (kN/m)":"荷载 (kN)";
+
+  var Ix=calcIx(shape,h,b,tw,tf), Wx=calcWx(Ix,h,shape,b,tw), area=calcArea(shape,h,b,tw,tf);
+  var totalForce=lt.dist?load*(span/1000):load;
+  var M=lt.dist? lt.fM*load*(span/1000)*(span/1000)*1e6 : lt.fM*load*span*1000;
+  var sig=Wx>0?M/Wx:0;
+  var defl=lt.dist? (lt.fd*load*Math.pow(span,4))/(mat.E*1000*Ix)
+                  : (lt.fd*load*1000*Math.pow(span,3))/(mat.E*1000*Ix);
+  var ratio=span/(defl||1);
+
+  $("r-E").textContent=mat.E; $("r-sig").textContent=mat.s; $("r-rho").textContent=mat.d;
+  $("r-ix").textContent=(Ix/1e4).toFixed(1);
+  $("r-wx").textContent=(Wx/1e3).toFixed(1);
+  $("r-kg").textContent=kgPerM(area,mat.d).toFixed(2);
+
+  var sOk=sig<=mat.s;
+  $("r-stress-card").className="chk "+(sOk?"ok":"bad");
+  $("r-stress").textContent=sig.toFixed(1)+" MPa";
+  $("r-stress-sub").textContent=(sOk?"✓":"✗")+" 许用 "+mat.s+" MPa（已用 "+((sig/mat.s)*100).toFixed(0)+"%）";
+
+  var dOk=ratio>=deflLimit;
+  $("r-defl-card").className="chk "+(dOk?"ok":"bad");
+  $("r-defl").textContent=defl.toFixed(1)+" mm";
+  $("r-defl-sub").textContent=(dOk?"✓":"✗")+" L/"+ratio.toFixed(0)+"（限值 L/"+deflLimit+"）";
+
+  $("r-m").textContent=(M/1e6).toFixed(2)+" kN·m";
+  $("r-tf").textContent=totalForce.toFixed(1)+" kN";
+}
+
+function renderEquiv(){
+  var src=MAT[$("e-src").value], tgt=MAT[$("e-tgt").value];
+  var shape=$("e-shape").value;
+  var h=+$("e-h").value, b=+$("e-b").value, tw=+$("e-tw").value, tf=+$("e-tf").value;
+  applyShape("e",shape);
+
+  var srcIx=calcIx(shape,h,b,tw,tf), srcWx=calcWx(srcIx,h,shape,b,tw), srcArea=calcArea(shape,h,b,tw,tf);
+  var reqWx=srcWx*(src.s/tgt.s), reqIx=srcIx*(src.E/tgt.E);
+  var kStiff=Math.pow(src.E/tgt.E,1/4), kStr=Math.pow(src.s/tgt.s,1/3);
+
+  function rnd(x){return Math.round(x);} function rmin(x){return Math.max(1,Math.round(x));}
+  var shH=rnd(h*kStiff), shB=rnd(b*kStiff), shTw=rmin(tw*kStiff), shTf=rmin(tf*kStiff);
+  var stH=rnd(h*kStr),  stB=rnd(b*kStr),  stTw=rmin(tw*kStr),  stTf=rmin(tf*kStr);
+
+  var govStiff=kStiff>=kStr, govK=Math.max(kStiff,kStr);
+  var govArea=govStiff?calcArea(shape,shH,shB,shTw,shTf):calcArea(shape,stH,stB,stTw,stTf);
+  var srcW=kgPerM(srcArea,src.d), tgtW=kgPerM(govArea,tgt.d);
+  var save=srcW>0?(1-tgtW/srcW)*100:0;
+  var isAl=$("e-src").value.indexOf("alu-")===0;
+
+  $("e-src-name").textContent=src.n; $("e-tgt-name").textContent=tgt.n;
+  $("e-Es").textContent=src.E; $("e-Et").textContent=tgt.E;
+  $("e-ss").textContent=src.s; $("e-st").textContent=tgt.s;
+  $("e-rs").textContent=src.d; $("e-rt").textContent=tgt.d;
+  $("e-ixs").textContent=(srcIx/1e4).toFixed(1); $("e-ixt").textContent=(reqIx/1e4).toFixed(1);
+  $("e-wxs").textContent=(srcWx/1e3).toFixed(1); $("e-wxt").textContent=(reqWx/1e3).toFixed(1);
+
+  $("e-sh-h").textContent=shH+" mm"; $("e-sh-b").textContent=shB+" mm"; $("e-sh-k").textContent=kStiff.toFixed(2);
+  $("e-st-h").textContent=stH+" mm"; $("e-st-b").textContent=stB+" mm"; $("e-st-k").textContent=kStr.toFixed(2);
+
+  $("e-gov").textContent=(govStiff?"刚度控制":"强度控制")+" — ×"+govK.toFixed(2);
+  $("e-gov-sub").textContent=isAl
+    ? "铝模量与 FRP 接近，多由强度准则控制；FRP 替铝减重有限但耐蚀/绝缘优势显著。"
+    : "钢模量远高于 FRP，通常由刚度准则控制，需适当加大截面以补偿低模量。";
+
+  $("e-ws").textContent=srcW.toFixed(2);
+  $("e-wt").textContent=tgtW.toFixed(2);
+  $("e-save").textContent=save.toFixed(0)+"%";
+}
+
+// tab 切换
+var mode="beam";
+document.querySelectorAll(".tab").forEach(function(t){
+  t.addEventListener("click",function(){
+    mode=t.getAttribute("data-mode");
+    $("tab-beam").classList.toggle("on",mode==="beam");
+    $("tab-equiv").classList.toggle("on",mode==="equiv");
+    $("beam").classList.toggle("hide",mode!=="beam");
+    $("equiv").classList.toggle("hide",mode!=="equiv");
+    render();
+  });
+});
+function render(){ if(mode==="beam") renderBeam(); else renderEquiv(); }
+document.querySelectorAll("#beam input,#beam select").forEach(function(el){el.addEventListener("input",renderBeam);});
+document.querySelectorAll("#equiv input,#equiv select").forEach(function(el){el.addEventListener("input",renderEquiv);});
+render();
+</script>
+</body>
+</html>
