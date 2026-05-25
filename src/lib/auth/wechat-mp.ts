@@ -57,7 +57,7 @@ export interface WechatToken {
 
 export async function exchangeCodeForToken(code: string): Promise<WechatToken> {
   const secret = process.env.WECHAT_APP_SECRET;
-  if (!secret) throw new Error("WECHAT_MP_APPSECRET not set");
+  if (!secret) throw new Error("WECHAT_APP_SECRET not set");
   const url =
     `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${APPID}` +
     `&secret=${secret}&code=${encodeURIComponent(code)}&grant_type=authorization_code`;
