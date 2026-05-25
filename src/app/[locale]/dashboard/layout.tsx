@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/session";
 import { isAdminUser } from "@/lib/admin";
 import { Icon } from "@/components/icon";
 
@@ -46,16 +43,11 @@ export default async function DashboardLayout({
     { href: "/dashboard/admin/claims" as const, label: t("nav.adminClaims"), iconKey: "admin-claims" },
   ];
 
-  const { userId: clerkId } = await auth();
-  let showAdmin = false;
-  if (clerkId) {
-    const [me] = await db
-      .select({ role: users.role, email: users.email })
-      .from(users)
-      .where(eq(users.clerkId, clerkId))
-      .limit(1);
-    if (me) showAdmin = isAdminUser(me);
-  }
+  // 国内中间件不再拦截 /dashboard(避免 Auth.js 入 edge),鉴权在此做。
+  // getCurrentUser 按 profile 分流:domestic→Auth.js、global→Clerk(见 lib/auth/session.ts)。
+  const me = await getCurrentUser();
+  if (!me) redirect(`/${locale}/sign-in`);
+  const showAdmin = isAdminUser(me);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">

@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { users, savedItems } from "@/lib/db/schema";
+import { savedItems } from "@/lib/db/schema";
+import { getCurrentUserId } from "@/lib/auth/session";
 
 export type SavedSourceType =
   | "material"
@@ -14,22 +14,16 @@ export type SavedSourceType =
 
 /**
  * Resolve the currently authenticated engineer's DB `users.id` and signed-in
- * state in one call. Used by detail pages to render the SaveButton in the
- * correct initial state without an extra round-trip.
+ * state in one call. 认证按 profile 分流(domestic→Auth.js、global→Clerk),
+ * 见 lib/auth/session.ts。
  */
 export async function resolveViewer(): Promise<{
   signedIn: boolean;
   userId: string | null;
 }> {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return { signedIn: false, userId: null };
-    const [u] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.clerkId, clerkId))
-      .limit(1);
-    return { signedIn: true, userId: u?.id ?? null };
+    const userId = await getCurrentUserId();
+    return { signedIn: Boolean(userId), userId };
   } catch {
     return { signedIn: false, userId: null };
   }
