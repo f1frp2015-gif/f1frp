@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { SignUp } from "@clerk/nextjs";
+import { WechatPhoneLogin } from "@/components/auth/wechat-phone-login";
 
 export async function generateMetadata({
   params,
@@ -25,7 +25,7 @@ export default async function SignUpPage({
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-16">
-      <SignUp />
+      <WechatPhoneLogin />
     </div>
   );
 }
