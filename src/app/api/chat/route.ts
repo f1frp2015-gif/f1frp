@@ -4,7 +4,7 @@ import {
   stepCountIs,
   type UIMessage,
 } from "ai";
-import { auth } from "@clerk/nextjs/server";
+import { isAuthenticated } from "@/lib/auth/session";
 import {
   getChatModelForRequest,
   isChatConfiguredForRequest,
@@ -71,11 +71,11 @@ export async function POST(req: Request) {
   }
 
   // 匿名访客超过免费额度后引导注册;登录用户跳过。
-  // 我们检查 Clerk userId 即可,不再查 DB 等级(membership 已 neuter 为全直通)。
+  // 只检查会话存在性(profile 分流:domestic→Auth.js、global→Clerk),不查 DB。
   let anonCookieToSet: string | null = null;
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const signedIn = await isAuthenticated();
+    if (!signedIn) {
       const gate = consumeAnonChatCredit(req);
       if (!gate.ok) {
         return Response.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });

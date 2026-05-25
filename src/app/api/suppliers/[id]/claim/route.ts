@@ -1,29 +1,17 @@
 import { NextResponse } from "next/server";
 import { and, eq, inArray } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { supplierClaims, supplierListings, users } from "@/lib/db/schema";
+import { supplierClaims, supplierListings } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/session";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { userId: clerkId } = await auth();
-  if (!clerkId) {
-    return NextResponse.json({ error: "请先登录" }, { status: 401 });
-  }
-
-  const [me] = await db
-    .select()
-    .from(users)
-    .where(eq(users.clerkId, clerkId))
-    .limit(1);
+  const me = await getCurrentUser();
   if (!me) {
-    return NextResponse.json(
-      { error: "用户资料同步中，请稍后重试" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "请先登录" }, { status: 401 });
   }
 
   const [supplier] = await db

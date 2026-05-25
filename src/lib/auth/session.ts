@@ -31,3 +31,13 @@ export async function getCurrentUser(): Promise<User | null> {
 export async function getCurrentUserId(): Promise<string | null> {
   return (await getCurrentUser())?.id ?? null;
 }
+
+// 轻量"是否已登录"检查 —— 只看会话存在性,不查 users 表(用于 AI 匿名额度门)。
+export async function isAuthenticated(): Promise<boolean> {
+  if (aiProfile === "domestic") {
+    const session = await authJs();
+    return Boolean((session?.user as { id?: string } | undefined)?.id);
+  }
+  const { userId } = await clerkAuth();
+  return Boolean(userId);
+}

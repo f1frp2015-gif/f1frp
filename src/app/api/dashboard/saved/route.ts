@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, savedItems } from "@/lib/db/schema";
+import { savedItems } from "@/lib/db/schema";
+import { getCurrentUserId } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,15 +19,9 @@ const VALID_SOURCES = [
 
 type SourceType = (typeof VALID_SOURCES)[number];
 
+// 认证按 profile 分流(domestic→Auth.js、global→Clerk),见 lib/auth/session.ts。
 async function requireUserId() {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return null;
-  const [u] = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.clerkId, clerkId))
-    .limit(1);
-  return u?.id ?? null;
+  return getCurrentUserId();
 }
 
 export async function POST(req: Request) {

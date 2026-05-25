@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useAuthMode } from "@/lib/auth/auth-mode";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,14 +18,41 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export function SupplierClaimButton({
+type GateProps = { supplierId: string; supplierName: string };
+
+// 按认证模式分流:domestic→Auth.js、global→Clerk。各 gate 只调用各自的 hook,
+// 未渲染的分支不会触发对应 hook,因此不依赖另一套 Provider。
+export function SupplierClaimButton(props: GateProps) {
+  const mode = useAuthMode();
+  return mode === "wechat" ? (
+    <AuthJsGate {...props} />
+  ) : (
+    <ClerkGate {...props} />
+  );
+}
+
+function ClerkGate(props: GateProps) {
+  const { isLoaded, isSignedIn } = useUser();
+  return <ClaimInner isLoaded={isLoaded} isSignedIn={Boolean(isSignedIn)} {...props} />;
+}
+
+function AuthJsGate(props: GateProps) {
+  const { status, data } = useSession();
+  return (
+    <ClaimInner
+      isLoaded={status !== "loading"}
+      isSignedIn={Boolean(data)}
+      {...props}
+    />
+  );
+}
+
+function ClaimInner({
+  isLoaded,
+  isSignedIn,
   supplierId,
   supplierName,
-}: {
-  supplierId: string;
-  supplierName: string;
-}) {
-  const { isLoaded, isSignedIn } = useUser();
+}: GateProps & { isLoaded: boolean; isSignedIn: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);

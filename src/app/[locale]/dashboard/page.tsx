@@ -7,25 +7,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { auth } from "@clerk/nextjs/server";
 import { and, count, eq, ne, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
-import { users, posts, inquiries } from "@/lib/db/schema";
+import { posts, inquiries, type User } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/session";
 import { tierLabel, isExpired } from "@/lib/membership";
 
-async function loadStats(clerkId: string) {
-  const [me] = await db
-    .select()
-    .from(users)
-    .where(eq(users.clerkId, clerkId))
-    .limit(1);
-
-  if (!me) {
-    return { me: null, postCount: 0, inquiryCount: 0, viewCount: 0 };
-  }
-
+async function loadStats(me: User) {
   const [[{ postCount }], [{ inquiryCount }], [{ viewCount }]] =
     await Promise.all([
       db
@@ -42,7 +32,7 @@ async function loadStats(clerkId: string) {
         .where(eq(posts.authorId, me.id)),
     ]);
 
-  return { me, postCount, inquiryCount, viewCount };
+  return { postCount, inquiryCount, viewCount };
 }
 
 export default async function DashboardPage({
@@ -54,20 +44,21 @@ export default async function DashboardPage({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Dashboard" });
 
-  const { userId } = await auth();
-  const stats = userId
-    ? await loadStats(userId)
-    : { me: null, postCount: 0, inquiryCount: 0, viewCount: 0 };
+  // 认证按 profile 分流(domestic→Auth.js、global→Clerk),见 lib/auth/session.ts。
+  const me = await getCurrentUser();
+  const stats = me
+    ? await loadStats(me)
+    : { postCount: 0, inquiryCount: 0, viewCount: 0 };
 
-  const expired = stats.me ? isExpired(stats.me.membershipExpiry) : false;
-  const tierText = stats.me
+  const expired = me ? isExpired(me.membershipExpiry) : false;
+  const tierText = me
     ? expired
       ? t("home.tierExpired")
-      : tierLabel(stats.me.membershipTier)
+      : tierLabel(me.membershipTier)
     : t("home.tierFree");
 
-  const welcomeText = stats.me?.name
-    ? t("home.welcomeName", { name: stats.me.name })
+  const welcomeText = me?.name
+    ? t("home.welcomeName", { name: me.name })
     : t("home.welcome");
 
   const rules = [
