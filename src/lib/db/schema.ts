@@ -81,7 +81,8 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    clerkId: varchar("clerk_id", { length: 255 }).unique().notNull(),
+    // clerkId 仅海外 Clerk 用户有值;国内微信/手机用户为 null,按 wechatOpenId/unionId/phone 识别。
+    clerkId: varchar("clerk_id", { length: 255 }).unique(),
     phone: varchar("phone", { length: 20 }),
     email: varchar("email", { length: 255 }),
     name: varchar("name", { length: 100 }),
