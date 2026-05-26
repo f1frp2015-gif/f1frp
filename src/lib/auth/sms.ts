@@ -1,10 +1,10 @@
-// 阿里云短信 SendSms —— 国内手机 OTP 发码。
-// 手写 RPC v1 签名(HMAC-SHA1),零依赖。⚠ 首次需用真实 AccessKey/签名/模板联调,
-// 核对签名与模板参数名(默认模板变量为 ${code})。
-// env:ALI_SMS_ACCESS_KEY_ID / ALI_SMS_ACCESS_KEY_SECRET / ALI_SMS_SIGN_NAME / ALI_SMS_TEMPLATE_CODE
+// 阿里云短信 SendSms —— 国内手机 OTP 发码。手写 RPC v1 签名(HMAC-SHA1),零依赖。
+// 复用 ECS 现有变量名 ALIYUN_SMS_*(AccessKey/签名已配)。验证码模板单独取:
+//   ALIYUN_SMS_OTP_TEMPLATE_CODE 优先,缺则回落 ALIYUN_SMS_TEMPLATE_CODE。
+//   ⚠ 该模板的变量名须为 ${code}(发送的 TemplateParam = {"code":"123456"})。
 import { createHmac, randomUUID } from "node:crypto";
 
-// RFC3986 percent-encode(阿里云要求:* → %2A,~ 保留,空格 → %20)
+// RFC3986 percent-encode(阿里云:* → %2A,~ 保留,空格 → %20)
 function pe(s: string): string {
   return encodeURIComponent(s)
     .replace(/\+/g, "%20")
@@ -12,12 +12,19 @@ function pe(s: string): string {
     .replace(/%7E/g, "~");
 }
 
+function otpTemplateCode(): string | undefined {
+  return (
+    process.env.ALIYUN_SMS_OTP_TEMPLATE_CODE ||
+    process.env.ALIYUN_SMS_TEMPLATE_CODE
+  );
+}
+
 export function isSmsConfigured(): boolean {
   return Boolean(
-    process.env.ALI_SMS_ACCESS_KEY_ID &&
-      process.env.ALI_SMS_ACCESS_KEY_SECRET &&
-      process.env.ALI_SMS_SIGN_NAME &&
-      process.env.ALI_SMS_TEMPLATE_CODE,
+    process.env.ALIYUN_SMS_ACCESS_KEY &&
+      process.env.ALIYUN_SMS_ACCESS_SECRET &&
+      process.env.ALIYUN_SMS_SIGN_NAME &&
+      otpTemplateCode(),
   );
 }
 
@@ -25,10 +32,10 @@ export async function sendSmsCode(
   phone: string,
   code: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const keyId = process.env.ALI_SMS_ACCESS_KEY_ID;
-  const keySecret = process.env.ALI_SMS_ACCESS_KEY_SECRET;
-  const signName = process.env.ALI_SMS_SIGN_NAME;
-  const templateCode = process.env.ALI_SMS_TEMPLATE_CODE;
+  const keyId = process.env.ALIYUN_SMS_ACCESS_KEY;
+  const keySecret = process.env.ALIYUN_SMS_ACCESS_SECRET;
+  const signName = process.env.ALIYUN_SMS_SIGN_NAME;
+  const templateCode = otpTemplateCode();
   if (!keyId || !keySecret || !signName || !templateCode) {
     return { ok: false, error: "SMS not configured" };
   }
