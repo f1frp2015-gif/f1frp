@@ -435,8 +435,15 @@ export function FormulasClient({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <Separator className="mb-5" />
-                  <FormulaDetail formula={f} materialMap={ingredientMaterialMap} />
+                  {/* 仅展开时渲染详情:Accordion 的 Panel 是 keepMounted,若无条件渲染
+                      会把全部 ~115 个配方详情塞进 SSR DOM(2.7MB),低端手机解析/水合卡死。
+                      数据已在 props,展开即时渲染,无需请求。 */}
+                  {openItems.includes(f.id) && (
+                    <>
+                      <Separator className="mb-5" />
+                      <FormulaDetail formula={f} materialMap={ingredientMaterialMap} />
+                    </>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             ))}
