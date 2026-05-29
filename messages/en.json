@@ -1819,5 +1819,110 @@
     "answerLabel": "AI Answer",
     "citationsLabel": "Sources",
     "askAnother": "Ask another question"
+  },
+  "PultrusionQuote": {
+    "meta": {
+      "title": "Pultruded Profile AI Quick Quote · f1frp",
+      "description": "Get a rough price range for pultruded fiberglass / carbon profiles in 30 seconds — with cost breakdown and an AI engineer's explanation. Anonymous-friendly. For directional reference only."
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "pultrusion": "Pultrusion",
+      "quote": "AI Quick Quote"
+    },
+    "page": {
+      "eyebrow": "AI POWERED · PULTRUDED PROFILE ROUGH QUOTE",
+      "title": "Rough quote for pultruded profiles in 30s",
+      "description": "Describe your need in one sentence — AI extracts structured parameters; or fill the form directly. Engine returns per-meter and total price range, cost share, and an engineer-side explanation."
+    },
+    "tabs": {
+      "chat": "Describe in one line",
+      "form": "Fill the form"
+    },
+    "chat": {
+      "placeholder": "e.g. 40×40×3mm fiberglass pultruded square tube, 1000m, epoxy, outdoor use, gray",
+      "examples": [
+        "FRP round tube OD50 ID40, epoxy, 1000m, outdoor",
+        "ECR-glass square tube 50×50×4, UP resin, 500 × 6m, black",
+        "Carbon angle 30×30×3, epoxy, 200m, UV + flame retardant"
+      ],
+      "parse": "AI Parse",
+      "parsing": "Parsing…",
+      "confidence": "Confidence {v}%",
+      "lowConfidenceHint": "Recommended: use the form below",
+      "missing": "Missing"
+    },
+    "form": {
+      "profileType": "Profile type",
+      "profile": {
+        "round": "Round tube",
+        "square": "Square (equal-side)",
+        "rect": "Rectangular",
+        "angle": "Angle (equal-leg L)",
+        "channel": "Channel / U"
+      },
+      "geom": {
+        "od": "OD mm",
+        "id": "ID mm (solid → 0)",
+        "side": "Side mm",
+        "w": "Width mm",
+        "h": "Height mm",
+        "t": "Wall mm",
+        "leg": "Leg mm"
+      },
+      "length_mm": "Length per piece mm (typ. 6000)",
+      "quantity": "Pieces",
+      "fiber": "Fiber",
+      "fiberOpt": {
+        "e_glass": "E-glass",
+        "ecr_glass": "ECR-glass",
+        "carbon": "Carbon",
+        "hybrid": "Hybrid"
+      },
+      "resin": "Resin",
+      "resinOpt": {
+        "up": "Polyester (UP)",
+        "epoxy": "Epoxy",
+        "ve": "Vinyl ester",
+        "phenolic": "Phenolic",
+        "pu": "Polyurethane"
+      },
+      "fiber_content_pct": "Fiber content %",
+      "color": "Color",
+      "colorOpt": {
+        "gray": "Standard gray",
+        "black": "Black",
+        "white": "White",
+        "custom": "Custom RAL"
+      },
+      "surface_veil": "Surface veil",
+      "uv_coating": "UV coating",
+      "fire_retardant": "Flame retardant",
+      "food_grade": "Food grade",
+      "estimate": "Get rough quote",
+      "estimating": "Calculating…"
+    },
+    "error": {
+      "missing_od": "OD is required",
+      "missing_square": "Side and wall are required",
+      "missing_rect": "W / H / wall are required",
+      "missing_angle": "Leg and wall are required",
+      "missing_channel": "W / H / wall are required",
+      "missing_qty": "Length and pieces are required"
+    },
+    "result": {
+      "eyebrow": "Price range (per meter, incl. tax)",
+      "totalRange": "Total range ¥{low} – ¥{high} · {meters} m",
+      "breakdownEyebrow": "Cost breakdown",
+      "aiExplain": "AI engineer's note",
+      "cta": {
+        "hint": "Want a formal supplier quote? Submit RFQ — our sourcing team replies within 24h.",
+        "rfq": "Request formal quote →"
+      }
+    },
+    "disclaimer": {
+      "eyebrow": "Disclaimer",
+      "body": "Rough quote for directional reference only — actual transaction ±15%. Data is from public industry averages and standard pultrusion process baselines; does not represent any specific factory. Mold / logistics / batch details require per-order supplier confirmation. Operated by Yaoyi New Material."
+    }
   }
 }

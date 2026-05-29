@@ -1,0 +1,138 @@
+// AI 粗测型材报价 — 共享类型 / Zod schema
+//
+// 设计原则:AI 抽取与确定性定价引擎都依赖这一份 schema,保证"AI 说的话"
+// 一定能被引擎消化,引擎吐出的结果一定能被前端渲染。
+//
+// 为什么所有数值字段都不带单位后缀:统一约定 mm / kg / m / CNY,见各字段注释。
+// 这样 AI 抽取不需要管单位转换,定价引擎也不需要 unit-checked 数学。
+
+import { z } from "zod";
+
+// ─── 几何 / 截面 ────────────────────────────────────────────────
+
+export const ProfileTypeEnum = z.enum([
+  "round",   // 圆管
+  "square",  // 方管(等边)
+  "rect",    // 矩管
+  "angle",   // 角铁(等边 L)
+  "channel", // 槽钢 / U 型
+]);
+export type ProfileType = z.infer<typeof ProfileTypeEnum>;
+
+export const RoundGeom = z.object({
+  type: z.literal("round"),
+  od: z.number().min(2).max(500),  // 外径 mm
+  id: z.number().min(0).max(498),  // 内径 mm; 实心管 id=0
+});
+
+export const SquareGeom = z.object({
+  type: z.literal("square"),
+  side: z.number().min(5).max(500), // 边长 mm
+  t: z.number().min(1).max(50),     // 壁厚 mm
+});
+
+export const RectGeom = z.object({
+  type: z.literal("rect"),
+  w: z.number().min(5).max(500),
+  h: z.number().min(5).max(500),
+  t: z.number().min(1).max(50),
+});
+
+export const AngleGeom = z.object({
+  type: z.literal("angle"),
+  leg: z.number().min(10).max(300),
+  t: z.number().min(2).max(20),
+});
+
+export const ChannelGeom = z.object({
+  type: z.literal("channel"),
+  w: z.number().min(20).max(300),   // 翼缘 / 腹板宽 mm
+  h: z.number().min(20).max(300),
+  t: z.number().min(2).max(20),
+});
+
+export const GeometrySchema = z.discriminatedUnion("type", [
+  RoundGeom, SquareGeom, RectGeom, AngleGeom, ChannelGeom,
+]);
+export type Geometry = z.infer<typeof GeometrySchema>;
+
+// ─── 材料 / 工艺 ────────────────────────────────────────────────
+
+export const FiberEnum = z.enum(["e_glass", "ecr_glass", "carbon", "hybrid"]);
+export type Fiber = z.infer<typeof FiberEnum>;
+
+export const ResinEnum = z.enum(["up", "epoxy", "ve", "phenolic", "pu"]);
+export type Resin = z.infer<typeof ResinEnum>;
+
+export const ColorEnum = z.enum(["gray", "black", "white", "custom"]);
+export type Color = z.infer<typeof ColorEnum>;
+
+// ─── 整体输入 ──────────────────────────────────────────────────
+
+export const QuoteInputSchema = z.object({
+  geometry: GeometrySchema,
+  length_mm: z.number().min(100).max(50000).describe("单根定尺长度 mm,常见 6000"),
+  quantity: z.number().int().min(1).max(1_000_000).describe("根数 / 总订单量"),
+  fiber: FiberEnum,
+  fiber_content_pct: z
+    .number().min(40).max(85).optional()
+    .describe("玻纤体积含量 %,缺省取 70"),
+  resin: ResinEnum,
+  surface_veil: z.boolean().describe("合成毡 / surface veil"),
+  uv_coating: z.boolean(),
+  fire_retardant: z.boolean(),
+  food_grade: z.boolean(),
+  color: ColorEnum,
+  application_note: z.string().max(500).optional(),
+});
+export type QuoteInput = z.infer<typeof QuoteInputSchema>;
+
+// ─── 抽取结果(AI 反问场景) ─────────────────────────────────────
+
+export const ExtractResultSchema = z.object({
+  // 抽取置信度 0-100;< 60 时前端建议切到表单
+  confidence: z.number().min(0).max(100),
+  // 抽取出的部分输入(可能缺字段,所以 deepPartial)
+  partial: QuoteInputSchema.partial({
+    geometry: true, length_mm: true, quantity: true,
+    fiber: true, resin: true, surface_veil: true,
+    uv_coating: true, fire_retardant: true, food_grade: true, color: true,
+  } as never).describe("尽量抽出来的字段;允许部分缺失"),
+  // 还缺的关键字段(用人话表述,后续给前端展示)
+  missing: z.array(z.string()).describe("还缺哪些关键参数;给用户看的人话"),
+  // 一句反问(只在 missing 非空时填,最多 1 个问题不要堆)
+  followup_question: z.string().max(200).optional(),
+});
+export type ExtractResult = z.infer<typeof ExtractResultSchema>;
+
+// ─── 定价输出 ──────────────────────────────────────────────────
+
+export const CostBreakdownItem = z.object({
+  key: z.enum(["material", "process", "surface", "mold", "tax", "margin"]),
+  label_zh: z.string(),
+  label_en: z.string(),
+  amount_per_meter_cny: z.number(), // 单米成本绝对值(后端算出来)
+  pct: z.number().min(0).max(100),  // 占比 0-100
+});
+
+export const QuoteResultSchema = z.object({
+  // 单米售价区间(含税),给客户的对外口径
+  unit_price_low_cny: z.number(),
+  unit_price_high_cny: z.number(),
+  // 总价区间(含税)
+  total_low_cny: z.number(),
+  total_high_cny: z.number(),
+  // 衍生信息
+  weight_kg_per_m: z.number(),
+  total_meters: z.number(),
+  total_weight_kg: z.number(),
+  // 成本拆解(给登录用户/留资用户看;匿名只给占比)
+  breakdown: z.array(CostBreakdownItem),
+  // 价格区间生成参数:粗测带宽,默认 0.15
+  band: z.number().describe("±band 浮动,默认 0.15"),
+  // 警告 / 备注
+  warnings: z.array(z.string()),
+  // 引擎版本(便于回放和审计)
+  engine_version: z.string(),
+});
+export type QuoteResult = z.infer<typeof QuoteResultSchema>;
