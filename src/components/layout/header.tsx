@@ -20,6 +20,7 @@ const NAV_KEYS = [
   "downloads",
   "articles",
   "ai",
+  "quote",
 ] as const;
 
 type NavKey = (typeof NAV_KEYS)[number];
@@ -35,7 +36,12 @@ const NAV_HREFS: Record<NavKey, string> = {
   downloads: "/downloads",
   articles: "/articles",
   ai: "/ai",
+  quote: "/pultrusion/quote",
 };
+
+// 新功能视觉强化(2026-05-29 上线)— quote 走粗体 + NEW 角标。
+// 30 天后可以拆掉,跟 ai 一样的普通态。
+const NEW_BADGE_KEYS: ReadonlySet<NavKey> = new Set(["quote"]);
 
 // 当前阶段无收费,所有导航项中外侧通用 — 留空集合作为未来再分流时的扩展点
 const ZH_ONLY_NAV: ReadonlySet<NavKey> = new Set();
@@ -117,7 +123,8 @@ export function Header() {
           {NAV_KEYS.filter((k) => locale === "zh" || !ZH_ONLY_NAV.has(k)).map((key) => {
             const href = NAV_HREFS[key];
             const active = isActive(href);
-            const isAi = key === "ai";
+            const emphasized = key === "ai" || NEW_BADGE_KEYS.has(key);
+            const showNew = NEW_BADGE_KEYS.has(key) && !active;
             return (
               <Link
                 key={key}
@@ -127,10 +134,17 @@ export function Header() {
                   active
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground",
-                  isAi && !active ? "font-medium text-foreground" : "",
+                  emphasized && !active ? "font-medium text-foreground" : "",
                 ].join(" ")}
               >
-                {t(key)}
+                <span className="inline-flex items-center gap-1">
+                  {t(key)}
+                  {showNew && (
+                    <span className="rounded bg-foreground px-1 py-px text-[8px] font-semibold leading-none text-background">
+                      NEW
+                    </span>
+                  )}
+                </span>
                 {active && (
                   <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
                 )}
@@ -218,9 +232,14 @@ export function Header() {
                   key={key}
                   href={NAV_HREFS[key]}
                   onClick={() => setOpen(false)}
-                  className="border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  {t(key)}
+                  <span>{t(key)}</span>
+                  {NEW_BADGE_KEYS.has(key) && (
+                    <span className="rounded bg-foreground px-1.5 py-0.5 text-[9px] font-semibold leading-none text-background">
+                      NEW
+                    </span>
+                  )}
                 </Link>
               ))}
               {showSourcing && (
