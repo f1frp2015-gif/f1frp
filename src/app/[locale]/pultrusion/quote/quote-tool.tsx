@@ -5,7 +5,7 @@
 // 用户确认 → 调 estimate。这样即使 AI 抽错,用户也能改。
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -413,6 +413,11 @@ function ResultCard({
   explanation: string | null;
   t: ReturnType<typeof useTranslations>;
 }) {
+  // 国内侧(zh)严格遵守"不出现代理 / RFQ 字样"(CLAUDE.md §7 + feedback_brand_separation):
+  // CTA 直接 mailto 联系 f1frp2015@gmail.com,不跳 /rfq(那是海外代理通路)。
+  // 海外侧(en / getfrp.com)保留 /rfq 跳转 — 那里是曜一代理服务的入口。
+  const locale = useLocale();
+  const isZh = locale === "zh";
   return (
     <Card className="border-border/70">
       <CardContent className="space-y-4 p-6">
@@ -468,9 +473,18 @@ function ResultCard({
         <div className="border-t border-border/70 pt-4">
           <div className="text-sm text-muted-foreground">{t("result.cta.hint")}</div>
           <div className="mt-2 flex gap-2">
-            <Link href="/rfq" className="inline-flex items-center rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/85">
-              {t("result.cta.rfq")}
-            </Link>
+            {isZh ? (
+              <a
+                href={`mailto:${t("result.cta.email")}?subject=${encodeURIComponent(t("result.cta.emailSubject"))}`}
+                className="inline-flex items-center rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/85"
+              >
+                {t("result.cta.emailButton")}
+              </a>
+            ) : (
+              <Link href="/rfq" className="inline-flex items-center rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/85">
+                {t("result.cta.rfq")}
+              </Link>
+            )}
           </div>
         </div>
       </CardContent>

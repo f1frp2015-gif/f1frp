@@ -1890,7 +1890,10 @@
       "breakdownEyebrow": "成本占比",
       "aiExplain": "AI 工程师解释",
       "cta": {
-        "hint": "想要厂家的正式报价?提交 RFQ,曜一代理 BD 24 小时内联系。",
+        "hint": "如需正式报价或进一步技术沟通,请邮件联系我们,24 小时内回复。",
+        "email": "f1frp2015@gmail.com",
+        "emailSubject": "拉挤型材正式报价咨询",
+        "emailButton": "发邮件至 f1frp2015@gmail.com →",
         "rfq": "索取正式报价 →"
       }
     },
