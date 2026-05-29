@@ -12,16 +12,16 @@
 // 跟 extract 一样走 consumeAnonChatCredit 防刷。
 
 import { NextResponse } from "next/server";
-import { isAuthenticated } from "@/lib/auth/session";
+import { eq } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
 import { isChatConfiguredForRequest } from "@/lib/ai/provider";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 import {
   consumeAnonChatCredit,
   ANON_LIMIT_RESPONSE_BODY,
 } from "@/lib/auth-gate";
-import { getCurrentUserId } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { quoteLogs } from "@/lib/db/schema";
+import { quoteLogs, users } from "@/lib/db/schema";
 import { QuoteInputSchema } from "@/lib/quote/types";
 import { estimate } from "@/lib/quote/pricing";
 import { explainQuote } from "@/lib/quote/explain";
@@ -33,11 +33,13 @@ export async function POST(req: Request) {
   // 价格计算本身不需要 AI;但解释步骤需要。AI 不可用时仍可返回 result + 空解释。
   const aiAvailable = isChatConfiguredForRequest(req);
 
-  // 匿名额度门 — 即使不用 AI,也防止恶意刷价
+  // 匿名额度门 — 跟 chat / community-ask 一致。
   let anonCookieToSet: string | null = null;
+  let clerkUserId: string | null = null;
   try {
-    const signedIn = await isAuthenticated();
-    if (!signedIn) {
+    const { userId } = await auth();
+    clerkUserId = userId ?? null;
+    if (!userId) {
       const gate = consumeAnonChatCredit(req);
       if (!gate.ok) {
         return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
@@ -91,7 +93,18 @@ export async function POST(req: Request) {
       req.headers.get("x-forwarded-host") || req.headers.get("host") || null;
     const ua = req.headers.get("user-agent") || null;
     const ipRegion = req.headers.get("x-vercel-ip-country") || null;
-    const userId = await getCurrentUserId().catch(() => null);
+    // 把 Clerk ID → users.id (UUID)。Clerk webhook 同步保证 row 存在;
+    // 偶发未同步 / 海外侧匿名 → 留 null,靠 fingerprint 兜底。
+    let userIdUuid: string | null = null;
+    if (clerkUserId) {
+      const rows = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.clerkId, clerkUserId))
+        .limit(1)
+        .catch(() => []);
+      userIdUuid = rows[0]?.id ?? null;
+    }
     const sourceParam =
       body.source === "nl_chat" || body.source === "api" || body.source === "form"
         ? body.source
@@ -100,8 +113,8 @@ export async function POST(req: Request) {
     const inserted = await db
       .insert(quoteLogs)
       .values({
-        userId: userId ?? undefined,
-        anonFingerprint: userId ? null : await getAnonFingerprint(req),
+        userId: userIdUuid ?? undefined,
+        anonFingerprint: userIdUuid ? null : await getAnonFingerprint(req),
         source: sourceParam,
         locale,
         host: host ?? undefined,

@@ -7,7 +7,7 @@
 // 不计成本,但走 consumeAnonChatCredit 防刷(跟 chat / community-ask 共享)。
 
 import { NextResponse } from "next/server";
-import { isAuthenticated } from "@/lib/auth/session";
+import { auth } from "@clerk/nextjs/server";
 import {
   isChatConfiguredForRequest,
 } from "@/lib/ai/provider";
@@ -26,11 +26,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "AI not configured" }, { status: 503 });
   }
 
-  // 匿名额度门 — 跟 chat 共享 cookie 计数器
+  // 匿名额度门 — 跟 chat / community-ask 共享 cookie 计数器。
+  // 跟 src/app/api/chat/route.ts 一致:只看 Clerk userId,不查 DB 等级。
   let anonCookieToSet: string | null = null;
   try {
-    const signedIn = await isAuthenticated();
-    if (!signedIn) {
+    const { userId } = await auth();
+    if (!userId) {
       const gate = consumeAnonChatCredit(req);
       if (!gate.ok) {
         return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
