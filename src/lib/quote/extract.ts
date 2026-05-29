@@ -1,0 +1,133 @@
+// 自然语言 → QuoteInput 抽取(AI 层,DeepSeek 主 / Gemini 副)
+//
+// 设计哲学:
+//   - AI 只做语义抽取 + 反问,不算钱
+//   - 抽不全直接返回 missing[] + followup_question,前端走多轮
+//   - 任何置信度 < 60 强制走表单(quoteTool.tsx 处理)
+//
+// 实现风格:用 generateText + 显式 JSON 提示 + Zod 校验,而不是 Output.object()。
+// 跟 src/app/api/followups/route.ts 注释保持一致 — DeepSeek / OpenRouter 上
+// structured-output 不稳,plain-text JSON 解析跨 provider 最可靠。
+
+import { generateText } from "ai";
+import { getChatModelForRequest } from "@/lib/ai/provider";
+import { ExtractResultSchema, type ExtractResult } from "./types";
+
+const SYSTEM_ZH = `你是 f1frp.com 拉挤型材 AI 粗测报价助手的"输入解析器"。
+你的任务:把用户用自然语言描述的拉挤型材需求,提取为严格 JSON。
+
+规则:
+1. 五种支持的截面 geometry.type:round / square / rect / angle / channel
+   - round: { type:"round", od: 外径mm, id: 内径mm }(实心 id=0)
+   - square: { type:"square", side: 边长mm, t: 壁厚mm }
+   - rect: { type:"rect", w, h, t }
+   - angle: { type:"angle", leg: 腿长mm, t }
+   - channel: { type:"channel", w, h, t }
+2. fiber: e_glass(无碱玻纤,默认)/ ecr_glass(耐腐 ECR)/ carbon(碳纤)/ hybrid(混编)
+3. resin: up(不饱和聚酯)/ epoxy(环氧)/ ve(乙烯基酯)/ phenolic(酚醛)/ pu(聚氨酯)
+4. 单位:所有长度统一 mm。length_mm 是单根定尺(常见 6000),quantity 是根数
+5. 用户只说总米数时:length_mm=6000,quantity = ceil(总米数 / 6),并把 length_mm 放 missing 提示用户确认
+6. 缺关键参数(geometry / fiber / resin / quantity 任一)→ confidence < 60,并填 missing
+7. 不要编造数字 — 不确定的字段宁可缺,也别瞎填
+8. followup_question 只在 missing 非空时填,最多 1 个问题,口语化中文
+9. 关键词映射:户外/UV → uv_coating: true;阻燃 → fire_retardant: true;食品 → food_grade: true
+10. color: 灰/默认 → gray,黑 → black,白 → white,其他 → custom
+11. surface_veil 默认 true(户外/防腐场景),其余 false
+12. fiber_content_pct 缺省 70
+
+严格输出单行 JSON,符合以下结构,无任何 markdown 或多余文字:
+{"confidence": 0-100, "partial": {...}, "missing": ["..."], "followup_question": "..."}`;
+
+const SYSTEM_EN = `You are the input parser for f1frp.com's AI pultruded profile quote tool.
+Your job: extract STRICT JSON from a natural-language profile request.
+
+Rules:
+1. Supported geometry.type: round / square / rect / angle / channel
+   - round: { type:"round", od, id }   (solid → id=0)
+   - square: { type:"square", side, t }
+   - rect: { type:"rect", w, h, t }
+   - angle: { type:"angle", leg, t }
+   - channel: { type:"channel", w, h, t }
+2. fiber: e_glass (default) / ecr_glass / carbon / hybrid.
+3. resin: up / epoxy / ve / phenolic / pu.
+4. All lengths in mm. length_mm is single-piece length (typically 6000); quantity is piece count.
+5. If user only gives total meters: length_mm=6000, quantity = ceil(total / 6), add length_mm to missing.
+6. Missing any critical field (geometry / fiber / resin / quantity) → confidence < 60, list it.
+7. NEVER fabricate numbers. Unsure → leave it out.
+8. followup_question only when missing is non-empty; one short conversational question.
+9. Keywords: outdoor/UV → uv_coating: true; flame retardant → fire_retardant: true; food → food_grade: true.
+10. color: gray (default) / black / white / custom.
+11. surface_veil defaults true (outdoor/corrosion contexts), else false.
+12. fiber_content_pct defaults 70.
+
+Output ONLY a single-line JSON, no markdown, no prose:
+{"confidence": 0-100, "partial": {...}, "missing": ["..."], "followup_question": "..."}`;
+
+const FAILURE_FALLBACK: ExtractResult = {
+  confidence: 0,
+  partial: {},
+  missing: ["AI 暂时无法解析这段描述,请改用下方表单"],
+  followup_question: undefined,
+};
+
+export async function extractQuoteInput(
+  userText: string,
+  req: Request,
+  locale: "zh" | "en",
+): Promise<ExtractResult> {
+  const model = getChatModelForRequest(req);
+
+  let text = "";
+  try {
+    const result = await generateText({
+      model,
+      system: locale === "en" ? SYSTEM_EN : SYSTEM_ZH,
+      prompt: userText,
+      temperature: 0.2,
+      maxOutputTokens: 800,
+    });
+    text = result.text;
+  } catch (e) {
+    console.warn(
+      "[quote-extract] generateText failed:",
+      e instanceof Error ? e.message : e,
+    );
+    return FAILURE_FALLBACK;
+  }
+
+  const parsed = tryParseJson(text);
+  if (!parsed) {
+    console.warn("[quote-extract] non-JSON output:", text.slice(0, 200));
+    return FAILURE_FALLBACK;
+  }
+
+  // Zod 二次校验 — AI 偶尔会返回错的 enum / 越界数字,容错直接降为 fallback
+  const safe = ExtractResultSchema.safeParse(parsed);
+  if (!safe.success) {
+    console.warn(
+      "[quote-extract] zod rejected:",
+      safe.error.issues.slice(0, 3),
+    );
+    return FAILURE_FALLBACK;
+  }
+  return safe.data;
+}
+
+// AI 返回偶尔带 ``` 围栏或前后说明 — 提取第一段大括号内容
+function tryParseJson(s: string): unknown {
+  const trimmed = s.trim();
+  // 直接尝试
+  try { return JSON.parse(trimmed); } catch { /* fall through */ }
+  // 提取 ```json ... ``` 围栏
+  const fence = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) {
+    try { return JSON.parse(fence[1]); } catch { /* fall through */ }
+  }
+  // 抓第一个 { ... } 平衡段
+  const first = trimmed.indexOf("{");
+  const last = trimmed.lastIndexOf("}");
+  if (first >= 0 && last > first) {
+    try { return JSON.parse(trimmed.slice(first, last + 1)); } catch { /* */ }
+  }
+  return null;
+}

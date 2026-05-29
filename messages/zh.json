@@ -1792,5 +1792,110 @@
     "answerLabel": "AI 回答",
     "citationsLabel": "引用来源",
     "askAnother": "再问一个问题"
+  },
+  "PultrusionQuote": {
+    "meta": {
+      "title": "拉挤型材 AI 粗测报价 · f1frp 复材站",
+      "description": "30 秒拿到玻纤 / 碳纤 拉挤型材的粗测价格区间 + 成本占比 + AI 解释。匿名可用,数据来源公开行业均值,粗测仅供方向性参考。"
+    },
+    "breadcrumb": {
+      "home": "首页",
+      "pultrusion": "拉挤工艺",
+      "quote": "AI 粗测报价"
+    },
+    "page": {
+      "eyebrow": "AI POWERED · 拉挤型材粗测报价",
+      "title": "30 秒拿到拉挤型材粗测价格",
+      "description": "用一句话描述需求,AI 帮你拆成结构化参数;或直接填表单。引擎给出单米 / 总价区间 + 成本占比 + 工程师视角解释。"
+    },
+    "tabs": {
+      "chat": "用一句话描述",
+      "form": "填表单"
+    },
+    "chat": {
+      "placeholder": "例:我要一批 40×40×3mm 的玻纤拉挤方管,1000 米,环氧树脂,户外用,灰色",
+      "examples": [
+        "玻纤拉挤圆管 OD50 ID40,环氧,1000 米,户外",
+        "ECR 玻纤方管 50×50×4,聚酯,500 根 6m,黑色",
+        "碳纤角铁 30×30×3,环氧,200 米,UV 阻燃"
+      ],
+      "parse": "AI 解析",
+      "parsing": "解析中…",
+      "confidence": "置信度 {v}%",
+      "lowConfidenceHint": "建议改用下方表单",
+      "missing": "还缺"
+    },
+    "form": {
+      "profileType": "型材类型",
+      "profile": {
+        "round": "圆管",
+        "square": "方管(等边)",
+        "rect": "矩管",
+        "angle": "角铁(等边 L)",
+        "channel": "槽钢 / U 型"
+      },
+      "geom": {
+        "od": "外径 mm",
+        "id": "内径 mm(实心填 0)",
+        "side": "边长 mm",
+        "w": "宽 mm",
+        "h": "高 mm",
+        "t": "壁厚 mm",
+        "leg": "腿长 mm"
+      },
+      "length_mm": "单根定尺 mm(常见 6000)",
+      "quantity": "根数",
+      "fiber": "玻纤体系",
+      "fiberOpt": {
+        "e_glass": "无碱 E-glass",
+        "ecr_glass": "ECR 耐腐",
+        "carbon": "碳纤",
+        "hybrid": "玻碳混编"
+      },
+      "resin": "树脂体系",
+      "resinOpt": {
+        "up": "不饱和聚酯",
+        "epoxy": "环氧",
+        "ve": "乙烯基酯",
+        "phenolic": "酚醛",
+        "pu": "聚氨酯"
+      },
+      "fiber_content_pct": "玻纤含量 %",
+      "color": "颜色",
+      "colorOpt": {
+        "gray": "标准灰",
+        "black": "黑",
+        "white": "白",
+        "custom": "自定义 RAL"
+      },
+      "surface_veil": "合成毡",
+      "uv_coating": "UV 涂层",
+      "fire_retardant": "阻燃",
+      "food_grade": "食品级",
+      "estimate": "粗测报价",
+      "estimating": "计算中…"
+    },
+    "error": {
+      "missing_od": "请填外径",
+      "missing_square": "请填边长和壁厚",
+      "missing_rect": "请填宽 / 高 / 壁厚",
+      "missing_angle": "请填腿长和壁厚",
+      "missing_channel": "请填宽 / 高 / 壁厚",
+      "missing_qty": "请填单根长度和根数"
+    },
+    "result": {
+      "eyebrow": "粗测价格区间(单米 · 含税)",
+      "totalRange": "总价区间 ¥{low} – ¥{high} · 共 {meters} 米",
+      "breakdownEyebrow": "成本占比",
+      "aiExplain": "AI 工程师解释",
+      "cta": {
+        "hint": "想要厂家的正式报价?提交 RFQ,曜一代理 BD 24 小时内联系。",
+        "rfq": "索取正式报价 →"
+      }
+    },
+    "disclaimer": {
+      "eyebrow": "免责声明",
+      "body": "粗测仅供方向性参考,实际成交价 ±15% 浮动。数据来源公开行业均值 + 拉挤工艺基线,不代表特定工厂报价。模具 / 物流 / 批次细节需厂家逐单确认。由曜一新材料运营。"
+    }
   }
 }

@@ -1234,3 +1234,73 @@ export type FactoryInquiry = typeof factoryInquiries.$inferSelect;
 export type NewFactoryInquiry = typeof factoryInquiries.$inferInsert;
 export type FactoryInquiryDraft = typeof factoryInquiryDrafts.$inferSelect;
 export type NewFactoryInquiryDraft = typeof factoryInquiryDrafts.$inferInsert;
+
+// ═══════════════════════════════════════════
+// Quote logs — AI 粗测型材报价工具产生的请求 / 结果落盘
+//
+// 战略目的:这张表是 v4.1 Layer 1 引流到 Layer 5 工厂 SaaS"AI 报价器"的
+// 训练种子。每次粗测都记录:
+//   - 输入参数(geometry / fiber / resin / quantity / ...)
+//   - 引擎输出(区间价格 / breakdown / 警告)
+//   - AI 抽取过程(原始用户文本 / 抽取置信度)
+//   - 留资状态(匿名 / 留电话 / 转 RFQ)
+// 跑 3 个月后能回答:
+//   - 最常询的型材尺寸 TOP 50
+//   - 哪些价位区间被反复试探
+//   - 留资转化漏斗各环节流失率
+// ═══════════════════════════════════════════
+
+export const quoteSourceEnum = pgEnum("quote_source", [
+  "nl_chat",      // 自然语言对话入口
+  "form",         // 表单入口
+  "api",          // 外部 API 调用(将来给小程序 / 微信公众号)
+]);
+
+export const quoteConversionEnum = pgEnum("quote_conversion", [
+  "anonymous",      // 只看了区间,没留资
+  "phone_provided", // 留手机号看了详细 breakdown
+  "rfq_created",    // 转成正式 RFQ 工单
+  "abandoned",      // 进了表单但没提交
+]);
+
+export const quoteLogs = pgTable(
+  "quote_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    // 用户身份 — 匿名也给一个 fingerprint;登录用户填 userId
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    anonFingerprint: varchar("anon_fingerprint", { length: 128 }),
+    // 请求侧
+    source: quoteSourceEnum("source").default("form").notNull(),
+    locale: varchar("locale", { length: 8 }).default("zh").notNull(),
+    host: varchar("host", { length: 100 }),
+    ipRegion: varchar("ip_region", { length: 80 }),
+    userAgent: text("user_agent"),
+    // AI 抽取(NL 模式才有)
+    rawUserText: text("raw_user_text"),
+    extractConfidence: integer("extract_confidence"),
+    extractMissing: jsonb("extract_missing").$type<string[]>(),
+    // 结构化输入 — 完整 QuoteInput
+    input: jsonb("input").$type<Record<string, unknown>>().notNull(),
+    // 引擎输出 — 完整 QuoteResult,便于回放
+    output: jsonb("output").$type<Record<string, unknown>>().notNull(),
+    engineVersion: varchar("engine_version", { length: 80 }).notNull(),
+    // 展示给用户的解释文本(快照,模型切换后历史仍可读)
+    aiExplanation: text("ai_explanation"),
+    // 转化漏斗 — 创建时 anonymous,后续 UPDATE 更新
+    conversion: quoteConversionEnum("conversion").default("anonymous").notNull(),
+    convertedRfqId: varchar("converted_rfq_id", { length: 80 }),
+    convertedAt: timestamp("converted_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("quote_logs_user_idx").on(table.userId),
+    index("quote_logs_fingerprint_idx").on(table.anonFingerprint),
+    index("quote_logs_conversion_idx").on(table.conversion),
+    index("quote_logs_created_idx").on(table.createdAt),
+    index("quote_logs_source_idx").on(table.source),
+  ],
+);
+
+export type QuoteLog = typeof quoteLogs.$inferSelect;
+export type NewQuoteLog = typeof quoteLogs.$inferInsert;
