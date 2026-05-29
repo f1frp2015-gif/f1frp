@@ -4,18 +4,15 @@
 // 出参: ExtractResult({ confidence, partial, missing, followup_question? })
 //
 // 用途:前端 NL 输入框 → 调本接口 → 拿到结构化部分输入 + 缺字段提示。
-// 不计成本,但走 consumeAnonChatCredit 防刷(跟 chat / community-ask 共享)。
+//
+// 战略口径:quote 是 v4.1 Layer 1 免费引流钩子,**不复用 chat 的匿名 3 次额度门**
+// (那个门是 AI 问答的"软引导注册"机制,会把粗测工具的匿名用户挡掉,反战略)。
+// 单次 DeepSeek 调用 < ¥0.01,引流价值远大于成本。防刷靠 quote_logs 的
+// IP fingerprint 事后审计 + UI 端 loading 态的天然节流。
 
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import {
-  isChatConfiguredForRequest,
-} from "@/lib/ai/provider";
+import { isChatConfiguredForRequest } from "@/lib/ai/provider";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
-import {
-  consumeAnonChatCredit,
-  ANON_LIMIT_RESPONSE_BODY,
-} from "@/lib/auth-gate";
 import { extractQuoteInput } from "@/lib/quote/extract";
 
 export const runtime = "nodejs";
@@ -24,26 +21,6 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   if (!isChatConfiguredForRequest(req)) {
     return NextResponse.json({ error: "AI not configured" }, { status: 503 });
-  }
-
-  // 匿名额度门 — 跟 chat / community-ask 共享 cookie 计数器。
-  // 跟 src/app/api/chat/route.ts 一致:只看 Clerk userId,不查 DB 等级。
-  let anonCookieToSet: string | null = null;
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      const gate = consumeAnonChatCredit(req);
-      if (!gate.ok) {
-        return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
-      }
-      anonCookieToSet = gate.cookieHeader;
-    }
-  } catch {
-    const gate = consumeAnonChatCredit(req);
-    if (!gate.ok) {
-      return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
-    }
-    anonCookieToSet = gate.cookieHeader;
   }
 
   let body: { text?: string; locale?: string };
@@ -64,7 +41,5 @@ export async function POST(req: Request) {
   const locale = resolveServerLocale(req, body.locale);
 
   const extracted = await extractQuoteInput(text, req, locale);
-  const res = NextResponse.json(extracted);
-  if (anonCookieToSet) res.headers.append("Set-Cookie", anonCookieToSet);
-  return res;
+  return NextResponse.json(extracted);
 }

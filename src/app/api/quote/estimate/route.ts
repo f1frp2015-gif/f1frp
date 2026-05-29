@@ -9,17 +9,14 @@
 //   3) AI 解释(并行,失败不阻塞)
 //   4) 写 quote_logs(失败不阻塞返回 —— 日志重要但不能挡用户体验)
 //
-// 跟 extract 一样走 consumeAnonChatCredit 防刷。
+// 战略口径:quote 是免费引流钩子,**不复用 chat 的 3 次匿名门**(详见 extract/route.ts
+// 头部注释)。本路由匿名完全开放;登录用户 quote_logs.userId 会写,匿名走 fingerprint。
 
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { isChatConfiguredForRequest } from "@/lib/ai/provider";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
-import {
-  consumeAnonChatCredit,
-  ANON_LIMIT_RESPONSE_BODY,
-} from "@/lib/auth-gate";
 import { db } from "@/lib/db";
 import { quoteLogs, users } from "@/lib/db/schema";
 import { QuoteInputSchema } from "@/lib/quote/types";
@@ -33,25 +30,14 @@ export async function POST(req: Request) {
   // 价格计算本身不需要 AI;但解释步骤需要。AI 不可用时仍可返回 result + 空解释。
   const aiAvailable = isChatConfiguredForRequest(req);
 
-  // 匿名额度门 — 跟 chat / community-ask 一致。
-  let anonCookieToSet: string | null = null;
+  // 取 Clerk userId 仅用于关联 quote_logs.userId(便于"已登录用户的历史粗测"看板)。
+  // 失败 / 匿名都不阻塞,直接走 fingerprint。
   let clerkUserId: string | null = null;
   try {
     const { userId } = await auth();
     clerkUserId = userId ?? null;
-    if (!userId) {
-      const gate = consumeAnonChatCredit(req);
-      if (!gate.ok) {
-        return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
-      }
-      anonCookieToSet = gate.cookieHeader;
-    }
   } catch {
-    const gate = consumeAnonChatCredit(req);
-    if (!gate.ok) {
-      return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
-    }
-    anonCookieToSet = gate.cookieHeader;
+    clerkUserId = null;
   }
 
   let body: {
@@ -137,9 +123,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const res = NextResponse.json({ result, explanation, logId });
-  if (anonCookieToSet) res.headers.append("Set-Cookie", anonCookieToSet);
-  return res;
+  return NextResponse.json({ result, explanation, logId });
 }
 
 // 匿名 fingerprint:用 IP + UA hash(粗略,够做"同一访客重复粗测"聚合)
