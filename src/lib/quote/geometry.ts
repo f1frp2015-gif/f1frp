@@ -73,6 +73,39 @@ export function compositeDensityGcm3(
   return vf * FIBER_DENSITY[fiber] + (1 - vf) * RESIN_DENSITY[resin];
 }
 
+// 外周长 mm — 用于表面毡 / UV 涂层等"按表面积摊"的成本项。
+// 粗测口径,角铁 / 工字梁等开口型材按外露面总长简化估计。
+export function outerPerimeterMm(g: Geometry): number {
+  switch (g.type) {
+    case "round":   return Math.PI * g.od;
+    case "square":  return 4 * g.side;
+    case "rect":    return 2 * (g.w + g.h);
+    case "angle":   return 4 * g.leg; // L 形展开 ≈ 4 × leg (含 t 端面;粗测忽略)
+    case "channel": return 2 * (g.w + g.h);
+    case "i_beam":  return 4 * g.bf - 2 * g.tw + 2 * g.h; // 工字展开外周(含腹板两侧 + 翼缘上下)
+  }
+}
+
+// 闭口型材内周长 mm — 用于内毡 / 防腐内层。开口型材返回 0(没"内"概念)。
+export function innerPerimeterMm(g: Geometry): number {
+  switch (g.type) {
+    case "round":   return g.id > 0 ? Math.PI * g.id : 0;
+    case "square": {
+      const inner = Math.max(0, g.side - 2 * g.t);
+      return inner > 0 ? 4 * inner : 0;
+    }
+    case "rect": {
+      const innerW = Math.max(0, g.w - 2 * g.t);
+      const innerH = Math.max(0, g.h - 2 * g.t);
+      return innerW > 0 && innerH > 0 ? 2 * (innerW + innerH) : 0;
+    }
+    case "angle":
+    case "channel":
+    case "i_beam":
+      return 0;
+  }
+}
+
 // kg/m = mm² × m × ρ(g/cm³)
 // 单位换算:mm² × 1000mm × (g/cm³) = mm² × 1000mm × g / 1000mm³
 //        = mm² × g / mm² = g/m × (其实是 mm³/m × g/mm³)

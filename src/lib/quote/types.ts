@@ -93,7 +93,8 @@ export const QuoteInputSchema = z.object({
     .number().min(40).max(85).optional()
     .describe("玻纤体积含量 %,缺省取 70"),
   resin: ResinEnum,
-  surface_veil: z.boolean().describe("合成毡 / surface veil"),
+  surface_veil: z.boolean().describe("表面毡 / surface mat(外周一层装饰 / UV 阻挡 / 防腐)"),
+  inner_veil: z.boolean().describe("内毡 / inner mat(闭口型材内表面;开口型材忽略)"),
   uv_coating: z.boolean(),
   fire_retardant: z.boolean(),
   food_grade: z.boolean(),
@@ -110,7 +111,7 @@ export const ExtractResultSchema = z.object({
   // 抽取出的部分输入(可能缺字段,所以 deepPartial)
   partial: QuoteInputSchema.partial({
     geometry: true, length_mm: true, quantity: true,
-    fiber: true, resin: true, surface_veil: true,
+    fiber: true, resin: true, surface_veil: true, inner_veil: true,
     uv_coating: true, fire_retardant: true, food_grade: true, color: true,
   } as never).describe("尽量抽出来的字段;允许部分缺失"),
   // 还缺的关键字段(用人话表述,后续给前端展示)

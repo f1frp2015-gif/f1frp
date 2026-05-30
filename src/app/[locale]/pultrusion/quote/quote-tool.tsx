@@ -29,6 +29,7 @@ type FormState = {
   resin: QuoteInput["resin"];
   fiber_content_pct: string;
   surface_veil: boolean;
+  inner_veil: boolean;
   uv_coating: boolean;
   fire_retardant: boolean;
   food_grade: boolean;
@@ -44,6 +45,7 @@ const DEFAULT_FORM: FormState = {
   resin: "epoxy",
   fiber_content_pct: "70",
   surface_veil: true,
+  inner_veil: false,
   uv_coating: false,
   fire_retardant: false,
   food_grade: false,
@@ -120,6 +122,7 @@ export function QuoteTool() {
     if (p.resin) next.resin = p.resin;
     if (p.fiber_content_pct) next.fiber_content_pct = String(p.fiber_content_pct);
     if (typeof p.surface_veil === "boolean") next.surface_veil = p.surface_veil;
+    if (typeof p.inner_veil === "boolean") next.inner_veil = p.inner_veil;
     if (typeof p.uv_coating === "boolean") next.uv_coating = p.uv_coating;
     if (typeof p.fire_retardant === "boolean") next.fire_retardant = p.fire_retardant;
     if (typeof p.food_grade === "boolean") next.food_grade = p.food_grade;
@@ -162,6 +165,7 @@ export function QuoteTool() {
       resin: form.resin,
       fiber_content_pct: num(form.fiber_content_pct) || 70,
       surface_veil: form.surface_veil,
+      inner_veil: form.inner_veil,
       uv_coating: form.uv_coating,
       fire_retardant: form.fire_retardant,
       food_grade: form.food_grade,
@@ -344,8 +348,9 @@ function FormSection({
         </select>
       </Field>
 
-      <div className="col-span-full grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="col-span-full grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         <Toggle label={t("form.surface_veil")} v={form.surface_veil} onChange={(b) => set("surface_veil", b)} />
+        <Toggle label={t("form.inner_veil")} v={form.inner_veil} onChange={(b) => set("inner_veil", b)} />
         <Toggle label={t("form.uv_coating")} v={form.uv_coating} onChange={(b) => set("uv_coating", b)} />
         <Toggle label={t("form.fire_retardant")} v={form.fire_retardant} onChange={(b) => set("fire_retardant", b)} />
         <Toggle label={t("form.food_grade")} v={form.food_grade} onChange={(b) => set("food_grade", b)} />

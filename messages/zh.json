@@ -1874,7 +1874,8 @@
         "white": "白",
         "custom": "自定义 RAL"
       },
-      "surface_veil": "合成毡",
+      "surface_veil": "表面毡",
+      "inner_veil": "内毡(闭口型材)",
       "uv_coating": "UV 涂层",
       "fire_retardant": "阻燃",
       "food_grade": "食品级",

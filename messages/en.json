@@ -1901,7 +1901,8 @@
         "white": "White",
         "custom": "Custom RAL"
       },
-      "surface_veil": "Surface veil",
+      "surface_veil": "Surface mat",
+      "inner_veil": "Inner mat (closed sections)",
       "uv_coating": "UV coating",
       "fire_retardant": "Flame retardant",
       "food_grade": "Food grade",

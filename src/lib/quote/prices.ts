@@ -99,8 +99,18 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
 
 // ─── 后处理 / 选项溢价 ─────────────────────────────────────────
 
-// 合成毡(surface veil)CNY/m 增量;独立外层,跟截面尺寸有微弱相关,粗测用常数
-export const SURFACE_VEIL_CNY_PER_M = 2.4;
+// 表面毡(surface mat / decorative veil)— 工程口径 2026-05-29 升级:
+//   不再用 ¥/m 常数,改成 "外周长 × 面密度 × 单价" 真实推算。
+// 默认 240 g/m² 高端薄装饰毡档(可见装饰层 / UV 阻挡),
+// 单价 ¥110/kg(高端档,主流 ECR/PET 复合毡)。
+// Phase 2 可以拆成"薄毡 30g/m² / 中 60 / 结构层 CSM 450g/m²"多档,UI 选项化。
+export const SURFACE_VEIL_GSM = 240;
+export const SURFACE_VEIL_CNY_PER_KG = 110;
+
+// 内毡(inner mat)— 闭口型材(圆管 / 方管 / 矩管)内表面增强 / 防腐毡。
+// 同档面密度 + 单价(粗测口径简化)。开口型材几何上拿不到内周长,自动 0。
+export const INNER_VEIL_GSM = 240;
+export const INNER_VEIL_CNY_PER_KG = 110;
 
 // UV 涂层 CNY/m;面积越大越贵但粗测用常数
 export const UV_COATING_CNY_PER_M = 4.0;

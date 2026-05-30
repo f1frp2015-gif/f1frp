@@ -33,10 +33,12 @@ const SYSTEM_ZH = `你是 f1frp.com 拉挤型材 AI 粗测报价助手的"输入
 6. 缺关键参数(geometry / fiber / resin / quantity 任一)→ confidence < 60,并填 missing
 7. 不要编造数字 — 不确定的字段宁可缺,也别瞎填
 8. followup_question 只在 missing 非空时填,最多 1 个问题,口语化中文
-9. 关键词映射:户外/UV → uv_coating: true;阻燃 → fire_retardant: true;食品 → food_grade: true
+9. 关键词映射:户外/UV → uv_coating: true;阻燃/防火 → fire_retardant: true;食品 → food_grade: true
 10. color: 灰/默认 → gray,黑 → black,白 → white,其他 → custom
 11. surface_veil 默认 true(户外/防腐场景),其余 false
-12. fiber_content_pct 缺省 70
+12. inner_veil:用户提到"内毡 / 内表面增强 / 防腐内层 / inner mat" → true;否则 false。
+    且仅闭口型材(round / square / rect)有意义,开口型材忽略即可
+13. fiber_content_pct 缺省 70
 
 严格输出单行 JSON,符合以下结构,无任何 markdown 或多余文字:
 {"confidence": 0-100, "partial": {...}, "missing": ["..."], "followup_question": "..."}`;
@@ -64,7 +66,9 @@ Rules:
 9. Keywords: outdoor/UV → uv_coating: true; flame retardant → fire_retardant: true; food → food_grade: true.
 10. color: gray (default) / black / white / custom.
 11. surface_veil defaults true (outdoor/corrosion contexts), else false.
-12. fiber_content_pct defaults 70.
+12. inner_veil: user mentions "inner mat / inner liner / corrosion barrier inside / 内毡" → true; else false.
+    Only meaningful for closed sections (round / square / rect); ignore for open.
+13. fiber_content_pct defaults 70.
 
 Output ONLY a single-line JSON, no markdown, no prose:
 {"confidence": 0-100, "partial": {...}, "missing": ["..."], "followup_question": "..."}`;

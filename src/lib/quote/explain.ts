@@ -92,7 +92,8 @@ function describeProfile(input: QuoteInput, locale: "zh" | "en"): string {
   if (input.uv_coating) flags.push(isEn ? "UV coating" : "UV 涂层");
   if (input.fire_retardant) flags.push(isEn ? "flame retardant" : "阻燃");
   if (input.food_grade) flags.push(isEn ? "food grade" : "食品级");
-  if (input.surface_veil) flags.push(isEn ? "surface veil" : "合成毡");
+  if (input.surface_veil) flags.push(isEn ? "surface mat" : "表面毡");
+  if (input.inner_veil) flags.push(isEn ? "inner mat" : "内毡");
   const flagTxt = flags.length ? `, ${flags.join(", ")}` : "";
   return `${geomTxt}, ${matTxt}${flagTxt}, ${input.quantity} × ${input.length_mm}mm`;
 }

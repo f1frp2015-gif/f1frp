@@ -14,13 +14,19 @@
 //
 // engine_version 落到 quoteLogs,便于回放和回归测试。
 
-import { weightKgPerMeter, compositeDensityGcm3 } from "./geometry";
+import {
+  weightKgPerMeter, compositeDensityGcm3,
+  outerPerimeterMm, innerPerimeterMm,
+} from "./geometry";
 import {
   FIBER_PRICE_CNY_PER_KG,
   RESIN_PRICE_CNY_PER_KG,
   ADDITIVE_CNY_PER_KG_COMPOSITE,
   PROCESS_COEFF,
-  SURFACE_VEIL_CNY_PER_M,
+  SURFACE_VEIL_GSM,
+  SURFACE_VEIL_CNY_PER_KG,
+  INNER_VEIL_GSM,
+  INNER_VEIL_CNY_PER_KG,
   UV_COATING_CNY_PER_M,
   FIRE_RETARDANT_RESIN_MULTIPLIER,
   FOOD_GRADE_CNY_PER_M,
@@ -63,9 +69,22 @@ export function estimate(input: QuoteInput): QuoteResult {
   const processCnyPerM =
     coeff.laborCnyPerH / coeff.pullSpeedMperH + coeff.fixedCnyPerM;
 
-  // 4) 表面 / 后处理 / 彩色 / 食品级
+  // 4) 表面 / 内毡 / 后处理 / 彩色 / 食品级
+  // 表面毡 & 内毡:周长(mm)/1000 = m,× 1m 长 = m² 面积,× g/m² = g,× ¥/kg / 1000 = ¥
+  const outerPerimMm = outerPerimeterMm(input.geometry);
+  const innerPerimMm = innerPerimeterMm(input.geometry);
+  const surfaceMatCnyPerM = input.surface_veil
+    ? ((outerPerimMm / 1000) * SURFACE_VEIL_GSM * SURFACE_VEIL_CNY_PER_KG) / 1000
+    : 0;
+  const innerMatCnyPerM = input.inner_veil && innerPerimMm > 0
+    ? ((innerPerimMm / 1000) * INNER_VEIL_GSM * INNER_VEIL_CNY_PER_KG) / 1000
+    : 0;
+  // 开口型材 + 用户勾选 inner_veil → 给一个提示,prevent 误期
+  if (input.inner_veil && innerPerimMm === 0) {
+    warnings.push("开口型材(角铁 / 槽钢 / 工字梁)无内表面,内毡选项已忽略");
+  }
   const surfaceCnyPerM =
-    (input.surface_veil ? SURFACE_VEIL_CNY_PER_M : 0) +
+    surfaceMatCnyPerM + innerMatCnyPerM +
     (input.uv_coating ? UV_COATING_CNY_PER_M : 0) +
     (input.food_grade ? FOOD_GRADE_CNY_PER_M : 0) +
     (COLOR_PREMIUM_CNY_PER_M[input.color] ?? 0);
