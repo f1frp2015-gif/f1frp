@@ -109,6 +109,9 @@ export function QuoteTool() {
         case "channel":
           next.d1 = String(p.geometry.w); next.d2 = String(p.geometry.h);
           next.d3 = String(p.geometry.t); break;
+        case "i_beam":
+          next.d1 = String(p.geometry.bf); next.d2 = String(p.geometry.h);
+          next.d3 = String(p.geometry.tw); next.d4 = String(p.geometry.tf); break;
       }
     }
     if (p.length_mm) next.length_mm = String(p.length_mm);
@@ -126,7 +129,7 @@ export function QuoteTool() {
 
   function buildInput(): QuoteInput | { error: string } {
     const num = (s: string) => Number(s);
-    const d1 = num(form.d1), d2 = num(form.d2), d3 = num(form.d3);
+    const d1 = num(form.d1), d2 = num(form.d2), d3 = num(form.d3), d4 = num(form.d4);
     let geometry: QuoteInput["geometry"];
     switch (form.profileType) {
       case "round":
@@ -144,6 +147,9 @@ export function QuoteTool() {
       case "channel":
         if (!d1 || !d2 || !d3) return { error: t("error.missing_channel") };
         geometry = { type: "channel", w: d1, h: d2, t: d3 }; break;
+      case "i_beam":
+        if (!d1 || !d2 || !d3 || !d4) return { error: t("error.missing_ibeam") };
+        geometry = { type: "i_beam", bf: d1, h: d2, tw: d3, tf: d4 }; break;
     }
     const length_mm = num(form.length_mm);
     const quantity = num(form.quantity);
@@ -292,6 +298,7 @@ function FormSection({
           <option value="rect">{t("form.profile.rect")}</option>
           <option value="angle">{t("form.profile.angle")}</option>
           <option value="channel">{t("form.profile.channel")}</option>
+          <option value="i_beam">{t("form.profile.i_beam")}</option>
         </select>
       </Field>
 
@@ -383,6 +390,16 @@ function GeometryInputs({
         <>
           <Field label={t("form.geom.leg")}><Input value={form.d1} onChange={(e) => set("d1", e.target.value)} inputMode="numeric" /></Field>
           <Field label={t("form.geom.t")}><Input value={form.d3} onChange={(e) => set("d3", e.target.value)} inputMode="numeric" /></Field>
+        </>
+      );
+    case "i_beam":
+      // GB/T 706 标注顺序:bf × h × tw × tf  → d1=bf, d2=h, d3=tw, d4=tf
+      return (
+        <>
+          <Field label={t("form.geom.bf")}><Input value={form.d1} onChange={(e) => set("d1", e.target.value)} inputMode="numeric" /></Field>
+          <Field label={t("form.geom.h_ibeam")}><Input value={form.d2} onChange={(e) => set("d2", e.target.value)} inputMode="numeric" /></Field>
+          <Field label={t("form.geom.tw")}><Input value={form.d3} onChange={(e) => set("d3", e.target.value)} inputMode="numeric" /></Field>
+          <Field label={t("form.geom.tf")}><Input value={form.d4} onChange={(e) => set("d4", e.target.value)} inputMode="numeric" /></Field>
         </>
       );
   }

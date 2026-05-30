@@ -1845,7 +1845,7 @@
       "examples": [
         "FRP round tube OD50 ID40, epoxy, 1000m, outdoor",
         "ECR-glass square tube 50×50×4, UP resin, 500 × 6m, black",
-        "Carbon angle 30×30×3, epoxy, 200m, UV + flame retardant"
+        "FRP I-beam 100×100×6×8, epoxy, 800m, solar racking"
       ],
       "parse": "AI Parse",
       "parsing": "Parsing…",
@@ -1860,7 +1860,8 @@
         "square": "Square (equal-side)",
         "rect": "Rectangular",
         "angle": "Angle (equal-leg L)",
-        "channel": "Channel / U"
+        "channel": "Channel / U",
+        "i_beam": "I-beam / H-section"
       },
       "geom": {
         "od": "OD mm",
@@ -1869,7 +1870,11 @@
         "w": "Width mm",
         "h": "Height mm",
         "t": "Wall mm",
-        "leg": "Leg mm"
+        "leg": "Leg mm",
+        "bf": "Flange width bf mm",
+        "tf": "Flange thk tf mm",
+        "h_ibeam": "Total height h mm",
+        "tw": "Web thk tw mm"
       },
       "length_mm": "Length per piece mm (typ. 6000)",
       "quantity": "Pieces",
@@ -1909,6 +1914,7 @@
       "missing_rect": "W / H / wall are required",
       "missing_angle": "Leg and wall are required",
       "missing_channel": "W / H / wall are required",
+      "missing_ibeam": "Flange width / height / web / flange thk all required",
       "missing_qty": "Length and pieces are required"
     },
     "result": {

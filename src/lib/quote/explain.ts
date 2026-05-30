@@ -81,6 +81,10 @@ function describeProfile(input: QuoteInput, locale: "zh" | "en"): string {
         return isEn
           ? `channel ${g.w}×${g.h}×${g.t} mm`
           : `槽钢 ${g.w}×${g.h}×${g.t} mm`;
+      case "i_beam":
+        return isEn
+          ? `I-beam ${g.bf}×${g.h}×${g.tw}×${g.tf} mm (bf×h×tw×tf)`
+          : `工字梁 ${g.bf}×${g.h}×${g.tw}×${g.tf} mm (翼宽×总高×腹厚×翼厚)`;
     }
   })();
   const matTxt = `${labelFiber(input.fiber, isEn)} + ${labelResin(input.resin, isEn)}`;

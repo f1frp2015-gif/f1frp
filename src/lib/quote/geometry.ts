@@ -37,6 +37,12 @@ export function crossSectionMm2(g: Geometry): number {
       const flange = Math.max(0, g.w - g.t) * g.t;
       return g.h * g.t + 2 * flange;
     }
+    case "i_beam": {
+      // 工字梁:两条翼缘(bf × tf 各一)+ 一条腹板(高 = h - 2×tf,宽 tw)
+      // 翼缘与腹板交界处的"角"算在翼缘里,不重复扣除(粗测口径)
+      const webHeight = Math.max(0, g.h - 2 * g.tf);
+      return 2 * g.bf * g.tf + webHeight * g.tw;
+    }
   }
 }
 

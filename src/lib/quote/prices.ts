@@ -86,6 +86,15 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
     moldCostCny: 0,
     moqMeters: 200,
   },
+  i_beam: {
+    // 工字梁:对称双翼缘 + 腹板,模具最复杂 / 拉挤速度最慢。
+    // 国内主流玻纤 I-beam 拉挤线速 8-12 m/h(单线),粗测口径取 9。
+    pullSpeedMperH: 9,
+    laborCnyPerH: 520,
+    fixedCnyPerM: 4.0,
+    moldCostCny: 0,
+    moqMeters: 200,
+  },
 };
 
 // ─── 后处理 / 选项溢价 ─────────────────────────────────────────

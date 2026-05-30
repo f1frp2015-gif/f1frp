@@ -16,6 +16,7 @@ export const ProfileTypeEnum = z.enum([
   "rect",    // 矩管
   "angle",   // 角铁(等边 L)
   "channel", // 槽钢 / U 型
+  "i_beam",  // 工字梁 / H 型 / I-beam
 ]);
 export type ProfileType = z.infer<typeof ProfileTypeEnum>;
 
@@ -51,8 +52,22 @@ export const ChannelGeom = z.object({
   t: z.number().min(2).max(20),
 });
 
+// 工字梁 / H 型(对称双翼缘 + 腹板)。标准 GB/T 706 / ISO 657 命名:
+//   bf  = 翼缘宽度(top + bottom 同宽)
+//   tf  = 翼缘厚度
+//   h   = 总高(含两侧翼缘 — 不是腹板高)
+//   tw  = 腹板厚度
+// 复材 I-beam 主要用于桥面板 / 光伏支架 / 防腐承重梁。
+export const IBeamGeom = z.object({
+  type: z.literal("i_beam"),
+  bf: z.number().min(20).max(400),
+  tf: z.number().min(2).max(30),
+  h: z.number().min(40).max(600),
+  tw: z.number().min(2).max(25),
+});
+
 export const GeometrySchema = z.discriminatedUnion("type", [
-  RoundGeom, SquareGeom, RectGeom, AngleGeom, ChannelGeom,
+  RoundGeom, SquareGeom, RectGeom, AngleGeom, ChannelGeom, IBeamGeom,
 ]);
 export type Geometry = z.infer<typeof GeometrySchema>;
 
