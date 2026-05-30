@@ -1890,6 +1890,7 @@
       },
       "length_mm": "Length per piece mm (typ. 6000)",
       "quantity": "Pieces",
+      "cavities": "Mold cavities (1-out-of-N, default 1)",
       "fiber": "Fiber",
       "fiberOpt": {
         "e_glass": "E-glass",

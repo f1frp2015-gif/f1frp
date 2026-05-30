@@ -43,7 +43,7 @@ import {
 } from "./prices";
 import type { QuoteInput, QuoteResult } from "./types";
 
-export const ENGINE_VERSION = `engine-2.0+${PRICE_TABLE_VERSION}`;
+export const ENGINE_VERSION = `engine-2.1+${PRICE_TABLE_VERSION}`;
 
 export function estimate(input: QuoteInput): QuoteResult {
   const warnings: string[] = [];
@@ -69,13 +69,17 @@ export function estimate(input: QuoteInput): QuoteResult {
     wKgPerM * ADDITIVE_CNY_PER_KG_COMPOSITE;
   const materialCnyPerM = materialBeforeYieldCnyPerM / YIELD_RATE;
 
-  // 3) 工艺成本 / 米 — 异形按 complexity 查表,标准型材按类型查表
+  // 3) 工艺成本 / 米 — v2.1 公式(对齐行业拉挤报价核算):
+  //    有效 m/h = m/min × 模具出数(1 出 N) × 60
+  //    工艺 ¥/m = 等效台时费 / 有效 m/h + 固定每米费
   const coeff =
     input.geometry.type === "custom"
       ? CUSTOM_PROCESS_BY_COMPLEXITY[input.geometry.complexity]
       : PROCESS_COEFF[input.geometry.type];
+  const cavities = input.cavities ?? coeff.cavitiesDefault;
+  const effectiveMperH = coeff.pullSpeedMperMin * cavities * 60;
   const processCnyPerM =
-    coeff.laborCnyPerH / coeff.pullSpeedMperH + coeff.fixedCnyPerM;
+    coeff.laborCnyPerH / effectiveMperH + coeff.fixedCnyPerM;
 
   // 4) 表面 / 内毡 / 后处理 / 彩色 / 食品级
   // 表面毡 & 内毡:周长(mm)/1000 = m,× 1m 长 = m² 面积,× g/m² = g,× ¥/kg / 1000 = ¥

@@ -106,6 +106,7 @@ export const QuoteInputSchema = z.object({
   geometry: GeometrySchema,
   length_mm: z.number().min(100).max(50000).describe("单根定尺长度 mm,常见 6000"),
   quantity: z.number().int().min(1).max(1_000_000).describe("根数 / 总订单量"),
+  cavities: z.number().int().min(1).max(8).optional().describe("模具出数 1 出 N;缺省走该型材默认值(通常 1)"),
   fiber: FiberEnum,
   fiber_content_pct: z
     .number().min(40).max(85).optional()
@@ -131,6 +132,7 @@ export const ExtractResultSchema = z.object({
     geometry: true, length_mm: true, quantity: true,
     fiber: true, resin: true, surface_veil: true, inner_veil: true,
     uv_coating: true, fire_retardant: true, food_grade: true, color: true,
+    cavities: true,
   } as never).describe("尽量抽出来的字段;允许部分缺失"),
   // 还缺的关键字段(用人话表述,后续给前端展示)
   missing: z.array(z.string()).describe("还缺哪些关键参数;给用户看的人话"),

@@ -35,75 +35,86 @@ export const RESIN_PRICE_CNY_PER_KG: Record<Resin, number> = {
 export const ADDITIVE_CNY_PER_KG_COMPOSITE = 0.4;
 
 // ─── 工艺系数 ──────────────────────────────────────────────────
+//
+// 2026-05-30 v2.1 校准 — 跟行业拉挤报价核算口径对齐:
+//   速度用 m/min × 出数 × 60 表达(之前是固定 m/h);
+//   工时单价是"等效台时费"(含人工 + 折旧 + 厂房 + 电费 + 物料消耗 + 其他),
+//   合并到一个数字便于粗测,数学上 = Excel 拆 7 项之和。
 
 export type ProcessCoeff = {
-  // 拉挤速度 m/h(同时多型材线时按线 hr 摊)
-  pullSpeedMperH: number;
-  // 工时单价 CNY/h(含设备 + 人力 + 电费 + 厂房摊销)
+  // 基础拉挤线速 m/min — 行业典型 0.2-1.2 m/min,看截面复杂度。
+  // 有效 m/h = pullSpeedMperMin × cavities(模具出数 1 出 N)× 60。
+  pullSpeedMperMin: number;
+  // 默认模具出数 1 出 N(标准型材绝大多数 1 出 1,异形看模具设计)
+  cavitiesDefault: number;
+  // 等效台时费 CNY/h(人工 + 折旧 + 厂房 + 电费 + 物料消耗 + 其他制造合并)
   laborCnyPerH: number;
-  // 牵引 / 切割 / 检测 / 包装 等固定每米费用
+  // 牵引 / 切割 / 检测 / 包装边际等"每米固定"费用
   fixedCnyPerM: number;
   // 模具一次性投入 CNY(标准截面取 0,异形才 > 0)
   moldCostCny: number;
   // 起订量 m(< 起订量 quantityMultiplier 给小批量溢价)
   moqMeters: number;
-  // 模具寿命米数(2026-05-30 v2 口径升级,从行业拉挤报价核算表提炼):
-  // 模具摊销 = moldCostCny / moldLifeMeters,与订单量解耦。
-  // 不填走 DEFAULT_MOLD_LIFE_M 全局默认。
+  // 模具寿命米数(异形必填,默认 DEFAULT_MOLD_LIFE_M)
   moldLifeMeters?: number;
 };
 
-// 五种标准型材的工艺基线
+// 六种标准型材的工艺基线
+// 速度按"截面越小越快、对称越规整越快"的工程规律
 export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
   round: {
-    pullSpeedMperH: 18,    // 圆管最快
-    laborCnyPerH: 420,
+    pullSpeedMperMin: 0.8,  // 48 m/h × 1 出 1 = 48 m/h
+    cavitiesDefault: 1,
+    laborCnyPerH: 280,
     fixedCnyPerM: 2.5,
     moldCostCny: 0,
     moqMeters: 100,
   },
   square: {
-    pullSpeedMperH: 14,
-    laborCnyPerH: 460,
+    pullSpeedMperMin: 0.6,  // 36 m/h
+    cavitiesDefault: 1,
+    laborCnyPerH: 300,
     fixedCnyPerM: 3.0,
     moldCostCny: 0,
     moqMeters: 100,
   },
   rect: {
-    pullSpeedMperH: 12,
-    laborCnyPerH: 480,
+    pullSpeedMperMin: 0.5,  // 30 m/h
+    cavitiesDefault: 1,
+    laborCnyPerH: 320,
     fixedCnyPerM: 3.2,
     moldCostCny: 0,
     moqMeters: 150,
   },
   angle: {
-    pullSpeedMperH: 16,
-    laborCnyPerH: 440,
+    pullSpeedMperMin: 0.7,  // 42 m/h(开口截面薄,快)
+    cavitiesDefault: 1,
+    laborCnyPerH: 280,
     fixedCnyPerM: 2.8,
     moldCostCny: 0,
     moqMeters: 100,
   },
   channel: {
-    pullSpeedMperH: 11,
-    laborCnyPerH: 500,
+    pullSpeedMperMin: 0.4,  // 24 m/h
+    cavitiesDefault: 1,
+    laborCnyPerH: 340,
     fixedCnyPerM: 3.5,
     moldCostCny: 0,
     moqMeters: 200,
   },
   i_beam: {
-    // 工字梁:对称双翼缘 + 腹板,模具最复杂 / 拉挤速度最慢。
-    // 国内主流玻纤 I-beam 拉挤线速 8-12 m/h(单线),粗测口径取 9。
-    pullSpeedMperH: 9,
-    laborCnyPerH: 520,
+    pullSpeedMperMin: 0.3,  // 18 m/h(对称双翼,模具最复杂)
+    cavitiesDefault: 1,
+    laborCnyPerH: 360,
     fixedCnyPerM: 4.0,
     moldCostCny: 0,
     moqMeters: 200,
   },
-  // custom 见下方 CUSTOM_PROCESS_BY_COMPLEXITY,这里仅为 type 完备
-  // 占位(实际定价 pricing.ts 会按 complexity 三档查表,不读这条)。
+  // custom 见下方 CUSTOM_PROCESS_BY_COMPLEXITY,这里仅为 type 完备占位
   custom: {
-    pullSpeedMperH: 9,
-    laborCnyPerH: 540,
+    pullSpeedMperMin: 0.35,
+    cavitiesDefault: 1,
+    laborCnyPerH: 380,
     fixedCnyPerM: 4.5,
     moldCostCny: 50000,
     moqMeters: 300,
@@ -120,22 +131,25 @@ export const CUSTOM_PROCESS_BY_COMPLEXITY: Record<
   ProcessCoeff
 > = {
   simple: {
-    pullSpeedMperH: 12,
-    laborCnyPerH: 480,
+    pullSpeedMperMin: 0.5,  // 30 m/h
+    cavitiesDefault: 1,
+    laborCnyPerH: 320,
     fixedCnyPerM: 3.5,
     moldCostCny: 25000,
     moqMeters: 200,
   },
   medium: {
-    pullSpeedMperH: 9,
-    laborCnyPerH: 540,
+    pullSpeedMperMin: 0.35, // 21 m/h
+    cavitiesDefault: 1,
+    laborCnyPerH: 380,
     fixedCnyPerM: 4.5,
     moldCostCny: 55000,
     moqMeters: 300,
   },
   complex: {
-    pullSpeedMperH: 6,
-    laborCnyPerH: 600,
+    pullSpeedMperMin: 0.20, // 12 m/h
+    cavitiesDefault: 1,
+    laborCnyPerH: 440,
     fixedCnyPerM: 6.0,
     moldCostCny: 110000,
     moqMeters: 500,
@@ -230,4 +244,4 @@ export function quantityMultiplier(totalMeters: number, moq: number): number {
 }
 
 // 价目版本(随价目表更新时手动 bump,会落到 quoteLogs.engine_version)
-export const PRICE_TABLE_VERSION = "2026-05-29-r1";
+export const PRICE_TABLE_VERSION = "2026-05-30-r2";

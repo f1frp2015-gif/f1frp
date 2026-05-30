@@ -48,6 +48,7 @@ const SYSTEM_ZH = `你是 f1frp.com 拉挤型材 AI 粗测报价助手的"输入
 12. inner_veil:用户提到"内毡 / 内表面增强 / 防腐内层 / inner mat" → true;否则 false。
     且仅闭口型材(round / square / rect)有意义,开口型材忽略即可
 13. fiber_content_pct 缺省 70
+14. cavities(模具出数 1 出 N):用户提到"一模 N 件 / 1 出 N / 同模多腔" → 填整数 N;否则不填(走该型材默认通常 1)
 
 严格输出单行 JSON,符合以下结构,无任何 markdown 或多余文字:
 {"confidence": 0-100, "partial": {...}, "missing": ["..."], "followup_question": "..."}`;
@@ -83,6 +84,7 @@ Rules:
 12. inner_veil: user mentions "inner mat / inner liner / corrosion barrier inside / 内毡" → true; else false.
     Only meaningful for closed sections (round / square / rect); ignore for open.
 13. fiber_content_pct defaults 70.
+14. cavities (1-out-of-N mold): user mentions "1 out of N / multi-cavity mold" → integer N; otherwise leave it out (defaults usually 1).
 
 Output ONLY a single-line JSON, no markdown, no prose:
 {"confidence": 0-100, "partial": {...}, "missing": ["..."], "followup_question": "..."}`;

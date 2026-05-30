@@ -1863,6 +1863,7 @@
       },
       "length_mm": "单根定尺 mm(常见 6000)",
       "quantity": "根数",
+      "cavities": "模具出数(1 出 N,默认 1)",
       "fiber": "玻纤体系",
       "fiberOpt": {
         "e_glass": "无碱 E-glass",

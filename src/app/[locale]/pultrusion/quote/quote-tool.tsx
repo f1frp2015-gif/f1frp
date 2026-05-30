@@ -35,6 +35,7 @@ type FormState = {
   customNote: string;
   length_mm: string;
   quantity: string;
+  cavities: string;  // 模具出数 1 出 N,默认 "1"
   fiber: QuoteInput["fiber"];
   resin: QuoteInput["resin"];
   fiber_content_pct: string;
@@ -53,6 +54,7 @@ const DEFAULT_FORM: FormState = {
   customNote: "",
   length_mm: "6000",
   quantity: "100",
+  cavities: "1",
   fiber: "e_glass",
   resin: "epoxy",
   fiber_content_pct: "70",
@@ -137,6 +139,7 @@ export function QuoteTool() {
     }
     if (p.length_mm) next.length_mm = String(p.length_mm);
     if (p.quantity) next.quantity = String(p.quantity);
+    if (p.cavities && p.cavities > 0) next.cavities = String(p.cavities);
     if (p.fiber) next.fiber = p.fiber;
     if (p.resin) next.resin = p.resin;
     if (p.fiber_content_pct) next.fiber_content_pct = String(p.fiber_content_pct);
@@ -191,10 +194,12 @@ export function QuoteTool() {
     const length_mm = num(form.length_mm);
     const quantity = num(form.quantity);
     if (!length_mm || !quantity) return { error: t("error.missing_qty") };
+    const cavitiesNum = Math.max(1, Math.floor(num(form.cavities) || 1));
     return {
       geometry,
       length_mm,
       quantity: Math.floor(quantity),
+      cavities: cavitiesNum,
       fiber: form.fiber,
       resin: form.resin,
       fiber_content_pct: num(form.fiber_content_pct) || 70,
@@ -349,6 +354,9 @@ function FormSection({
       </Field>
       <Field label={t("form.quantity")}>
         <Input value={form.quantity} onChange={(e) => set("quantity", e.target.value)} inputMode="numeric" />
+      </Field>
+      <Field label={t("form.cavities")}>
+        <Input value={form.cavities} onChange={(e) => set("cavities", e.target.value)} inputMode="numeric" />
       </Field>
 
       <Field label={t("form.fiber")}>
