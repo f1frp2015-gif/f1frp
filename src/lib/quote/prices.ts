@@ -43,10 +43,14 @@ export type ProcessCoeff = {
   laborCnyPerH: number;
   // 牵引 / 切割 / 检测 / 包装 等固定每米费用
   fixedCnyPerM: number;
-  // 模具一次性投入 CNY(标准截面取 0,异形才 > 0;后续异形模式接入)
+  // 模具一次性投入 CNY(标准截面取 0,异形才 > 0)
   moldCostCny: number;
-  // 起订量 m(<起订量按 MOQ 整批摊销 + 加价)
+  // 起订量 m(< 起订量 quantityMultiplier 给小批量溢价)
   moqMeters: number;
+  // 模具寿命米数(2026-05-30 v2 口径升级,从行业拉挤报价核算表提炼):
+  // 模具摊销 = moldCostCny / moldLifeMeters,与订单量解耦。
+  // 不填走 DEFAULT_MOLD_LIFE_M 全局默认。
+  moldLifeMeters?: number;
 };
 
 // 五种标准型材的工艺基线
@@ -171,6 +175,33 @@ export const COLOR_PREMIUM_CNY_PER_M: Record<string, number> = {
 };
 
 // ─── 商业层 ─────────────────────────────────────────────────────
+//
+// 2026-05-30 v2 口径升级 — 从行业拉挤报价核算表提炼的通用工程公式
+// (不含任何客户名 / 终端价 / 第三方商业秘密;以下数字均为行业典型常数,
+//  与教材 / 标准 / 公开报价模板一致)。
+//
+// 链式定价流程:
+//   原材料合计 / 成品率              (成品率 0.98 → +2% 损耗)
+//   + 工艺(人工 + 时摊)
+//   + 表面 / 内毡 / 后处理
+//   + 模具摊销(寿命米数基底)        — 异形 custom 才 > 0
+//   = 全部制造成本
+//   × (1 + 管理费率 11%)             — 国玻 v2 表 r78 默认
+//   × 数量曲线
+//   × (1 + 利润率 20%)
+//   × (1 + 增值税 13%)
+//   = 最终单米报价
+//   ± 15% 粗测区间
+
+// 成品率(yield) — 损耗约 2% 由材料分摊
+export const YIELD_RATE = 0.98;
+
+// 管理费率 — 分摊在全制造成本之上(行业典型 8-13%,取中)
+export const ADMIN_FEE_RATE = 0.11;
+
+// 模具寿命默认值(米)— 异形 custom 模具按寿命摊
+// 行业典型 20000-50000 m,取中
+export const DEFAULT_MOLD_LIFE_M = 30000;
 
 // 厂家利润率(粗测口径,代理曜一加价不在此层)
 export const FACTORY_MARGIN = 0.20;

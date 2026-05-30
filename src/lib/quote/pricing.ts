@@ -32,6 +32,9 @@ import {
   FIRE_RETARDANT_RESIN_MULTIPLIER,
   FOOD_GRADE_CNY_PER_M,
   COLOR_PREMIUM_CNY_PER_M,
+  YIELD_RATE,
+  ADMIN_FEE_RATE,
+  DEFAULT_MOLD_LIFE_M,
   FACTORY_MARGIN,
   VAT,
   QUOTE_BAND,
@@ -40,7 +43,7 @@ import {
 } from "./prices";
 import type { QuoteInput, QuoteResult } from "./types";
 
-export const ENGINE_VERSION = `engine-1.0+${PRICE_TABLE_VERSION}`;
+export const ENGINE_VERSION = `engine-2.0+${PRICE_TABLE_VERSION}`;
 
 export function estimate(input: QuoteInput): QuoteResult {
   const warnings: string[] = [];
@@ -55,15 +58,16 @@ export function estimate(input: QuoteInput): QuoteResult {
     input.fiber_content_pct ?? 70,
   );
 
-  // 2) 材料成本 / 米
+  // 2) 材料成本 / 米 — 加成品率调整(损耗 2%)
   const fiberKgPerM = wKgPerM * fiberVf;
   const resinKgPerM = wKgPerM * (1 - fiberVf);
   const resinUnit = RESIN_PRICE_CNY_PER_KG[input.resin] *
     (input.fire_retardant ? FIRE_RETARDANT_RESIN_MULTIPLIER : 1);
-  const materialCnyPerM =
+  const materialBeforeYieldCnyPerM =
     fiberKgPerM * FIBER_PRICE_CNY_PER_KG[input.fiber] +
     resinKgPerM * resinUnit +
     wKgPerM * ADDITIVE_CNY_PER_KG_COMPOSITE;
+  const materialCnyPerM = materialBeforeYieldCnyPerM / YIELD_RATE;
 
   // 3) 工艺成本 / 米 — 异形按 complexity 查表,标准型材按类型查表
   const coeff =
@@ -93,32 +97,42 @@ export function estimate(input: QuoteInput): QuoteResult {
     (input.food_grade ? FOOD_GRADE_CNY_PER_M : 0) +
     (COLOR_PREMIUM_CNY_PER_M[input.color] ?? 0);
 
-  // 5) 模具摊销
+  // 5) 模具摊销 — v2 改:按"模具寿命米数"摊,与订单量解耦
+  // (行业拉挤报价核算口径;之前 max(MOQ, 总米数)对小批严重高估)
   const totalMeters = (input.length_mm / 1000) * input.quantity;
+  const moldLife = coeff.moldLifeMeters ?? DEFAULT_MOLD_LIFE_M;
   const moldAmortCnyPerM =
-    coeff.moldCostCny > 0
-      ? coeff.moldCostCny / Math.max(coeff.moqMeters, totalMeters)
-      : 0;
+    coeff.moldCostCny > 0 ? coeff.moldCostCny / moldLife : 0;
 
-  const subtotalCnyPerM =
+  // 6) 全部制造成本(material + 工艺 + 表面 + 模具)
+  const allManuCnyPerM =
     materialCnyPerM + processCnyPerM + surfaceCnyPerM + moldAmortCnyPerM;
 
-  // 6) 数量曲线 × 厂家加价
+  // 7) 数量曲线 — 小批量溢价(模具已按寿命摊,这里仅反映厂家对小订单的额外加价意愿)
   const qMul = quantityMultiplier(totalMeters, coeff.moqMeters);
   if (qMul > 1) {
     warnings.push(`订单总长 ${totalMeters.toFixed(0)}m 低于该型材起订量 ${coeff.moqMeters}m,粗测含 25% 小批溢价`);
   }
-  const marginCnyPerM = subtotalCnyPerM * FACTORY_MARGIN;
-  const preTaxCnyPerM = (subtotalCnyPerM + marginCnyPerM) * qMul;
+  const allManuQAdjustedCnyPerM = allManuCnyPerM * qMul;
 
-  // 7) VAT + 区间
+  // 8) 管理费(国玻 v2 链式口径:在全制造成本之上加 11%)
+  const adminCnyPerM = allManuQAdjustedCnyPerM * ADMIN_FEE_RATE;
+
+  // 9) 成本合计 D = 全制造 + 管理
+  const costSumCnyPerM = allManuQAdjustedCnyPerM + adminCnyPerM;
+
+  // 10) 利润
+  const marginCnyPerM = costSumCnyPerM * FACTORY_MARGIN;
+
+  // 11) 不含税 + 12) 增值税 + 13) 最终
+  const preTaxCnyPerM = costSumCnyPerM + marginCnyPerM;
   const taxCnyPerM = preTaxCnyPerM * VAT;
   const finalCnyPerM = preTaxCnyPerM + taxCnyPerM;
 
   const low = finalCnyPerM * (1 - QUOTE_BAND);
   const high = finalCnyPerM * (1 + QUOTE_BAND);
 
-  // breakdown:占比基于 finalCnyPerM
+  // breakdown:占比基于 finalCnyPerM。每项金额都已含数量曲线 qMul。
   const breakdown: QuoteResult["breakdown"] = [
     {
       key: "material",
@@ -149,11 +163,18 @@ export function estimate(input: QuoteInput): QuoteResult {
       pct: round1((moldAmortCnyPerM * qMul / finalCnyPerM) * 100),
     },
     {
+      key: "admin",
+      label_zh: "管理费",
+      label_en: "Admin",
+      amount_per_meter_cny: round2(adminCnyPerM),
+      pct: round1((adminCnyPerM / finalCnyPerM) * 100),
+    },
+    {
       key: "margin",
       label_zh: "厂家利润",
       label_en: "Margin",
-      amount_per_meter_cny: round2(marginCnyPerM * qMul),
-      pct: round1((marginCnyPerM * qMul / finalCnyPerM) * 100),
+      amount_per_meter_cny: round2(marginCnyPerM),
+      pct: round1((marginCnyPerM / finalCnyPerM) * 100),
     },
     {
       key: "tax",

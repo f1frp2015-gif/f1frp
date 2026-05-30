@@ -142,7 +142,7 @@ export type ExtractResult = z.infer<typeof ExtractResultSchema>;
 // ─── 定价输出 ──────────────────────────────────────────────────
 
 export const CostBreakdownItem = z.object({
-  key: z.enum(["material", "process", "surface", "mold", "tax", "margin"]),
+  key: z.enum(["material", "process", "surface", "mold", "admin", "tax", "margin"]),
   label_zh: z.string(),
   label_en: z.string(),
   amount_per_meter_cny: z.number(), // 单米成本绝对值(后端算出来)
