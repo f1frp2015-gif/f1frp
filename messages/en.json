@@ -1921,6 +1921,15 @@
       "estimate": "Get rough quote",
       "estimating": "Calculating…"
     },
+    "live": {
+      "eyebrow": "Live estimate",
+      "basedOn": "(from section + formulation)",
+      "weight": "Mass",
+      "area": "Area",
+      "density": "Density",
+      "perim": "Outer perim",
+      "empty": "Fill section + materials — mass / area / density / perimeter will appear here"
+    },
     "error": {
       "missing_od": "OD is required",
       "missing_square": "Side and wall are required",

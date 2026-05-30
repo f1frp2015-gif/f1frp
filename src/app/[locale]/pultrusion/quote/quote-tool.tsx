@@ -4,7 +4,7 @@
 // 双模式入口:NL 对话框 + 专业表单 tab 切换。NL 抽取出来后预填表单,
 // 用户确认 → 调 estimate。这样即使 AI 抽错,用户也能改。
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,12 @@ import type {
   ProfileType,
   Complexity,
 } from "@/lib/quote/types";
+import {
+  crossSectionMm2,
+  outerPerimeterMm,
+  compositeDensityGcm3,
+  weightKgPerMeter,
+} from "@/lib/quote/geometry";
 
 type FormState = {
   profileType: ProfileType;
@@ -142,6 +148,10 @@ export function QuoteTool() {
     if (p.color) next.color = p.color;
     setForm(next);
   }
+
+  // 实时预估(无按钮即时显示)— 几何函数都是纯 TS,客户端直接 import 跑,零网络。
+  // 输入不足时返回 null,UI 显示占位。
+  const livePreview = useMemo(() => tryComputeLive(form), [form]);
 
   function buildInput(): QuoteInput | { error: string } {
     const num = (s: string) => Number(s);
@@ -287,6 +297,7 @@ export function QuoteTool() {
 
         <TabsContent value="form" className="mt-4">
           <FormSection form={form} set={set} t={t} />
+          <LivePreview preview={livePreview} t={t} />
           <Button className="mt-4" onClick={handleEstimate} disabled={estimating}>
             {estimating ? t("form.estimating") : t("form.estimate")}
           </Button>
@@ -458,6 +469,104 @@ function GeometryInputs({
         </>
       );
   }
+}
+
+// ─── 实时预估 ─────────────────────────────────────────────────
+// 纯客户端计算,输入不足返回 null。包装异常 try/catch,防 NaN/Inf 抛错。
+type LivePreviewData = {
+  area_mm2: number;
+  outer_perim_mm: number;
+  density_gcm3: number;
+  weight_kg_per_m: number;
+};
+
+function tryComputeLive(form: FormState): LivePreviewData | null {
+  const num = (s: string) => {
+    const v = Number(s);
+    return Number.isFinite(v) && v > 0 ? v : NaN;
+  };
+  const d1 = num(form.d1), d2 = num(form.d2), d3 = num(form.d3), d4 = num(form.d4);
+  const vf = Number(form.fiber_content_pct);
+  const fcp = Number.isFinite(vf) && vf > 0 ? vf : 70;
+  let geom: QuoteInput["geometry"] | null = null;
+  try {
+    switch (form.profileType) {
+      case "round": {
+        if (!d1) return null;
+        const id = Number(form.d2);
+        geom = { type: "round", od: d1, id: Number.isFinite(id) && id >= 0 ? id : 0 };
+        break;
+      }
+      case "square": if (!d1 || !d3) return null; geom = { type: "square", side: d1, t: d3 }; break;
+      case "rect":   if (!d1 || !d2 || !d3) return null; geom = { type: "rect", w: d1, h: d2, t: d3 }; break;
+      case "angle":  if (!d1 || !d3) return null; geom = { type: "angle", leg: d1, t: d3 }; break;
+      case "channel":if (!d1 || !d2 || !d3) return null; geom = { type: "channel", w: d1, h: d2, t: d3 }; break;
+      case "i_beam": if (!d1 || !d2 || !d3 || !d4) return null; geom = { type: "i_beam", bf: d1, h: d2, tw: d3, tf: d4 }; break;
+      case "custom":
+        if (!d1 || !d2) return null;
+        geom = {
+          type: "custom",
+          area_mm2: d1, outer_perim_mm: d2,
+          inner_perim_mm: Math.max(0, Number(form.d3) || 0),
+          complexity: form.complexity,
+        };
+        break;
+    }
+    if (!geom) return null;
+    const area = crossSectionMm2(geom);
+    const perim = outerPerimeterMm(geom);
+    const rho = compositeDensityGcm3(form.fiber, form.resin, fcp);
+    const w = weightKgPerMeter(geom, form.fiber, form.resin, fcp);
+    if (!Number.isFinite(area) || !Number.isFinite(w) || w <= 0) return null;
+    return {
+      area_mm2: Math.round(area),
+      outer_perim_mm: Math.round(perim),
+      density_gcm3: Math.round(rho * 100) / 100,
+      weight_kg_per_m: Math.round(w * 100) / 100,
+    };
+  } catch { return null; }
+}
+
+function LivePreview({
+  preview, t,
+}: {
+  preview: LivePreviewData | null;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <div className="mt-4 rounded border border-border/70 bg-accent/30 px-4 py-3 text-sm">
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {t("live.eyebrow")}
+        </div>
+        {preview && (
+          <div className="text-xs text-muted-foreground">
+            {t("live.basedOn")}
+          </div>
+        )}
+      </div>
+      {preview ? (
+        <div className="mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1">
+          <div>
+            <span className="text-muted-foreground">{t("live.weight")}:</span>{" "}
+            <span className="font-mono text-lg font-semibold">
+              {preview.weight_kg_per_m.toFixed(2)}
+            </span>
+            <span className="ml-1 text-muted-foreground">kg/m</span>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {t("live.area")} {preview.area_mm2} mm² ·
+            {" "}{t("live.density")} {preview.density_gcm3.toFixed(2)} g/cm³ ·
+            {" "}{t("live.perim")} {preview.outer_perim_mm} mm
+          </div>
+        </div>
+      ) : (
+        <div className="mt-1 text-xs text-muted-foreground">
+          {t("live.empty")}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

@@ -1894,6 +1894,15 @@
       "estimate": "粗测报价",
       "estimating": "计算中…"
     },
+    "live": {
+      "eyebrow": "实时预估",
+      "basedOn": "(基于截面 + 配方)",
+      "weight": "米重",
+      "area": "截面积",
+      "density": "密度",
+      "perim": "外周长",
+      "empty": "填完截面 + 材料,这里会显示米重 / 截面积 / 密度 / 外周长"
+    },
     "error": {
       "missing_od": "请填外径",
       "missing_square": "请填边长和壁厚",
