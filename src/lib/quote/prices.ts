@@ -95,6 +95,47 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
     moldCostCny: 0,
     moqMeters: 200,
   },
+  // custom 见下方 CUSTOM_PROCESS_BY_COMPLEXITY,这里仅为 type 完备
+  // 占位(实际定价 pricing.ts 会按 complexity 三档查表,不读这条)。
+  custom: {
+    pullSpeedMperH: 9,
+    laborCnyPerH: 540,
+    fixedCnyPerM: 4.5,
+    moldCostCny: 50000,
+    moqMeters: 300,
+  },
+};
+
+// 异形按复杂度三档分摊模具 + 工艺系数。
+// 国内拉挤模具行业典型:
+//   简单(2-3 个对称特征,接近标准截面)  → ¥20-30k,速度近标准
+//   中等(多个非对称特征 / 嵌入件预留)   → ¥40-70k,速度 -25%
+//   复杂(异形薄壁 / 多腔 / 嵌件 / 双密度)→ ¥80-150k,速度 -50%
+export const CUSTOM_PROCESS_BY_COMPLEXITY: Record<
+  "simple" | "medium" | "complex",
+  ProcessCoeff
+> = {
+  simple: {
+    pullSpeedMperH: 12,
+    laborCnyPerH: 480,
+    fixedCnyPerM: 3.5,
+    moldCostCny: 25000,
+    moqMeters: 200,
+  },
+  medium: {
+    pullSpeedMperH: 9,
+    laborCnyPerH: 540,
+    fixedCnyPerM: 4.5,
+    moldCostCny: 55000,
+    moqMeters: 300,
+  },
+  complex: {
+    pullSpeedMperH: 6,
+    laborCnyPerH: 600,
+    fixedCnyPerM: 6.0,
+    moldCostCny: 110000,
+    moqMeters: 500,
+  },
 };
 
 // ─── 后处理 / 选项溢价 ─────────────────────────────────────────

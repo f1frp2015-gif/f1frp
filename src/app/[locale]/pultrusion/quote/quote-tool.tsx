@@ -18,11 +18,15 @@ import type {
   QuoteResult,
   ExtractResult,
   ProfileType,
+  Complexity,
 } from "@/lib/quote/types";
 
 type FormState = {
   profileType: ProfileType;
   d1: string; d2: string; d3: string; d4: string; // 截面四元尺寸(每种型材含义不同)
+  // custom 专属
+  complexity: Complexity;
+  customNote: string;
   length_mm: string;
   quantity: string;
   fiber: QuoteInput["fiber"];
@@ -39,6 +43,8 @@ type FormState = {
 const DEFAULT_FORM: FormState = {
   profileType: "square",
   d1: "40", d2: "40", d3: "3", d4: "",
+  complexity: "medium",
+  customNote: "",
   length_mm: "6000",
   quantity: "100",
   fiber: "e_glass",
@@ -114,6 +120,13 @@ export function QuoteTool() {
         case "i_beam":
           next.d1 = String(p.geometry.bf); next.d2 = String(p.geometry.h);
           next.d3 = String(p.geometry.tw); next.d4 = String(p.geometry.tf); break;
+        case "custom":
+          next.d1 = String(p.geometry.area_mm2);
+          next.d2 = String(p.geometry.outer_perim_mm);
+          next.d3 = String(p.geometry.inner_perim_mm ?? 0);
+          if (p.geometry.complexity) next.complexity = p.geometry.complexity;
+          if (p.geometry.note) next.customNote = p.geometry.note;
+          break;
       }
     }
     if (p.length_mm) next.length_mm = String(p.length_mm);
@@ -153,6 +166,17 @@ export function QuoteTool() {
       case "i_beam":
         if (!d1 || !d2 || !d3 || !d4) return { error: t("error.missing_ibeam") };
         geometry = { type: "i_beam", bf: d1, h: d2, tw: d3, tf: d4 }; break;
+      case "custom":
+        if (!d1 || !d2) return { error: t("error.missing_custom") };
+        geometry = {
+          type: "custom",
+          area_mm2: d1,
+          outer_perim_mm: d2,
+          inner_perim_mm: Math.max(0, Number.isFinite(d3) ? d3 : 0),
+          complexity: form.complexity,
+          note: form.customNote.trim() || undefined,
+        };
+        break;
     }
     const length_mm = num(form.length_mm);
     const quantity = num(form.quantity);
@@ -303,6 +327,7 @@ function FormSection({
           <option value="angle">{t("form.profile.angle")}</option>
           <option value="channel">{t("form.profile.channel")}</option>
           <option value="i_beam">{t("form.profile.i_beam")}</option>
+          <option value="custom">{t("form.profile.custom")}</option>
         </select>
       </Field>
 
@@ -405,6 +430,31 @@ function GeometryInputs({
           <Field label={t("form.geom.h_ibeam")}><Input value={form.d2} onChange={(e) => set("d2", e.target.value)} inputMode="numeric" /></Field>
           <Field label={t("form.geom.tw")}><Input value={form.d3} onChange={(e) => set("d3", e.target.value)} inputMode="numeric" /></Field>
           <Field label={t("form.geom.tf")}><Input value={form.d4} onChange={(e) => set("d4", e.target.value)} inputMode="numeric" /></Field>
+        </>
+      );
+    case "custom":
+      // 异形:d1=截面积 mm², d2=外周长 mm, d3=内周长 mm(开口/实心填 0)
+      return (
+        <>
+          <Field label={t("form.geom.area_mm2")}><Input value={form.d1} onChange={(e) => set("d1", e.target.value)} inputMode="numeric" /></Field>
+          <Field label={t("form.geom.outer_perim")}><Input value={form.d2} onChange={(e) => set("d2", e.target.value)} inputMode="numeric" /></Field>
+          <Field label={t("form.geom.inner_perim")}><Input value={form.d3} onChange={(e) => set("d3", e.target.value)} inputMode="numeric" /></Field>
+          <Field label={t("form.geom.complexity")}>
+            <select
+              className="w-full rounded border border-border/70 bg-background px-3 py-2 text-sm"
+              value={form.complexity}
+              onChange={(e) => set("complexity", e.target.value as Complexity)}
+            >
+              <option value="simple">{t("form.complexity.simple")}</option>
+              <option value="medium">{t("form.complexity.medium")}</option>
+              <option value="complex">{t("form.complexity.complex")}</option>
+            </select>
+          </Field>
+          <div className="col-span-full">
+            <Field label={t("form.geom.customNote")}>
+              <Input value={form.customNote} onChange={(e) => set("customNote", e.target.value)} placeholder={t("form.geom.customNotePlaceholder")} />
+            </Field>
+          </div>
         </>
       );
   }

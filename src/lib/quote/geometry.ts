@@ -43,6 +43,8 @@ export function crossSectionMm2(g: Geometry): number {
       const webHeight = Math.max(0, g.h - 2 * g.tf);
       return 2 * g.bf * g.tf + webHeight * g.tw;
     }
+    case "custom":
+      return g.area_mm2;
   }
 }
 
@@ -83,6 +85,7 @@ export function outerPerimeterMm(g: Geometry): number {
     case "angle":   return 4 * g.leg; // L 形展开 ≈ 4 × leg (含 t 端面;粗测忽略)
     case "channel": return 2 * (g.w + g.h);
     case "i_beam":  return 4 * g.bf - 2 * g.tw + 2 * g.h; // 工字展开外周(含腹板两侧 + 翼缘上下)
+    case "custom":  return g.outer_perim_mm;
   }
 }
 
@@ -103,6 +106,8 @@ export function innerPerimeterMm(g: Geometry): number {
     case "channel":
     case "i_beam":
       return 0;
+    case "custom":
+      return g.inner_perim_mm; // 用户自己负责语义;开口异形填 0
   }
 }
 

@@ -23,6 +23,7 @@ import {
   RESIN_PRICE_CNY_PER_KG,
   ADDITIVE_CNY_PER_KG_COMPOSITE,
   PROCESS_COEFF,
+  CUSTOM_PROCESS_BY_COMPLEXITY,
   SURFACE_VEIL_GSM,
   SURFACE_VEIL_CNY_PER_KG,
   INNER_VEIL_GSM,
@@ -64,8 +65,11 @@ export function estimate(input: QuoteInput): QuoteResult {
     resinKgPerM * resinUnit +
     wKgPerM * ADDITIVE_CNY_PER_KG_COMPOSITE;
 
-  // 3) 工艺成本 / 米
-  const coeff = PROCESS_COEFF[input.geometry.type];
+  // 3) 工艺成本 / 米 — 异形按 complexity 查表,标准型材按类型查表
+  const coeff =
+    input.geometry.type === "custom"
+      ? CUSTOM_PROCESS_BY_COMPLEXITY[input.geometry.complexity]
+      : PROCESS_COEFF[input.geometry.type];
   const processCnyPerM =
     coeff.laborCnyPerH / coeff.pullSpeedMperH + coeff.fixedCnyPerM;
 

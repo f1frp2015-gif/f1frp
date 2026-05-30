@@ -1861,7 +1861,8 @@
         "rect": "Rectangular",
         "angle": "Angle (equal-leg L)",
         "channel": "Channel / U",
-        "i_beam": "I-beam / H-section"
+        "i_beam": "I-beam / H-section",
+        "custom": "Custom (non-standard)"
       },
       "geom": {
         "od": "OD mm",
@@ -1874,7 +1875,18 @@
         "bf": "Flange width bf mm",
         "tf": "Flange thk tf mm",
         "h_ibeam": "Total height h mm",
-        "tw": "Web thk tw mm"
+        "tw": "Web thk tw mm",
+        "area_mm2": "Cross-section area mm²",
+        "outer_perim": "Outer perimeter mm",
+        "inner_perim": "Inner perimeter mm (open/solid → 0)",
+        "complexity": "Pultrusion complexity",
+        "customNote": "Shape note (optional)",
+        "customNotePlaceholder": "e.g. symmetric twin-cavity thin-wall with insert slot"
+      },
+      "complexity": {
+        "simple": "Simple (symmetric, few features, near-standard)",
+        "medium": "Medium (multiple features / insert preps)",
+        "complex": "Complex (multi-cavity / dual density / thin-wall multi-feature)"
       },
       "length_mm": "Length per piece mm (typ. 6000)",
       "quantity": "Pieces",
@@ -1916,6 +1928,7 @@
       "missing_angle": "Leg and wall are required",
       "missing_channel": "W / H / wall are required",
       "missing_ibeam": "Flange width / height / web / flange thk all required",
+      "missing_custom": "Custom requires: area mm² + outer perimeter mm",
       "missing_qty": "Length and pieces are required"
     },
     "result": {

@@ -17,8 +17,14 @@ export const ProfileTypeEnum = z.enum([
   "angle",   // 角铁(等边 L)
   "channel", // 槽钢 / U 型
   "i_beam",  // 工字梁 / H 型 / I-beam
+  "custom",  // 异形 — 用户直接输入截面积 + 周长 + 复杂度
 ]);
 export type ProfileType = z.infer<typeof ProfileTypeEnum>;
+
+// 异形复杂度 — 决定模具一次性投入 + 拉挤工艺系数。
+// 详见 prices.ts CUSTOM_PROCESS_BY_COMPLEXITY。
+export const ComplexityEnum = z.enum(["simple", "medium", "complex"]);
+export type Complexity = z.infer<typeof ComplexityEnum>;
 
 export const RoundGeom = z.object({
   type: z.literal("round"),
@@ -66,8 +72,20 @@ export const IBeamGeom = z.object({
   tw: z.number().min(2).max(25),
 });
 
+// 异形截面 — 用户直接输入(无法用 6 种标准参数描述时)
+// 几何函数对 custom 不再"算",只是回放输入值。
+// 周长零代表"开口"(内毡自动忽略,同标准开口型材)。
+export const CustomGeom = z.object({
+  type: z.literal("custom"),
+  area_mm2: z.number().min(20).max(50000).describe("横截面积 mm²"),
+  outer_perim_mm: z.number().min(10).max(2000).describe("外周长 mm"),
+  inner_perim_mm: z.number().min(0).max(2000).describe("内周长 mm;开口 / 实心 → 0"),
+  complexity: ComplexityEnum.describe("拉挤复杂度;影响模具摊销 + 工艺系数"),
+  note: z.string().max(200).optional().describe("形状描述,给 AI 解释生成用"),
+});
+
 export const GeometrySchema = z.discriminatedUnion("type", [
-  RoundGeom, SquareGeom, RectGeom, AngleGeom, ChannelGeom, IBeamGeom,
+  RoundGeom, SquareGeom, RectGeom, AngleGeom, ChannelGeom, IBeamGeom, CustomGeom,
 ]);
 export type Geometry = z.infer<typeof GeometrySchema>;
 

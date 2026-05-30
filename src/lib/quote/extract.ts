@@ -17,7 +17,7 @@ const SYSTEM_ZH = `你是 f1frp.com 拉挤型材 AI 粗测报价助手的"输入
 你的任务:把用户用自然语言描述的拉挤型材需求,提取为严格 JSON。
 
 规则:
-1. 六种支持的截面 geometry.type:round / square / rect / angle / channel / i_beam
+1. 七种支持的截面 geometry.type:round / square / rect / angle / channel / i_beam / custom
    - round: { type:"round", od: 外径mm, id: 内径mm }(实心 id=0)
    - square: { type:"square", side: 边长mm, t: 壁厚mm }
    - rect: { type:"rect", w, h, t }
@@ -26,6 +26,15 @@ const SYSTEM_ZH = `你是 f1frp.com 拉挤型材 AI 粗测报价助手的"输入
    - i_beam: { type:"i_beam", bf: 翼缘宽mm, tf: 翼缘厚mm, h: 总高mm, tw: 腹板厚mm }
      关键词:工字钢 / 工字梁 / 工字 / H 型 / H-beam / I-beam / W-section
      "100×100×6×8" 这种 4 维标注 → bf=100, h=100, tw=6, tf=8 (GB/T 706 习惯,前两位是 bf×h)
+   - custom: { type:"custom", area_mm2, outer_perim_mm, inner_perim_mm, complexity, note }
+     关键词:异形 / 异型 / 自定义 / 非标 / custom / non-standard / odd-shape
+     用户明说"截面积 XXX mm² 外周长 YYY mm" 或 "异形 + 形状描述"时用 custom
+     complexity 三档:simple / medium(默认) / complex,看用户用词:
+       "简单异形 / 对称" → simple
+       "多腔 / 嵌件 / 双密度 / 薄壁多特征" → complex
+       其他 → medium
+     note 是 50 字内的形状描述(给后续解释用)
+     无法从用户输入抽出 area_mm2 + outer_perim_mm 两数字时,不要瞎填,放 missing
 2. fiber: e_glass(无碱玻纤,默认)/ ecr_glass(耐腐 ECR)/ carbon(碳纤)/ hybrid(混编)
 3. resin: up(不饱和聚酯)/ epoxy(环氧)/ ve(乙烯基酯)/ phenolic(酚醛)/ pu(聚氨酯)
 4. 单位:所有长度统一 mm。length_mm 是单根定尺(常见 6000),quantity 是根数
@@ -47,7 +56,7 @@ const SYSTEM_EN = `You are the input parser for f1frp.com's AI pultruded profile
 Your job: extract STRICT JSON from a natural-language profile request.
 
 Rules:
-1. Supported geometry.type: round / square / rect / angle / channel / i_beam
+1. Supported geometry.type: round / square / rect / angle / channel / i_beam / custom
    - round: { type:"round", od, id }   (solid → id=0)
    - square: { type:"square", side, t }
    - rect: { type:"rect", w, h, t }
@@ -56,6 +65,11 @@ Rules:
    - i_beam: { type:"i_beam", bf, tf, h, tw }  (bf=flange width, tf=flange thk, h=total height, tw=web thk)
      Keywords: I-beam / H-beam / H-section / W-section / wide-flange / 工字 / 工字梁
      A "W6x9" or "150×150×7×10" annotation → bf=150, h=150, tw=7, tf=10
+   - custom: { type:"custom", area_mm2, outer_perim_mm, inner_perim_mm, complexity, note }
+     Keywords: custom / non-standard / odd-shape / asymmetric / multi-cavity / 异形 / 非标
+     complexity: simple / medium (default) / complex — based on user's words
+     note: ≤50-word shape description for explain generator
+     If you can't extract both area_mm2 AND outer_perim_mm, put them in missing — don't guess
 2. fiber: e_glass (default) / ecr_glass / carbon / hybrid.
 3. resin: up / epoxy / ve / phenolic / pu.
 4. All lengths in mm. length_mm is single-piece length (typically 6000); quantity is piece count.

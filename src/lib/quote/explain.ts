@@ -85,6 +85,12 @@ function describeProfile(input: QuoteInput, locale: "zh" | "en"): string {
         return isEn
           ? `I-beam ${g.bf}×${g.h}×${g.tw}×${g.tf} mm (bf×h×tw×tf)`
           : `工字梁 ${g.bf}×${g.h}×${g.tw}×${g.tf} mm (翼宽×总高×腹厚×翼厚)`;
+      case "custom": {
+        const noteTxt = g.note ? (isEn ? ` — "${g.note}"` : ` — "${g.note}"`) : "";
+        return isEn
+          ? `custom profile A=${g.area_mm2}mm² Pout=${g.outer_perim_mm}mm Pin=${g.inner_perim_mm}mm, complexity=${g.complexity}${noteTxt}`
+          : `异形截面 面积=${g.area_mm2}mm² 外周=${g.outer_perim_mm}mm 内周=${g.inner_perim_mm}mm,复杂度=${g.complexity}${noteTxt}`;
+      }
     }
   })();
   const matTxt = `${labelFiber(input.fiber, isEn)} + ${labelResin(input.resin, isEn)}`;

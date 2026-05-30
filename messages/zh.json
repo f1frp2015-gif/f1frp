@@ -1834,7 +1834,8 @@
         "rect": "矩管",
         "angle": "角铁(等边 L)",
         "channel": "槽钢 / U 型",
-        "i_beam": "工字梁 / H 型"
+        "i_beam": "工字梁 / H 型",
+        "custom": "异形(自定义)"
       },
       "geom": {
         "od": "外径 mm",
@@ -1847,7 +1848,18 @@
         "bf": "翼缘宽 bf mm",
         "tf": "翼缘厚 tf mm",
         "h_ibeam": "总高 h mm",
-        "tw": "腹板厚 tw mm"
+        "tw": "腹板厚 tw mm",
+        "area_mm2": "截面积 mm²",
+        "outer_perim": "外周长 mm",
+        "inner_perim": "内周长 mm(开口/实心填 0)",
+        "complexity": "拉挤复杂度",
+        "customNote": "形状描述(可选)",
+        "customNotePlaceholder": "例:对称双腔薄壁,带嵌件预留槽"
+      },
+      "complexity": {
+        "simple": "简单(对称少特征,接近标准截面)",
+        "medium": "中等(多个非对称特征 / 嵌件预留)",
+        "complex": "复杂(多腔 / 双密度 / 薄壁多特征)"
       },
       "length_mm": "单根定尺 mm(常见 6000)",
       "quantity": "根数",
@@ -1889,6 +1901,7 @@
       "missing_angle": "请填腿长和壁厚",
       "missing_channel": "请填宽 / 高 / 壁厚",
       "missing_ibeam": "请填翼缘宽 / 总高 / 腹板厚 / 翼缘厚 四项",
+      "missing_custom": "异形必填:截面积 mm² + 外周长 mm",
       "missing_qty": "请填单根长度和根数"
     },
     "result": {
