@@ -32,6 +32,9 @@ import {
   FIRE_RETARDANT_RESIN_MULTIPLIER,
   FOOD_GRADE_CNY_PER_M,
   COLOR_PREMIUM_CNY_PER_M,
+  POST_PROCESSING_CNY_PER_M,
+  PACKAGING_CNY_PER_M,
+  FREIGHT_CNY_PER_M,
   YIELD_RATE,
   ADMIN_FEE_RATE,
   DEFAULT_MOLD_LIFE_M,
@@ -43,7 +46,7 @@ import {
 } from "./prices";
 import type { QuoteInput, QuoteResult } from "./types";
 
-export const ENGINE_VERSION = `engine-2.2+${PRICE_TABLE_VERSION}`;
+export const ENGINE_VERSION = `engine-3.0+${PRICE_TABLE_VERSION}`;
 
 export function estimate(input: QuoteInput): QuoteResult {
   const warnings: string[] = [];
@@ -108,9 +111,15 @@ export function estimate(input: QuoteInput): QuoteResult {
   const moldAmortCnyPerM =
     coeff.moldCostCny > 0 ? coeff.moldCostCny / moldLife : 0;
 
-  // 6) 全部制造成本(material + 工艺 + 表面 + 模具)
+  // 5.5) Phase 3 可选成本项(用户勾选才 > 0)
+  const postProcCnyPerM = input.post_processing ? POST_PROCESSING_CNY_PER_M : 0;
+  const packagingCnyPerM = input.packaging ? PACKAGING_CNY_PER_M : 0;
+  const freightCnyPerM = input.freight ? FREIGHT_CNY_PER_M : 0;
+
+  // 6) 全部制造成本(material + 工艺 + 表面 + 模具 + Phase 3)
   const allManuCnyPerM =
-    materialCnyPerM + processCnyPerM + surfaceCnyPerM + moldAmortCnyPerM;
+    materialCnyPerM + processCnyPerM + surfaceCnyPerM + moldAmortCnyPerM +
+    postProcCnyPerM + packagingCnyPerM + freightCnyPerM;
 
   // 7) 数量曲线 — 小批量溢价(模具已按寿命摊,这里仅反映厂家对小订单的额外加价意愿)
   const qMul = quantityMultiplier(totalMeters, coeff.moqMeters);
@@ -165,6 +174,27 @@ export function estimate(input: QuoteInput): QuoteResult {
       label_en: "Mold Amortization",
       amount_per_meter_cny: round2(moldAmortCnyPerM * qMul),
       pct: round1((moldAmortCnyPerM * qMul / finalCnyPerM) * 100),
+    },
+    {
+      key: "post_processing",
+      label_zh: "后加工",
+      label_en: "Post-processing",
+      amount_per_meter_cny: round2(postProcCnyPerM * qMul),
+      pct: round1((postProcCnyPerM * qMul / finalCnyPerM) * 100),
+    },
+    {
+      key: "packaging",
+      label_zh: "包装",
+      label_en: "Packaging",
+      amount_per_meter_cny: round2(packagingCnyPerM * qMul),
+      pct: round1((packagingCnyPerM * qMul / finalCnyPerM) * 100),
+    },
+    {
+      key: "freight",
+      label_zh: "运费",
+      label_en: "Freight",
+      amount_per_meter_cny: round2(freightCnyPerM * qMul),
+      pct: round1((freightCnyPerM * qMul / finalCnyPerM) * 100),
     },
     {
       key: "admin",

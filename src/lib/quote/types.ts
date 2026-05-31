@@ -118,6 +118,10 @@ export const QuoteInputSchema = z.object({
   fire_retardant: z.boolean(),
   food_grade: z.boolean(),
   color: ColorEnum,
+  // Phase 3 可选项 — 默认 false,UI 勾选
+  post_processing: z.boolean().default(false).describe("后加工(机加工 + 简单喷涂);默认 false"),
+  packaging: z.boolean().default(false).describe("包装;默认 false"),
+  freight: z.boolean().default(false).describe("运费(国内单程);默认 false"),
   application_note: z.string().max(500).optional(),
 });
 export type QuoteInput = z.infer<typeof QuoteInputSchema>;
@@ -133,6 +137,7 @@ export const ExtractResultSchema = z.object({
     fiber: true, resin: true, surface_veil: true, inner_veil: true,
     uv_coating: true, fire_retardant: true, food_grade: true, color: true,
     cavities: true,
+    post_processing: true, packaging: true, freight: true,
   } as never).describe("尽量抽出来的字段;允许部分缺失"),
   // 还缺的关键字段(用人话表述,后续给前端展示)
   missing: z.array(z.string()).describe("还缺哪些关键参数;给用户看的人话"),
@@ -144,7 +149,11 @@ export type ExtractResult = z.infer<typeof ExtractResultSchema>;
 // ─── 定价输出 ──────────────────────────────────────────────────
 
 export const CostBreakdownItem = z.object({
-  key: z.enum(["material", "process", "surface", "mold", "admin", "tax", "margin"]),
+  key: z.enum([
+    "material", "process", "surface", "mold",
+    "post_processing", "packaging", "freight",
+    "admin", "tax", "margin",
+  ]),
   label_zh: z.string(),
   label_en: z.string(),
   amount_per_meter_cny: z.number(), // 单米成本绝对值(后端算出来)

@@ -179,6 +179,18 @@ export const SURFACE_VEIL_CNY_PER_KG = 110;
 export const INNER_VEIL_GSM = 240;
 export const INNER_VEIL_CNY_PER_KG = 110;
 
+// ─── Phase 3 可选成本项(用户 UI 勾选才计入) ─────────────────────
+//
+// 都是行业典型常数(单米综合),实际差异很大;高级选项(粒度 ¥/件 + 件数)
+// 留 Phase 4 暴露。
+//
+// 后加工:机加工(切割 / 钻孔 / 倒角)+ 小幅喷涂均摊
+// 包装:¥50/包 ÷ 300 件/包 ÷ 单根 6m ≈ ¥0.03/m;含简单纸箱/木托盘均值取 ¥0.3
+// 运费:国内单程 ¥6000/车 ÷ 4 托盘 ÷ 1000 件 ÷ 6m ≈ ¥0.25,跨省 / 重件取均值
+export const POST_PROCESSING_CNY_PER_M = 3.0;
+export const PACKAGING_CNY_PER_M = 0.3;
+export const FREIGHT_CNY_PER_M = 1.5;
+
 // UV 涂层 CNY/m;面积越大越贵但粗测用常数
 export const UV_COATING_CNY_PER_M = 4.0;
 
@@ -252,4 +264,4 @@ export function quantityMultiplier(totalMeters: number, moq: number): number {
 }
 
 // 价目版本(随价目表更新时手动 bump,会落到 quoteLogs.engine_version)
-export const PRICE_TABLE_VERSION = "2026-05-30-r3";
+export const PRICE_TABLE_VERSION = "2026-05-30-r4";

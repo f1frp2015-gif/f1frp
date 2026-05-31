@@ -1892,6 +1892,9 @@
       "uv_coating": "UV 涂层",
       "fire_retardant": "阻燃",
       "food_grade": "食品级",
+      "post_processing": "后加工(机加+喷涂)",
+      "packaging": "含包装",
+      "freight": "含运费(国内单程)",
       "estimate": "粗测报价",
       "estimating": "计算中…"
     },
