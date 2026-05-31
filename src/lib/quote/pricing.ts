@@ -28,9 +28,7 @@ import {
   SURFACE_VEIL_CNY_PER_KG,
   INNER_VEIL_GSM,
   INNER_VEIL_CNY_PER_KG,
-  UV_COATING_CNY_PER_M,
-  FIRE_RETARDANT_RESIN_MULTIPLIER,
-  FOOD_GRADE_CNY_PER_M,
+  RESIN_PROPERTY_PREMIUM,
   COLOR_PREMIUM_CNY_PER_M,
   MACHINING_DEFAULT_CNY_PER_PIECE,
   PAINTING_DEFAULT_CNY_PER_M2,
@@ -48,7 +46,7 @@ import {
 } from "./prices";
 import type { QuoteInput, QuoteResult } from "./types";
 
-export const ENGINE_VERSION = `engine-3.2+${PRICE_TABLE_VERSION}`;
+export const ENGINE_VERSION = `engine-3.3+${PRICE_TABLE_VERSION}`;
 
 export function estimate(input: QuoteInput): QuoteResult {
   const warnings: string[] = [];
@@ -63,11 +61,17 @@ export function estimate(input: QuoteInput): QuoteResult {
     input.fiber_content_pct ?? 70,
   );
 
-  // 2) 材料成本 / 米 — 加成品率调整(损耗 2%)
+  // 2) 材料成本 / 米 — 含配方性能 multiplier(阻燃/绝缘/导电/耐候/食品级)
+  //    + 成品率调整(损耗 2%)
   const fiberKgPerM = wKgPerM * fiberVf;
   const resinKgPerM = wKgPerM * (1 - fiberVf);
-  const resinUnit = RESIN_PRICE_CNY_PER_KG[input.resin] *
-    (input.fire_retardant ? FIRE_RETARDANT_RESIN_MULTIPLIER : 1);
+  const resinPropertyMultiplier = 1
+    + (input.fire_retardant ? RESIN_PROPERTY_PREMIUM.fire_retardant : 0)
+    + (input.insulating ? RESIN_PROPERTY_PREMIUM.insulating : 0)
+    + (input.conductive ? RESIN_PROPERTY_PREMIUM.conductive : 0)
+    + (input.weatherproof ? RESIN_PROPERTY_PREMIUM.weatherproof : 0)
+    + (input.food_grade ? RESIN_PROPERTY_PREMIUM.food_grade : 0);
+  const resinUnit = RESIN_PRICE_CNY_PER_KG[input.resin] * resinPropertyMultiplier;
   const materialBeforeYieldCnyPerM =
     fiberKgPerM * FIBER_PRICE_CNY_PER_KG[input.fiber] +
     resinKgPerM * resinUnit +
@@ -101,12 +105,9 @@ export function estimate(input: QuoteInput): QuoteResult {
   }
   const fabricReinfCnyPerM = surfaceMatCnyPerM + innerMatCnyPerM;
 
-  // 4.5) 表面涂装(UV / 食品级 / 颜色溢价)— 装饰 + 户外耐候层,
-  //      与"织物增强"语义分开,作为独立 breakdown 项
-  const surfaceCoatingCnyPerM =
-    (input.uv_coating ? UV_COATING_CNY_PER_M : 0) +
-    (input.food_grade ? FOOD_GRADE_CNY_PER_M : 0) +
-    (COLOR_PREMIUM_CNY_PER_M[input.color] ?? 0);
+  // 4.5) 表面涂装(只剩颜色溢价)— UV/食品级 已上移到材料层 multiplier
+  //      作为独立 breakdown 项保留(颜色溢价仍是表面层概念)
+  const surfaceCoatingCnyPerM = COLOR_PREMIUM_CNY_PER_M[input.color] ?? 0;
 
   // 5) 模具摊销 — v2 改:按"模具寿命米数"摊,与订单量解耦
   // (行业拉挤报价核算口径;之前 max(MOQ, 总米数)对小批严重高估)

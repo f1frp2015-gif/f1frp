@@ -112,11 +112,14 @@ export const QuoteInputSchema = z.object({
     .number().min(40).max(85).optional()
     .describe("玻纤体积含量 %,缺省取 70"),
   resin: ResinEnum,
-  surface_veil: z.boolean().describe("表面毡 / surface mat(外周一层装饰 / UV 阻挡 / 防腐)"),
+  surface_veil: z.boolean().describe("表面毡 / surface mat(外周一层装饰 / 防腐)"),
   inner_veil: z.boolean().describe("内毡 / inner mat(闭口型材内表面;开口型材忽略)"),
-  uv_coating: z.boolean(),
-  fire_retardant: z.boolean(),
-  food_grade: z.boolean(),
+  // 配方性能 — 都通过改性树脂 / 添加剂实现,在材料层加 multiplier
+  fire_retardant: z.boolean().describe("阻燃(ATH 阻燃剂改性树脂)"),
+  insulating: z.boolean().default(false).describe("绝缘 / 电气级"),
+  conductive: z.boolean().default(false).describe("导电 / 防静电"),
+  weatherproof: z.boolean().default(false).describe("耐候 / 抗 UV / 抗老化"),
+  food_grade: z.boolean().describe("食品级(改性树脂 + 工艺合规)"),
   color: ColorEnum,
   // 后加工 — v3.2 拆细成 机加工 + 喷涂,各自按真实工程公式算
   machining: z.boolean().default(false).describe("机加工(切割/钻孔/倒角等);默认 false"),
@@ -136,7 +139,8 @@ export const ExtractResultSchema = z.object({
   partial: QuoteInputSchema.partial({
     geometry: true, length_mm: true, quantity: true,
     fiber: true, resin: true, surface_veil: true, inner_veil: true,
-    uv_coating: true, fire_retardant: true, food_grade: true, color: true,
+    fire_retardant: true, insulating: true, conductive: true,
+    weatherproof: true, food_grade: true, color: true,
     cavities: true,
     machining: true, painting: true, packaging: true, freight: true,
   } as never).describe("尽量抽出来的字段;允许部分缺失"),

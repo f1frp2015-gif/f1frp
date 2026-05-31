@@ -179,6 +179,19 @@ export const SURFACE_VEIL_CNY_PER_KG = 110;
 export const INNER_VEIL_GSM = 240;
 export const INNER_VEIL_CNY_PER_KG = 110;
 
+// ─── 配方性能(树脂层 multiplier) ─────────────────────────────
+//
+// 这些都是通过"改性树脂 + 添加剂"实现的工程性能,不是表面涂层。
+// 多项可同时勾选,树脂单价 = base × (1 + Σ 所选项的 premium)。
+// 量级参考行业典型(电气级 / 阻燃 / 抗 UV / 食品级树脂相对通用树脂的溢价):
+export const RESIN_PROPERTY_PREMIUM = {
+  fire_retardant: 0.18, // ATH 阻燃剂改性
+  insulating: 0.20,     // 电气级 / 介电级树脂
+  conductive: 0.40,     // 加碳粉 / 导电纤维 / 银粉助剂
+  weatherproof: 0.25,   // UV 稳定剂 + 抗老化体系(合并原 UV 涂层概念)
+  food_grade: 0.30,     // 食品级树脂 + 卫生认证 + 工艺合规均摊
+} as const;
+
 // ─── Phase 3 可选成本项(用户 UI 勾选才计入) ─────────────────────
 //
 // v3.2 升级:机加工 + 喷涂从单一 post_processing 常数拆出,
@@ -191,9 +204,9 @@ export const MACHINING_DEFAULT_CNY_PER_PIECE = 1.0;
 
 // 喷涂:基于外周长 × 单价 × 覆盖率。
 // 单价 ¥35/m² 是行业典型氟碳/聚氨酯喷涂均值;
-// 覆盖率 50% — 大多数拉挤型材只涂可见面(外露半侧),粗测口径。
+// 覆盖率默认 100%(外周全包,粗测口径);用户高级选项可改局部
 export const PAINTING_DEFAULT_CNY_PER_M2 = 35;
-export const PAINTING_DEFAULT_COVERAGE = 0.5;
+export const PAINTING_DEFAULT_COVERAGE = 1.0;
 
 // 包装:¥50/包 ÷ 300 件/包 ÷ 单根 6m ≈ ¥0.03/m;含简单纸箱/木托盘均值取 ¥0.3
 export const PACKAGING_CNY_PER_M = 0.3;
@@ -201,14 +214,9 @@ export const PACKAGING_CNY_PER_M = 0.3;
 // 运费:国内单程 ¥6000/车 ÷ 4 托盘 ÷ 1000 件 ÷ 6m ≈ ¥0.25,跨省 / 重件取均值
 export const FREIGHT_CNY_PER_M = 1.5;
 
-// UV 涂层 CNY/m;面积越大越贵但粗测用常数
-export const UV_COATING_CNY_PER_M = 4.0;
-
-// 阻燃:用 ATH 阻燃剂改性树脂,直接乘到树脂成本上
-export const FIRE_RETARDANT_RESIN_MULTIPLIER = 1.18;
-
-// 食品级:目前粗测口径直接加单米固定费(更严格的认证由 RFQ 走人工)
-export const FOOD_GRADE_CNY_PER_M = 6.0;
+// (旧常数 UV_COATING_CNY_PER_M / FIRE_RETARDANT_RESIN_MULTIPLIER /
+//  FOOD_GRADE_CNY_PER_M 已删除 — v3.3 全部上移到 RESIN_PROPERTY_PREMIUM
+//  树脂层 multiplier 模型,见上方。)
 
 // 彩色非标(custom RAL)— 标准灰免费;黑 / 白 +1;custom +3.5
 export const COLOR_PREMIUM_CNY_PER_M: Record<string, number> = {
@@ -274,4 +282,4 @@ export function quantityMultiplier(totalMeters: number, moq: number): number {
 }
 
 // 价目版本(随价目表更新时手动 bump,会落到 quoteLogs.engine_version)
-export const PRICE_TABLE_VERSION = "2026-05-30-r6";
+export const PRICE_TABLE_VERSION = "2026-05-30-r7";

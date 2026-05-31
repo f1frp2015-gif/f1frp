@@ -41,8 +41,11 @@ type FormState = {
   fiber_content_pct: string;
   surface_veil: boolean;
   inner_veil: boolean;
-  uv_coating: boolean;
+  // 配方性能 — 全部树脂层 multiplier
   fire_retardant: boolean;
+  insulating: boolean;
+  conductive: boolean;
+  weatherproof: boolean;
   food_grade: boolean;
   // 交付选项 (v3.2 拆细)
   machining: boolean;
@@ -65,8 +68,10 @@ const DEFAULT_FORM: FormState = {
   fiber_content_pct: "70",
   surface_veil: true,
   inner_veil: false,
-  uv_coating: false,
   fire_retardant: false,
+  insulating: false,
+  conductive: false,
+  weatherproof: false,
   food_grade: false,
   machining: false,
   painting: false,
@@ -154,8 +159,10 @@ export function QuoteTool() {
     if (p.fiber_content_pct) next.fiber_content_pct = String(p.fiber_content_pct);
     if (typeof p.surface_veil === "boolean") next.surface_veil = p.surface_veil;
     if (typeof p.inner_veil === "boolean") next.inner_veil = p.inner_veil;
-    if (typeof p.uv_coating === "boolean") next.uv_coating = p.uv_coating;
     if (typeof p.fire_retardant === "boolean") next.fire_retardant = p.fire_retardant;
+    if (typeof p.insulating === "boolean") next.insulating = p.insulating;
+    if (typeof p.conductive === "boolean") next.conductive = p.conductive;
+    if (typeof p.weatherproof === "boolean") next.weatherproof = p.weatherproof;
     if (typeof p.food_grade === "boolean") next.food_grade = p.food_grade;
     if (typeof p.machining === "boolean") next.machining = p.machining;
     if (typeof p.painting === "boolean") next.painting = p.painting;
@@ -218,8 +225,10 @@ export function QuoteTool() {
       fiber_content_pct: num(form.fiber_content_pct) || 70,
       surface_veil: form.surface_veil,
       inner_veil: form.inner_veil,
-      uv_coating: form.uv_coating,
       fire_retardant: form.fire_retardant,
+      insulating: form.insulating,
+      conductive: form.conductive,
+      weatherproof: form.weatherproof,
       food_grade: form.food_grade,
       machining: form.machining,
       painting: form.painting,
@@ -414,9 +423,11 @@ function FormSection({
           <Toggle label={t("form.surface_veil")} v={form.surface_veil} onChange={(b) => set("surface_veil", b)} />
           <Toggle label={t("form.inner_veil")} v={form.inner_veil} onChange={(b) => set("inner_veil", b)} />
         </ToggleGroup>
-        <ToggleGroup title={t("form.groupCoating")}>
-          <Toggle label={t("form.uv_coating")} v={form.uv_coating} onChange={(b) => set("uv_coating", b)} />
+        <ToggleGroup title={t("form.groupProperty")}>
           <Toggle label={t("form.fire_retardant")} v={form.fire_retardant} onChange={(b) => set("fire_retardant", b)} />
+          <Toggle label={t("form.insulating")} v={form.insulating} onChange={(b) => set("insulating", b)} />
+          <Toggle label={t("form.conductive")} v={form.conductive} onChange={(b) => set("conductive", b)} />
+          <Toggle label={t("form.weatherproof")} v={form.weatherproof} onChange={(b) => set("weatherproof", b)} />
           <Toggle label={t("form.food_grade")} v={form.food_grade} onChange={(b) => set("food_grade", b)} />
         </ToggleGroup>
         <ToggleGroup title={t("form.groupDelivery")}>

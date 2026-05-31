@@ -42,7 +42,12 @@ const SYSTEM_ZH = `你是 f1frp.com 拉挤型材 AI 粗测报价助手的"输入
 6. 缺关键参数(geometry / fiber / resin / quantity 任一)→ confidence < 60,并填 missing
 7. 不要编造数字 — 不确定的字段宁可缺,也别瞎填
 8. followup_question 只在 missing 非空时填,最多 1 个问题,口语化中文
-9. 关键词映射:户外/UV → uv_coating: true;阻燃/防火 → fire_retardant: true;食品 → food_grade: true
+9. 配方性能关键词(都属树脂层 multiplier,可同时多选):
+   阻燃/防火 → fire_retardant: true
+   绝缘/电气级/介电 → insulating: true
+   导电/防静电/导静电 → conductive: true
+   耐候/户外/抗UV/抗紫外/抗老化/紫外稳定 → weatherproof: true
+   食品/食用/卫生级 → food_grade: true
 10. color: 灰/默认 → gray,黑 → black,白 → white,其他 → custom
 11. surface_veil 默认 true(户外/防腐场景),其余 false
 12. inner_veil:用户提到"内毡 / 内表面增强 / 防腐内层 / inner mat" → true;否则 false。
@@ -82,7 +87,12 @@ Rules:
 6. Missing any critical field (geometry / fiber / resin / quantity) → confidence < 60, list it.
 7. NEVER fabricate numbers. Unsure → leave it out.
 8. followup_question only when missing is non-empty; one short conversational question.
-9. Keywords: outdoor/UV → uv_coating: true; flame retardant → fire_retardant: true; food → food_grade: true.
+9. Formulation-property keywords (resin-layer multipliers, multi-select OK):
+   flame retardant → fire_retardant: true
+   insulating / electrical-grade / dielectric → insulating: true
+   conductive / anti-static / ESD → conductive: true
+   weatherproof / outdoor / UV-resistant / anti-aging → weatherproof: true
+   food / hygienic-grade → food_grade: true
 10. color: gray (default) / black / white / custom.
 11. surface_veil defaults true (outdoor/corrosion contexts), else false.
 12. inner_veil: user mentions "inner mat / inner liner / corrosion barrier inside / 内毡" → true; else false.

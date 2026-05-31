@@ -95,8 +95,10 @@ function describeProfile(input: QuoteInput, locale: "zh" | "en"): string {
   })();
   const matTxt = `${labelFiber(input.fiber, isEn)} + ${labelResin(input.resin, isEn)}`;
   const flags: string[] = [];
-  if (input.uv_coating) flags.push(isEn ? "UV coating" : "UV 涂层");
   if (input.fire_retardant) flags.push(isEn ? "flame retardant" : "阻燃");
+  if (input.insulating) flags.push(isEn ? "insulating" : "绝缘");
+  if (input.conductive) flags.push(isEn ? "conductive" : "导电");
+  if (input.weatherproof) flags.push(isEn ? "weatherproof" : "耐候");
   if (input.food_grade) flags.push(isEn ? "food grade" : "食品级");
   if (input.surface_veil) flags.push(isEn ? "surface mat" : "表面毡");
   if (input.inner_veil) flags.push(isEn ? "inner mat" : "内毡");
