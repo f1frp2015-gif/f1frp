@@ -43,7 +43,7 @@ import {
 } from "./prices";
 import type { QuoteInput, QuoteResult } from "./types";
 
-export const ENGINE_VERSION = `engine-2.1+${PRICE_TABLE_VERSION}`;
+export const ENGINE_VERSION = `engine-2.2+${PRICE_TABLE_VERSION}`;
 
 export function estimate(input: QuoteInput): QuoteResult {
   const warnings: string[] = [];

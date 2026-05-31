@@ -61,11 +61,19 @@ export type ProcessCoeff = {
 
 // 六种标准型材的工艺基线
 // 速度按"截面越小越快、对称越规整越快"的工程规律
+//
+// 2026-05-30 v2.2 校准 — laborCnyPerH 从 280-440 降到 60-110,跟用户
+// 实际经营对账:
+//   单人月综合 ¥10k / 月工时 312h = ¥32/h(纯人工)
+//   一人多机 0.5 人配置 + 24h 双班 → 等效线人工 ¥16/h
+//   制造费用 7 项(折旧/厂房/电费/物料/其他)合计 ¥24-48/h
+//   合并"等效台时费" ≈ ¥40-80/h(标准型材)→ 90-110(异形 complex)
+// 解决了我审核报告里"工时单价偏高 3-5 倍"那条偏差。
 export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
   round: {
     pullSpeedMperMin: 0.8,  // 48 m/h × 1 出 1 = 48 m/h
     cavitiesDefault: 1,
-    laborCnyPerH: 280,
+    laborCnyPerH: 60,
     fixedCnyPerM: 2.5,
     moldCostCny: 0,
     moqMeters: 100,
@@ -73,7 +81,7 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
   square: {
     pullSpeedMperMin: 0.6,  // 36 m/h
     cavitiesDefault: 1,
-    laborCnyPerH: 300,
+    laborCnyPerH: 70,
     fixedCnyPerM: 3.0,
     moldCostCny: 0,
     moqMeters: 100,
@@ -81,7 +89,7 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
   rect: {
     pullSpeedMperMin: 0.5,  // 30 m/h
     cavitiesDefault: 1,
-    laborCnyPerH: 320,
+    laborCnyPerH: 75,
     fixedCnyPerM: 3.2,
     moldCostCny: 0,
     moqMeters: 150,
@@ -89,7 +97,7 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
   angle: {
     pullSpeedMperMin: 0.7,  // 42 m/h(开口截面薄,快)
     cavitiesDefault: 1,
-    laborCnyPerH: 280,
+    laborCnyPerH: 60,
     fixedCnyPerM: 2.8,
     moldCostCny: 0,
     moqMeters: 100,
@@ -97,7 +105,7 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
   channel: {
     pullSpeedMperMin: 0.4,  // 24 m/h
     cavitiesDefault: 1,
-    laborCnyPerH: 340,
+    laborCnyPerH: 80,
     fixedCnyPerM: 3.5,
     moldCostCny: 0,
     moqMeters: 200,
@@ -105,7 +113,7 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
   i_beam: {
     pullSpeedMperMin: 0.3,  // 18 m/h(对称双翼,模具最复杂)
     cavitiesDefault: 1,
-    laborCnyPerH: 360,
+    laborCnyPerH: 90,
     fixedCnyPerM: 4.0,
     moldCostCny: 0,
     moqMeters: 200,
@@ -114,7 +122,7 @@ export const PROCESS_COEFF: Record<ProfileType, ProcessCoeff> = {
   custom: {
     pullSpeedMperMin: 0.35,
     cavitiesDefault: 1,
-    laborCnyPerH: 380,
+    laborCnyPerH: 90,
     fixedCnyPerM: 4.5,
     moldCostCny: 50000,
     moqMeters: 300,
@@ -133,7 +141,7 @@ export const CUSTOM_PROCESS_BY_COMPLEXITY: Record<
   simple: {
     pullSpeedMperMin: 0.5,  // 30 m/h
     cavitiesDefault: 1,
-    laborCnyPerH: 320,
+    laborCnyPerH: 75,
     fixedCnyPerM: 3.5,
     moldCostCny: 25000,
     moqMeters: 200,
@@ -141,7 +149,7 @@ export const CUSTOM_PROCESS_BY_COMPLEXITY: Record<
   medium: {
     pullSpeedMperMin: 0.35, // 21 m/h
     cavitiesDefault: 1,
-    laborCnyPerH: 380,
+    laborCnyPerH: 90,
     fixedCnyPerM: 4.5,
     moldCostCny: 55000,
     moqMeters: 300,
@@ -149,7 +157,7 @@ export const CUSTOM_PROCESS_BY_COMPLEXITY: Record<
   complex: {
     pullSpeedMperMin: 0.20, // 12 m/h
     cavitiesDefault: 1,
-    laborCnyPerH: 440,
+    laborCnyPerH: 110,
     fixedCnyPerM: 6.0,
     moldCostCny: 110000,
     moqMeters: 500,
@@ -244,4 +252,4 @@ export function quantityMultiplier(totalMeters: number, moq: number): number {
 }
 
 // 价目版本(随价目表更新时手动 bump,会落到 quoteLogs.engine_version)
-export const PRICE_TABLE_VERSION = "2026-05-30-r2";
+export const PRICE_TABLE_VERSION = "2026-05-30-r3";
