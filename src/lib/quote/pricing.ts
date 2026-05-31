@@ -46,7 +46,7 @@ import {
 } from "./prices";
 import type { QuoteInput, QuoteResult } from "./types";
 
-export const ENGINE_VERSION = `engine-3.0+${PRICE_TABLE_VERSION}`;
+export const ENGINE_VERSION = `engine-3.1+${PRICE_TABLE_VERSION}`;
 
 export function estimate(input: QuoteInput): QuoteResult {
   const warnings: string[] = [];
@@ -84,8 +84,8 @@ export function estimate(input: QuoteInput): QuoteResult {
   const processCnyPerM =
     coeff.laborCnyPerH / effectiveMperH + coeff.fixedCnyPerM;
 
-  // 4) 表面 / 内毡 / 后处理 / 彩色 / 食品级
-  // 表面毡 & 内毡:周长(mm)/1000 = m,× 1m 长 = m² 面积,× g/m² = g,× ¥/kg / 1000 = ¥
+  // 4) 织物增强(表面毡 + 内毡)— 周长 × GSM × ¥/kg
+  //    表面毡 & 内毡:周长(mm)/1000 = m,× 1m 长 = m² 面积,× g/m² = g,× ¥/kg / 1000 = ¥
   const outerPerimMm = outerPerimeterMm(input.geometry);
   const innerPerimMm = innerPerimeterMm(input.geometry);
   const surfaceMatCnyPerM = input.surface_veil
@@ -94,12 +94,14 @@ export function estimate(input: QuoteInput): QuoteResult {
   const innerMatCnyPerM = input.inner_veil && innerPerimMm > 0
     ? ((innerPerimMm / 1000) * INNER_VEIL_GSM * INNER_VEIL_CNY_PER_KG) / 1000
     : 0;
-  // 开口型材 + 用户勾选 inner_veil → 给一个提示,prevent 误期
   if (input.inner_veil && innerPerimMm === 0) {
     warnings.push("开口型材(角铁 / 槽钢 / 工字梁)无内表面,内毡选项已忽略");
   }
-  const surfaceCnyPerM =
-    surfaceMatCnyPerM + innerMatCnyPerM +
+  const fabricReinfCnyPerM = surfaceMatCnyPerM + innerMatCnyPerM;
+
+  // 4.5) 表面涂装(UV / 食品级 / 颜色溢价)— 装饰 + 户外耐候层,
+  //      与"织物增强"语义分开,作为独立 breakdown 项
+  const surfaceCoatingCnyPerM =
     (input.uv_coating ? UV_COATING_CNY_PER_M : 0) +
     (input.food_grade ? FOOD_GRADE_CNY_PER_M : 0) +
     (COLOR_PREMIUM_CNY_PER_M[input.color] ?? 0);
@@ -116,9 +118,11 @@ export function estimate(input: QuoteInput): QuoteResult {
   const packagingCnyPerM = input.packaging ? PACKAGING_CNY_PER_M : 0;
   const freightCnyPerM = input.freight ? FREIGHT_CNY_PER_M : 0;
 
-  // 6) 全部制造成本(material + 工艺 + 表面 + 模具 + Phase 3)
+  // 6) 全部制造成本(material + 工艺 + 织物增强 + 表面涂装 + 模具 + Phase 3)
   const allManuCnyPerM =
-    materialCnyPerM + processCnyPerM + surfaceCnyPerM + moldAmortCnyPerM +
+    materialCnyPerM + processCnyPerM +
+    fabricReinfCnyPerM + surfaceCoatingCnyPerM +
+    moldAmortCnyPerM +
     postProcCnyPerM + packagingCnyPerM + freightCnyPerM;
 
   // 7) 数量曲线 — 小批量溢价(模具已按寿命摊,这里仅反映厂家对小订单的额外加价意愿)
@@ -162,11 +166,18 @@ export function estimate(input: QuoteInput): QuoteResult {
       pct: round1((processCnyPerM * qMul / finalCnyPerM) * 100),
     },
     {
-      key: "surface",
-      label_zh: "表面/后处理",
-      label_en: "Surface / Finishing",
-      amount_per_meter_cny: round2(surfaceCnyPerM * qMul),
-      pct: round1((surfaceCnyPerM * qMul / finalCnyPerM) * 100),
+      key: "fabric_reinforcement",
+      label_zh: "织物增强",
+      label_en: "Fabric reinforcement",
+      amount_per_meter_cny: round2(fabricReinfCnyPerM * qMul),
+      pct: round1((fabricReinfCnyPerM * qMul / finalCnyPerM) * 100),
+    },
+    {
+      key: "surface_coating",
+      label_zh: "表面涂装",
+      label_en: "Surface coating",
+      amount_per_meter_cny: round2(surfaceCoatingCnyPerM * qMul),
+      pct: round1((surfaceCoatingCnyPerM * qMul / finalCnyPerM) * 100),
     },
     {
       key: "mold",

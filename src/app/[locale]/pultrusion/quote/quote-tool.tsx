@@ -405,15 +405,21 @@ function FormSection({
         </select>
       </Field>
 
-      <div className="col-span-full grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        <Toggle label={t("form.surface_veil")} v={form.surface_veil} onChange={(b) => set("surface_veil", b)} />
-        <Toggle label={t("form.inner_veil")} v={form.inner_veil} onChange={(b) => set("inner_veil", b)} />
-        <Toggle label={t("form.uv_coating")} v={form.uv_coating} onChange={(b) => set("uv_coating", b)} />
-        <Toggle label={t("form.fire_retardant")} v={form.fire_retardant} onChange={(b) => set("fire_retardant", b)} />
-        <Toggle label={t("form.food_grade")} v={form.food_grade} onChange={(b) => set("food_grade", b)} />
-        <Toggle label={t("form.post_processing")} v={form.post_processing} onChange={(b) => set("post_processing", b)} />
-        <Toggle label={t("form.packaging")} v={form.packaging} onChange={(b) => set("packaging", b)} />
-        <Toggle label={t("form.freight")} v={form.freight} onChange={(b) => set("freight", b)} />
+      <div className="col-span-full space-y-3">
+        <ToggleGroup title={t("form.groupFabric")}>
+          <Toggle label={t("form.surface_veil")} v={form.surface_veil} onChange={(b) => set("surface_veil", b)} />
+          <Toggle label={t("form.inner_veil")} v={form.inner_veil} onChange={(b) => set("inner_veil", b)} />
+        </ToggleGroup>
+        <ToggleGroup title={t("form.groupCoating")}>
+          <Toggle label={t("form.uv_coating")} v={form.uv_coating} onChange={(b) => set("uv_coating", b)} />
+          <Toggle label={t("form.fire_retardant")} v={form.fire_retardant} onChange={(b) => set("fire_retardant", b)} />
+          <Toggle label={t("form.food_grade")} v={form.food_grade} onChange={(b) => set("food_grade", b)} />
+        </ToggleGroup>
+        <ToggleGroup title={t("form.groupDelivery")}>
+          <Toggle label={t("form.post_processing")} v={form.post_processing} onChange={(b) => set("post_processing", b)} />
+          <Toggle label={t("form.packaging")} v={form.packaging} onChange={(b) => set("packaging", b)} />
+          <Toggle label={t("form.freight")} v={form.freight} onChange={(b) => set("freight", b)} />
+        </ToggleGroup>
       </div>
     </div>
   );
@@ -608,6 +614,19 @@ function Toggle({ label, v, onChange }: { label: string; v: boolean; onChange: (
       <input type="checkbox" checked={v} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4" />
       <span>{label}</span>
     </label>
+  );
+}
+
+function ToggleGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        {title}
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {children}
+      </div>
+    </div>
   );
 }
 

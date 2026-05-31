@@ -1914,6 +1914,9 @@
         "white": "White",
         "custom": "Custom RAL"
       },
+      "groupFabric": "FABRIC REINFORCEMENT",
+      "groupCoating": "SURFACE COATING & GRADE",
+      "groupDelivery": "DELIVERY OPTIONS",
       "surface_veil": "Surface mat",
       "inner_veil": "Inner mat (closed sections)",
       "uv_coating": "UV coating",

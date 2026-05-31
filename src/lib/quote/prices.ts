@@ -264,4 +264,4 @@ export function quantityMultiplier(totalMeters: number, moq: number): number {
 }
 
 // 价目版本(随价目表更新时手动 bump,会落到 quoteLogs.engine_version)
-export const PRICE_TABLE_VERSION = "2026-05-30-r4";
+export const PRICE_TABLE_VERSION = "2026-05-30-r5";

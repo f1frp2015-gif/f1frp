@@ -150,7 +150,10 @@ export type ExtractResult = z.infer<typeof ExtractResultSchema>;
 
 export const CostBreakdownItem = z.object({
   key: z.enum([
-    "material", "process", "surface", "mold",
+    "material", "process",
+    "fabric_reinforcement",  // 织物增强 = 表面毡 + 内毡(周长×GSM×¥/kg)
+    "surface_coating",       // 表面涂装 = UV 涂层 + 食品级 + 颜色溢价
+    "mold",
     "post_processing", "packaging", "freight",
     "admin", "tax", "margin",
   ]),

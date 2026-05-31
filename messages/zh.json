@@ -1887,6 +1887,9 @@
         "white": "白",
         "custom": "自定义 RAL"
       },
+      "groupFabric": "织物增强 / FABRIC",
+      "groupCoating": "表面涂装 · 性能 / COATING & GRADE",
+      "groupDelivery": "交付选项 / DELIVERY",
       "surface_veil": "表面毡",
       "inner_veil": "内毡(闭口型材)",
       "uv_coating": "UV 涂层",
