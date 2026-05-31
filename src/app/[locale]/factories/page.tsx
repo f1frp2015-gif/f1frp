@@ -213,10 +213,10 @@ export default async function FactoriesPage({
                 ② 全链路代理(/overseas)
               </div>
               <h3 className="mt-2 text-lg font-semibold tracking-tight">
-                曜一替您接管整个出海流程
+                我们替您接管整个出海流程
               </h3>
               <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-                曜一新材料以出口实体身份接单,商务谈判、报关、CBAM、海运、退税
+                复材站以出口实体身份接单,商务谈判、报关、CBAM、海运、退税
                 全部我们做。您只按图生产、按时交付。适合没出口经验或不想自建
                 外贸团队的工厂。
               </p>

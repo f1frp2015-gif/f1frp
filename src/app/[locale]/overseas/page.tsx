@@ -21,9 +21,9 @@ import {
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "出海方案 — 曜一新材料全链路代理 | 复材站",
+  title: "出海方案 — 全链路出海代理 | 复材站",
   description:
-    "曜一新材料作为出口实体接管整个出海流程 — 英文站、SEO、AI 询盘、商务谈判、报关、CBAM、退税全部由我们做,工厂只负责按图生产、按时交付。仅按成交订单 GMV 1-3% 收费,不收年费、不签长约。想自己接询盘 → 见工厂 AI 助手 SaaS 工具。",
+    "复材站作为出口实体接管整个出海流程 — 英文站、SEO、AI 询盘、商务谈判、报关、CBAM、退税全部由我们做,工厂只负责按图生产、按时交付。仅按成交订单 GMV 1-3% 收费,不收年费、不签长约。想自己接询盘 → 见工厂 AI 助手 SaaS 工具。",
 };
 
 async function countOne(
@@ -146,7 +146,7 @@ export default async function OverseasPage({
               <span className="text-muted-foreground">被全世界采购商找到。</span>
             </h1>
             <p className="mt-6 max-w-2xl text-[15px] leading-[1.75] text-muted-foreground sm:text-base">
-              <span className="font-semibold text-foreground">getfrp.com</span> 是 f1frp 的英文海外版。<span className="font-semibold text-foreground">曜一新材料以出口实体身份接管整个出海流程</span> — 英文站、SEO、AI 询盘、商务谈判、Incoterms、信用证、报关、CBAM、海运、退税全部由我们做。工厂只负责按图生产、按时交付，<span className="font-semibold text-foreground">仅按成交订单 GMV 1-3% 收费</span>，不收年费、不签长约。
+              <span className="font-semibold text-foreground">getfrp.com</span> 是 f1frp 的英文海外版。<span className="font-semibold text-foreground">复材站以出口实体身份接管整个出海流程</span> — 英文站、SEO、AI 询盘、商务谈判、Incoterms、信用证、报关、CBAM、海运、退税全部由我们做。工厂只负责按图生产、按时交付，<span className="font-semibold text-foreground">仅按成交订单 GMV 1-3% 收费</span>，不收年费、不签长约。
             </p>
             <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
               想保留自己的业务员、用 AI 工具提效自营海外？请见{" "}
@@ -286,13 +286,13 @@ export default async function OverseasPage({
                 no: "04",
                 title: "数据化资质背书",
                 pain: "对应痛点 ④ 海外信任建不起来",
-                body: "把工厂的认证（ISO 9001 / IATF 16949 / DNV-GL 等）规范化结构化展示；案例配工艺参数、检测报告链接；AI 把工厂中文资料映射到 ASTM / EN / DIN 等海外标准对照表 — 海外采购商一目了然。曜一新材料作为出口实体提供海外信用背书，让单个小厂也能做大金额订单。",
+                body: "把工厂的认证（ISO 9001 / IATF 16949 / DNV-GL 等）规范化结构化展示；案例配工艺参数、检测报告链接；AI 把工厂中文资料映射到 ASTM / EN / DIN 等海外标准对照表 — 海外采购商一目了然。复材站作为出口实体提供海外信用背书，让单个小厂也能做大金额订单。",
               },
               {
                 no: "05",
                 title: "全链路代理服务",
                 pain: "对应痛点 ⑤ 全链路服务缺位",
-                body: "RFQ 谈成后由曜一团队接管：商务谈判、Incoterms 选择、信用证 / TT 收款、出口报关、CBAM 碳排放申报、海运 + 保险、退税 / 货款结算。中国小厂只需要按图生产、按时交货，海外的所有事我们全包。",
+                body: "RFQ 谈成后由我们的出海团队接管：商务谈判、Incoterms 选择、信用证 / TT 收款、出口报关、CBAM 碳排放申报、海运 + 保险、退税 / 货款结算。中国小厂只需要按图生产、按时交货，海外的所有事我们全包。",
               },
               {
                 no: "06",
@@ -336,7 +336,7 @@ export default async function OverseasPage({
               全链路代理，按成交分成
             </h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              不收年费、不卖竞价排名、不锁定包年合同。曜一新材料作为出口实体接管全部海外环节，
+              不收年费、不卖竞价排名、不锁定包年合同。复材站作为出口实体接管全部海外环节，
               <span className="font-medium text-foreground">仅按成交订单 GMV 1-3% 收费</span>
               {" "}— 没成交不收费，激励完全对齐。
             </p>
@@ -354,7 +354,7 @@ export default async function OverseasPage({
                 </span>
               </div>
               <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-                曜一新材料 · 全链路出海代理
+                复材站 · 全链路出海代理
               </h3>
               <div className="mt-4 flex items-baseline gap-1.5">
                 <span className="text-5xl font-semibold tabular-nums tracking-tight">
@@ -371,11 +371,11 @@ export default async function OverseasPage({
 
               <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[
-                  { t: "出口主体", b: "曜一新材料以出口实体身份接单" },
+                  { t: "出口主体", b: "复材站以出口实体身份接单" },
                   { t: "商务", b: "谈判 / Incoterms / 信用证 / TT" },
                   { t: "通关", b: "出口报关 / CBAM 申报 / 退税" },
                   { t: "物流", b: "海运 / 保险 / 海外仓（可选）" },
-                  { t: "海外信任", b: "曜一信用背书 + 英文资产 + AI 助手 24/7 应答" },
+                  { t: "海外信任", b: "平台信用背书 + 英文资产 + AI 助手 24/7 应答" },
                   { t: "工厂分工", b: "按图生产、按时交付，海外的所有事我们全包" },
                 ].map((it) => (
                   <div
@@ -399,7 +399,7 @@ export default async function OverseasPage({
                   " mt-8 w-full"
                 }
               >
-                联系曜一团队，谈合作
+                联系我们，谈合作
               </a>
 
               <p className="mt-4 text-center text-[12px] text-muted-foreground">
@@ -559,7 +559,7 @@ export default async function OverseasPage({
                     alibaba: "平台背书，但同质化严重",
                     site: "纯靠企业自身 — 海外买家不认",
                     ads: "无 — 全靠落地页转化",
-                    getfrp: "曜一出口实体 + 数据化资质",
+                    getfrp: "平台出口实体 + 数据化资质",
                   },
                   {
                     dim: "询盘质量",
@@ -638,7 +638,7 @@ export default async function OverseasPage({
               },
               {
                 no: "04",
-                title: "曜一全链路代理",
+                title: "全链路代理接管",
                 body: "我们接管商务谈判、合同、信用证、报关、CBAM、海运、退税。您只需要按图生产、按时交货。",
               },
             ].map((step) => (

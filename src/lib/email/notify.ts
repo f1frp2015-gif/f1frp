@@ -204,7 +204,7 @@ function wrapHtml(title: string, inner: string): string {
 <body style="font-family:-apple-system,sans-serif;max-width:600px;margin:auto;padding:24px;color:#1a1a1a">
 ${inner}
 <hr style="margin-top:32px;border:0;border-top:1px solid #eee">
-<p style="color:#888;font-size:11px">此邮件由 f1frp.com 自动发出 · 重庆曜一新材料科技有限公司</p>
+<p style="color:#888;font-size:11px">此邮件由 f1frp.com 自动发出 · 复材站团队</p>
 </body></html>`;
 }
 

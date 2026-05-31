@@ -164,7 +164,14 @@ export default async function LocaleLayout({
                 "@type": "Organization",
                 "@id": `${siteUrl}/#organization`,
                 name: brand,
-                legalName: "Chongqing Yaoyi Advanced Materials Technology Co., Ltd.",
+                // legalName (operating entity) is disclosed on the overseas
+                // side only; the domestic site keeps the platform brand neutral.
+                ...(locale === "en"
+                  ? {
+                      legalName:
+                        "Chongqing Yaoyi Advanced Materials Technology Co., Ltd.",
+                    }
+                  : {}),
                 alternateName: ["f1frp", "getfrp", "F1 Composite", t("name")].filter(
                   (v, i, a) => v && a.indexOf(v) === i,
                 ),
