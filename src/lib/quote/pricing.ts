@@ -32,7 +32,9 @@ import {
   FIRE_RETARDANT_RESIN_MULTIPLIER,
   FOOD_GRADE_CNY_PER_M,
   COLOR_PREMIUM_CNY_PER_M,
-  POST_PROCESSING_CNY_PER_M,
+  MACHINING_DEFAULT_CNY_PER_PIECE,
+  PAINTING_DEFAULT_CNY_PER_M2,
+  PAINTING_DEFAULT_COVERAGE,
   PACKAGING_CNY_PER_M,
   FREIGHT_CNY_PER_M,
   YIELD_RATE,
@@ -46,7 +48,7 @@ import {
 } from "./prices";
 import type { QuoteInput, QuoteResult } from "./types";
 
-export const ENGINE_VERSION = `engine-3.1+${PRICE_TABLE_VERSION}`;
+export const ENGINE_VERSION = `engine-3.2+${PRICE_TABLE_VERSION}`;
 
 export function estimate(input: QuoteInput): QuoteResult {
   const warnings: string[] = [];
@@ -113,17 +115,25 @@ export function estimate(input: QuoteInput): QuoteResult {
   const moldAmortCnyPerM =
     coeff.moldCostCny > 0 ? coeff.moldCostCny / moldLife : 0;
 
-  // 5.5) Phase 3 可选成本项(用户勾选才 > 0)
-  const postProcCnyPerM = input.post_processing ? POST_PROCESSING_CNY_PER_M : 0;
+  // 5.5) 后加工 / 包装 / 运费 — v3.2 拆细:机加工(¥/件÷长度)+ 喷涂(周长×覆盖率×¥/m²)
+  const pieceLenM = input.length_mm / 1000;
+  const machiningCnyPerM = input.machining && pieceLenM > 0
+    ? MACHINING_DEFAULT_CNY_PER_PIECE / pieceLenM
+    : 0;
+  // 喷涂:1m 长 × (外周长 / 1000) m × 覆盖率 = m² 面积,× ¥/m² = ¥/m
+  const paintingCnyPerM = input.painting
+    ? (outerPerimMm / 1000) * PAINTING_DEFAULT_COVERAGE * PAINTING_DEFAULT_CNY_PER_M2
+    : 0;
   const packagingCnyPerM = input.packaging ? PACKAGING_CNY_PER_M : 0;
   const freightCnyPerM = input.freight ? FREIGHT_CNY_PER_M : 0;
 
-  // 6) 全部制造成本(material + 工艺 + 织物增强 + 表面涂装 + 模具 + Phase 3)
+  // 6) 全部制造成本
   const allManuCnyPerM =
     materialCnyPerM + processCnyPerM +
     fabricReinfCnyPerM + surfaceCoatingCnyPerM +
     moldAmortCnyPerM +
-    postProcCnyPerM + packagingCnyPerM + freightCnyPerM;
+    machiningCnyPerM + paintingCnyPerM +
+    packagingCnyPerM + freightCnyPerM;
 
   // 7) 数量曲线 — 小批量溢价(模具已按寿命摊,这里仅反映厂家对小订单的额外加价意愿)
   const qMul = quantityMultiplier(totalMeters, coeff.moqMeters);
@@ -187,11 +197,18 @@ export function estimate(input: QuoteInput): QuoteResult {
       pct: round1((moldAmortCnyPerM * qMul / finalCnyPerM) * 100),
     },
     {
-      key: "post_processing",
-      label_zh: "后加工",
-      label_en: "Post-processing",
-      amount_per_meter_cny: round2(postProcCnyPerM * qMul),
-      pct: round1((postProcCnyPerM * qMul / finalCnyPerM) * 100),
+      key: "machining",
+      label_zh: "机加工",
+      label_en: "Machining",
+      amount_per_meter_cny: round2(machiningCnyPerM * qMul),
+      pct: round1((machiningCnyPerM * qMul / finalCnyPerM) * 100),
+    },
+    {
+      key: "painting",
+      label_zh: "喷涂",
+      label_en: "Painting",
+      amount_per_meter_cny: round2(paintingCnyPerM * qMul),
+      pct: round1((paintingCnyPerM * qMul / finalCnyPerM) * 100),
     },
     {
       key: "packaging",

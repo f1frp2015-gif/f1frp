@@ -44,8 +44,9 @@ type FormState = {
   uv_coating: boolean;
   fire_retardant: boolean;
   food_grade: boolean;
-  // Phase 3
-  post_processing: boolean;
+  // 交付选项 (v3.2 拆细)
+  machining: boolean;
+  painting: boolean;
   packaging: boolean;
   freight: boolean;
   color: QuoteInput["color"];
@@ -67,7 +68,8 @@ const DEFAULT_FORM: FormState = {
   uv_coating: false,
   fire_retardant: false,
   food_grade: false,
-  post_processing: false,
+  machining: false,
+  painting: false,
   packaging: false,
   freight: false,
   color: "gray",
@@ -155,7 +157,8 @@ export function QuoteTool() {
     if (typeof p.uv_coating === "boolean") next.uv_coating = p.uv_coating;
     if (typeof p.fire_retardant === "boolean") next.fire_retardant = p.fire_retardant;
     if (typeof p.food_grade === "boolean") next.food_grade = p.food_grade;
-    if (typeof p.post_processing === "boolean") next.post_processing = p.post_processing;
+    if (typeof p.machining === "boolean") next.machining = p.machining;
+    if (typeof p.painting === "boolean") next.painting = p.painting;
     if (typeof p.packaging === "boolean") next.packaging = p.packaging;
     if (typeof p.freight === "boolean") next.freight = p.freight;
     if (p.color) next.color = p.color;
@@ -218,7 +221,8 @@ export function QuoteTool() {
       uv_coating: form.uv_coating,
       fire_retardant: form.fire_retardant,
       food_grade: form.food_grade,
-      post_processing: form.post_processing,
+      machining: form.machining,
+      painting: form.painting,
       packaging: form.packaging,
       freight: form.freight,
       color: form.color,
@@ -416,7 +420,8 @@ function FormSection({
           <Toggle label={t("form.food_grade")} v={form.food_grade} onChange={(b) => set("food_grade", b)} />
         </ToggleGroup>
         <ToggleGroup title={t("form.groupDelivery")}>
-          <Toggle label={t("form.post_processing")} v={form.post_processing} onChange={(b) => set("post_processing", b)} />
+          <Toggle label={t("form.machining")} v={form.machining} onChange={(b) => set("machining", b)} />
+          <Toggle label={t("form.painting")} v={form.painting} onChange={(b) => set("painting", b)} />
           <Toggle label={t("form.packaging")} v={form.packaging} onChange={(b) => set("packaging", b)} />
           <Toggle label={t("form.freight")} v={form.freight} onChange={(b) => set("freight", b)} />
         </ToggleGroup>

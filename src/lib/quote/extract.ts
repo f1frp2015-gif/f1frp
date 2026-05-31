@@ -49,9 +49,10 @@ const SYSTEM_ZH = `你是 f1frp.com 拉挤型材 AI 粗测报价助手的"输入
     且仅闭口型材(round / square / rect)有意义,开口型材忽略即可
 13. fiber_content_pct 缺省 70
 14. cavities(模具出数 1 出 N):用户提到"一模 N 件 / 1 出 N / 同模多腔" → 填整数 N;否则不填(走该型材默认通常 1)
-15. post_processing(后加工:机加工 / 切割 / 钻孔 / 喷涂):用户提到"机加 / 钻孔 / 倒角 / 喷涂 / 打磨" → true
-16. packaging(包装):用户明说"含包装 / 木托盘 / 纸箱" → true;否则 false
-17. freight(运费):用户明说"含运费 / 含运 / 到厂价 / 含送货" → true;否则 false
+15. machining(机加工):用户提到"机加 / 钻孔 / 倒角 / 切割 / 攻丝 / 打磨" → true
+16. painting(喷涂):用户提到"喷涂 / 涂装 / 油漆 / 喷漆 / 装饰漆" → true
+17. packaging(包装):用户明说"含包装 / 木托盘 / 纸箱" → true;否则 false
+18. freight(运费):用户明说"含运费 / 含运 / 到厂价 / 含送货" → true;否则 false
 
 严格输出单行 JSON,符合以下结构,无任何 markdown 或多余文字:
 {"confidence": 0-100, "partial": {...}, "missing": ["..."], "followup_question": "..."}`;
@@ -88,9 +89,10 @@ Rules:
     Only meaningful for closed sections (round / square / rect); ignore for open.
 13. fiber_content_pct defaults 70.
 14. cavities (1-out-of-N mold): user mentions "1 out of N / multi-cavity mold" → integer N; otherwise leave it out (defaults usually 1).
-15. post_processing (machining / drilling / coating): user mentions "machining / drill / chamfer / paint / sanding" → true
-16. packaging: user mentions "packaging / pallet / crate / box included" → true; else false
-17. freight: user mentions "freight / shipping / delivered / CIP / DDP / 含运" → true; else false
+15. machining: user mentions "machining / drilling / chamfer / cutting / tap" → true
+16. painting: user mentions "paint / coating / spray / decorative finish" → true
+17. packaging: user mentions "packaging / pallet / crate / box included" → true; else false
+18. freight: user mentions "freight / shipping / delivered / CIP / DDP / 含运" → true; else false
 
 Output ONLY a single-line JSON, no markdown, no prose:
 {"confidence": 0-100, "partial": {...}, "missing": ["..."], "followup_question": "..."}`;

@@ -118,8 +118,9 @@ export const QuoteInputSchema = z.object({
   fire_retardant: z.boolean(),
   food_grade: z.boolean(),
   color: ColorEnum,
-  // Phase 3 可选项 — 默认 false,UI 勾选
-  post_processing: z.boolean().default(false).describe("后加工(机加工 + 简单喷涂);默认 false"),
+  // 后加工 — v3.2 拆细成 机加工 + 喷涂,各自按真实工程公式算
+  machining: z.boolean().default(false).describe("机加工(切割/钻孔/倒角等);默认 false"),
+  painting: z.boolean().default(false).describe("喷涂 / 涂装(局部或全包);默认 false"),
   packaging: z.boolean().default(false).describe("包装;默认 false"),
   freight: z.boolean().default(false).describe("运费(国内单程);默认 false"),
   application_note: z.string().max(500).optional(),
@@ -137,7 +138,7 @@ export const ExtractResultSchema = z.object({
     fiber: true, resin: true, surface_veil: true, inner_veil: true,
     uv_coating: true, fire_retardant: true, food_grade: true, color: true,
     cavities: true,
-    post_processing: true, packaging: true, freight: true,
+    machining: true, painting: true, packaging: true, freight: true,
   } as never).describe("尽量抽出来的字段;允许部分缺失"),
   // 还缺的关键字段(用人话表述,后续给前端展示)
   missing: z.array(z.string()).describe("还缺哪些关键参数;给用户看的人话"),
@@ -154,7 +155,7 @@ export const CostBreakdownItem = z.object({
     "fabric_reinforcement",  // 织物增强 = 表面毡 + 内毡(周长×GSM×¥/kg)
     "surface_coating",       // 表面涂装 = UV 涂层 + 食品级 + 颜色溢价
     "mold",
-    "post_processing", "packaging", "freight",
+    "machining", "painting", "packaging", "freight",
     "admin", "tax", "margin",
   ]),
   label_zh: z.string(),

@@ -100,7 +100,8 @@ function describeProfile(input: QuoteInput, locale: "zh" | "en"): string {
   if (input.food_grade) flags.push(isEn ? "food grade" : "食品级");
   if (input.surface_veil) flags.push(isEn ? "surface mat" : "表面毡");
   if (input.inner_veil) flags.push(isEn ? "inner mat" : "内毡");
-  if (input.post_processing) flags.push(isEn ? "post-processing" : "后加工");
+  if (input.machining) flags.push(isEn ? "machining" : "机加工");
+  if (input.painting) flags.push(isEn ? "painted" : "喷涂");
   if (input.packaging) flags.push(isEn ? "packaged" : "含包装");
   if (input.freight) flags.push(isEn ? "freight included" : "含运费");
   const flagTxt = flags.length ? `, ${flags.join(", ")}` : "";
