@@ -655,7 +655,7 @@ function ResultCard({
 }) {
   // 国内侧(zh)严格遵守"不出现代理 / RFQ 字样"(CLAUDE.md §7 + feedback_brand_separation):
   // CTA 直接 mailto 联系 f1frp2015@gmail.com,不跳 /rfq(那是海外代理通路)。
-  // 海外侧(en / getfrp.com)保留 /rfq 跳转 — 那里是曜一代理服务的入口。
+  // 海外侧(en / getfrp.com)保留 /rfq 跳转 — 那里是海外代理服务的入口。
   const locale = useLocale();
   const isZh = locale === "zh";
   return (

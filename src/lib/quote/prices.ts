@@ -255,7 +255,7 @@ export const ADMIN_FEE_RATE = 0.11;
 // 行业典型 20000-50000 m,取中
 export const DEFAULT_MOLD_LIFE_M = 30000;
 
-// 厂家利润率(粗测口径,代理曜一加价不在此层)
+// 厂家利润率(粗测口径,代理加价不在此层)
 export const FACTORY_MARGIN = 0.20;
 
 // 中国增值税
