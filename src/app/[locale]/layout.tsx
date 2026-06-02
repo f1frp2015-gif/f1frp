@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Providers } from "@/components/providers";
+import { aiProfile } from "@/lib/ai/provider";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
@@ -217,7 +218,7 @@ export default async function LocaleLayout({
           }}
         />
         <NextIntlClientProvider>
-          <Providers>
+          <Providers authMode={aiProfile === "domestic" ? "wechat" : "clerk"}>
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateText, stepCountIs } from "ai";
-import { auth } from "@clerk/nextjs/server";
+import { isAuthenticated } from "@/lib/auth/session";
 import {
   getChatModelForRequest,
   isChatConfiguredForRequest,
@@ -30,8 +30,8 @@ export async function POST(req: Request) {
   // 注:这里和 /api/chat 共享同一个 cookie 计数器,跨端口/路径累计。
   let anonCookieToSet: string | null = null;
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const signedIn = await isAuthenticated();
+    if (!signedIn) {
       const gate = consumeAnonChatCredit(req);
       if (!gate.ok) {
         return NextResponse.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, UserButton } from "@clerk/nextjs";
+import { useSession, signOut } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -46,11 +46,13 @@ const NEW_BADGE_KEYS: ReadonlySet<NavKey> = new Set(["quote"]);
 // 当前阶段无收费,所有导航项中外侧通用 — 留空集合作为未来再分流时的扩展点
 const ZH_ONLY_NAV: ReadonlySet<NavKey> = new Set();
 
+// 认证 UI 仅在国内(zh)出现(见 Header 的 showAuth),走 Auth.js 会话。
+// 海外 getfrp(en)匿名,不渲染这些按钮。
 function AuthButtons() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { data: session, status } = useSession();
   const t = useTranslations("Nav");
-  if (!isLoaded) return <div className="h-8 w-16" aria-hidden />;
-  if (isSignedIn) {
+  if (status === "loading") return <div className="h-8 w-16" aria-hidden />;
+  if (session) {
     return (
       <>
         <Link href="/dashboard">
@@ -58,7 +60,13 @@ function AuthButtons() {
             {t("dashboard")}
           </Button>
         </Link>
-        <UserButton />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => signOut({ callbackUrl: "/" })}
+        >
+          退出登录
+        </Button>
       </>
     );
   }
@@ -77,16 +85,28 @@ function AuthButtons() {
 }
 
 function MobileAuthButtons({ onClose }: { onClose: () => void }) {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { data: session, status } = useSession();
   const t = useTranslations("Nav");
-  if (!isLoaded) return null;
-  if (isSignedIn) {
+  if (status === "loading") return null;
+  if (session) {
     return (
-      <Link href="/dashboard" onClick={onClose}>
-        <Button variant="outline" className="w-full text-xs">
-          {t("dashboard")}
+      <>
+        <Link href="/dashboard" onClick={onClose}>
+          <Button variant="outline" className="w-full text-xs">
+            {t("dashboard")}
+          </Button>
+        </Link>
+        <Button
+          variant="ghost"
+          className="w-full text-xs"
+          onClick={() => {
+            onClose();
+            signOut({ callbackUrl: "/" });
+          }}
+        >
+          退出登录
         </Button>
-      </Link>
+      </>
     );
   }
   return (
