@@ -13,12 +13,11 @@
 // 头部注释)。本路由匿名完全开放;登录用户 quote_logs.userId 会写,匿名走 fingerprint。
 
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
 import { isChatConfiguredForRequest } from "@/lib/ai/provider";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
+import { getSessionUid } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
-import { quoteLogs, users } from "@/lib/db/schema";
+import { quoteLogs } from "@/lib/db/schema";
 import { QuoteInputSchema } from "@/lib/quote/types";
 import { estimate } from "@/lib/quote/pricing";
 import { explainQuote } from "@/lib/quote/explain";
@@ -30,14 +29,13 @@ export async function POST(req: Request) {
   // 价格计算本身不需要 AI;但解释步骤需要。AI 不可用时仍可返回 result + 空解释。
   const aiAvailable = isChatConfiguredForRequest(req);
 
-  // 取 Clerk userId 仅用于关联 quote_logs.userId(便于"已登录用户的历史粗测"看板)。
-  // 失败 / 匿名都不阻塞,直接走 fingerprint。
-  let clerkUserId: string | null = null;
+  // 取会话用户 id 仅用于关联 quote_logs.userId(便于"已登录用户的历史粗测"看板)。
+  // 会话 cookie 里直接存 users.id;失败 / 匿名都不阻塞,直接走 fingerprint。
+  let sessionUserId: string | null = null;
   try {
-    const { userId } = await auth();
-    clerkUserId = userId ?? null;
+    sessionUserId = await getSessionUid();
   } catch {
-    clerkUserId = null;
+    sessionUserId = null;
   }
 
   let body: {
@@ -79,18 +77,8 @@ export async function POST(req: Request) {
       req.headers.get("x-forwarded-host") || req.headers.get("host") || null;
     const ua = req.headers.get("user-agent") || null;
     const ipRegion = req.headers.get("x-vercel-ip-country") || null;
-    // 把 Clerk ID → users.id (UUID)。Clerk webhook 同步保证 row 存在;
-    // 偶发未同步 / 海外侧匿名 → 留 null,靠 fingerprint 兜底。
-    let userIdUuid: string | null = null;
-    if (clerkUserId) {
-      const rows = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.clerkId, clerkUserId))
-        .limit(1)
-        .catch(() => []);
-      userIdUuid = rows[0]?.id ?? null;
-    }
+    // 会话 uid 即 users.id (UUID);海外侧匿名 → 留 null,靠 fingerprint 兜底。
+    const userIdUuid: string | null = sessionUserId;
     const sourceParam =
       body.source === "nl_chat" || body.source === "api" || body.source === "form"
         ? body.source
