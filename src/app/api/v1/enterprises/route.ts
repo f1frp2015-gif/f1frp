@@ -57,44 +57,49 @@ export async function POST(req: NextRequest) {
 
   const establishedRaw = body?.established != null ? parseInt(String(body.established), 10) : NaN;
 
-  const [ent] = await db
-    .insert(enterprises)
-    .values({
-      name,
-      shortName: body?.shortName ? String(body.shortName).trim() : null,
-      category,
-      province: body?.province ? String(body.province).trim() : null,
-      city: body?.city ? String(body.city).trim() : null,
-      address: body?.address ? String(body.address).trim() : null,
-      established: Number.isFinite(establishedRaw) ? establishedRaw : null,
-      employeeCount: body?.employeeCount ? String(body.employeeCount).trim() : null,
-      description: body?.description ? String(body.description).trim() : null,
-      products: asStringArray(body?.products),
-      processes: asStringArray(body?.processes),
-      certifications: asStringArray(body?.certifications),
-      contactName,
-      contactPhone,
-      contactEmail: body?.contactEmail ? String(body.contactEmail).trim() : null,
-      contactWechat: body?.contactWechat ? String(body.contactWechat).trim() : null,
-      website: body?.website ? String(body.website).trim() : null,
-      businessLicense: body?.businessLicense ? String(body.businessLicense).trim() : null,
-      status: "pending",
-    })
-    .returning({ id: enterprises.id });
-
-  await db
-    .update(users)
-    .set({ enterpriseId: ent.id, role: "enterprise_admin", updatedAt: new Date() })
-    .where(eq(users.id, me.id));
-
-  return NextResponse.json(
-    {
-      data: {
-        id: ent.id,
+  try {
+    const [ent] = await db
+      .insert(enterprises)
+      .values({
+        name,
+        shortName: body?.shortName ? String(body.shortName).trim() : null,
+        category,
+        province: body?.province ? String(body.province).trim() : null,
+        city: body?.city ? String(body.city).trim() : null,
+        address: body?.address ? String(body.address).trim() : null,
+        established: Number.isFinite(establishedRaw) ? establishedRaw : null,
+        employeeCount: body?.employeeCount ? String(body.employeeCount).trim() : null,
+        description: body?.description ? String(body.description).trim() : null,
+        products: asStringArray(body?.products),
+        processes: asStringArray(body?.processes),
+        certifications: asStringArray(body?.certifications),
+        contactName,
+        contactPhone,
+        contactEmail: body?.contactEmail ? String(body.contactEmail).trim() : null,
+        contactWechat: body?.contactWechat ? String(body.contactWechat).trim() : null,
+        website: body?.website ? String(body.website).trim() : null,
+        businessLicense: body?.businessLicense ? String(body.businessLicense).trim() : null,
         status: "pending",
-        message: "入驻申请已提交,我们将在 1-3 个工作日内完成审核。",
+      })
+      .returning({ id: enterprises.id });
+
+    await db
+      .update(users)
+      .set({ enterpriseId: ent.id, role: "enterprise_admin", updatedAt: new Date() })
+      .where(eq(users.id, me.id));
+
+    return NextResponse.json(
+      {
+        data: {
+          id: ent.id,
+          status: "pending",
+          message: "入驻申请已提交,我们将在 1-3 个工作日内完成审核。",
+        },
       },
-    },
-    { status: 201 }
-  );
+      { status: 201 }
+    );
+  } catch (e) {
+    console.error("[enterprises POST] failed:", e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: "服务暂时不可用,请稍后重试" }, { status: 500 });
+  }
 }
