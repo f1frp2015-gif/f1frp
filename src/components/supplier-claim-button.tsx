@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth/use-session";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -23,7 +23,8 @@ export function SupplierClaimButton({
   supplierId: string;
   supplierName: string;
 }) {
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, user } = useSession();
+  const isSignedIn = !!user;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);

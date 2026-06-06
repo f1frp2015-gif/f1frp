@@ -24,6 +24,16 @@ function client(): OSS {
 }
 
 export const PAYMENT_PROOF_PREFIX = "payment-proofs";
+export const BUSINESS_LICENSE_PREFIX = "business-licenses";
+
+export function ossConfigured(): boolean {
+  return Boolean(
+    process.env.ALIYUN_OSS_REGION &&
+      process.env.ALIYUN_OSS_BUCKET &&
+      process.env.ALIYUN_OSS_ACCESS_KEY &&
+      process.env.ALIYUN_OSS_ACCESS_SECRET
+  );
+}
 
 export function signedPutUrl(key: string, contentType: string, expiresInSec = 600): string {
   return client().signatureUrl(key, {

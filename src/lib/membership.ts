@@ -9,10 +9,8 @@
  *   3) 在调用点(目前都假定 ok:true)上层补 UI/CTA 引导
  */
 
-import { auth } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { users, type User } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { type User } from "@/lib/db/schema";
 
 export type MembershipTier = "free" | "basic" | "pro" | "enterprise";
 
@@ -76,21 +74,13 @@ export type GateResult =
   | { ok: false; status: 401 | 403; reason: string };
 
 // 全直通版 gateByTier — 仍然要求登录(401),但不再校验等级。
-// 仍读一次 users 行,因为下游调用点会用 user.id / user.email。
+// 读一次当前用户行,因为下游调用点会用 user.id / user.email。
 export async function gateByTier(_required: MembershipTier): Promise<GateResult> {
-  const { userId } = await auth();
-  if (!userId) {
+  const me = await getCurrentUser();
+  if (!me) {
     return { ok: false, status: 401, reason: "未登录" };
   }
-  const [row] = await db
-    .select()
-    .from(users)
-    .where(eq(users.clerkId, userId))
-    .limit(1);
-  if (!row) {
-    return { ok: false, status: 401, reason: "用户资料未同步,请稍后重试" };
-  }
-  return { ok: true, user: row, tier: "free" };
+  return { ok: true, user: me, tier: "free" };
 }
 
 const STUDENT_EMAIL_PATTERNS = [

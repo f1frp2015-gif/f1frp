@@ -60,9 +60,9 @@ function PrivacyEn() {
           country, email, phone, technical specifications, message body.
         </li>
         <li>
-          <strong>Account data</strong> (if you sign in): email, profile
-          name, authentication identifiers — managed by Clerk
-          (clerk.com).
+          <strong>Account data</strong> (if you sign in): phone number,
+          WeChat profile (nickname / avatar / OpenID), and an authentication
+          session cookie.
         </li>
         <li>
           <strong>Technical logs</strong>: IP address, user agent, request
@@ -156,7 +156,7 @@ function PrivacyZh() {
       <h2>1. 收集的信息</h2>
       <ul>
         <li>询盘 / 联系表单：姓名、公司、邮箱、电话、技术规格。</li>
-        <li>账号信息：邮箱、登录标识（由 Clerk 管理）。</li>
+        <li>账号信息：手机号、微信资料（昵称 / 头像 / OpenID）及登录会话 Cookie。</li>
         <li>技术日志：IP、UA、请求路径，最长保留 90 天，用于反滥用与运维。</li>
       </ul>
       <h2>2. 信息存储</h2>

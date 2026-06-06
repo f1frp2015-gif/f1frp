@@ -7,25 +7,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { auth } from "@clerk/nextjs/server";
 import { and, count, eq, ne, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
-import { users, posts, inquiries } from "@/lib/db/schema";
+import { posts, inquiries, type User } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { tierLabel, isExpired } from "@/lib/membership";
 
-async function loadStats(clerkId: string) {
-  const [me] = await db
-    .select()
-    .from(users)
-    .where(eq(users.clerkId, clerkId))
-    .limit(1);
-
-  if (!me) {
-    return { me: null, postCount: 0, inquiryCount: 0, viewCount: 0 };
-  }
-
+async function loadStats(me: User) {
   const [[{ postCount }], [{ inquiryCount }], [{ viewCount }]] =
     await Promise.all([
       db
@@ -54,9 +44,9 @@ export default async function DashboardPage({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Dashboard" });
 
-  const { userId } = await auth();
-  const stats = userId
-    ? await loadStats(userId)
+  const me = await getCurrentUser();
+  const stats = me
+    ? await loadStats(me)
     : { me: null, postCount: 0, inquiryCount: 0, viewCount: 0 };
 
   const expired = stats.me ? isExpired(stats.me.membershipExpiry) : false;

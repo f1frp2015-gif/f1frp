@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
 import { desc, eq } from "drizzle-orm";
 import { Bookmark } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
-import { users, savedItems } from "@/lib/db/schema";
+import { savedItems } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { UnsaveButton } from "./unsave-button";
@@ -41,8 +41,8 @@ export default async function SavedPage({
   setRequestLocale(locale);
   const t = await getTranslations("Saved");
 
-  const { userId: clerkId } = await auth();
-  if (!clerkId) {
+  const me = await getCurrentUser();
+  if (!me) {
     return (
       <div className="max-w-xl py-10">
         <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
@@ -56,12 +56,6 @@ export default async function SavedPage({
       </div>
     );
   }
-
-  const [me] = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.clerkId, clerkId))
-    .limit(1);
 
   const rows = me
     ? await db

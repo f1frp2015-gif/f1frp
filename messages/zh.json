@@ -18,7 +18,8 @@
     "dashboard": "控制台",
     "signIn": "登录",
     "signUp": "注册",
-    "signInOrUp": "登录 / 注册"
+    "signInOrUp": "登录 / 注册",
+    "signOut": "退出"
   },
   "Home": {
     "eyebrow": "AI-NATIVE · ADVANCED COMPOSITES ACCELERATOR",
@@ -839,7 +840,8 @@
       "messages": "消息询盘",
       "enterprise": "企业管理",
       "claims": "企业认领",
-      "adminClaims": "认领审核"
+      "adminClaims": "认领审核",
+      "adminEnterprises": "入驻审核"
     },
     "home": {
       "welcome": "欢迎回来",
@@ -885,6 +887,48 @@
         "approved": "已通过",
         "rejected": "已拒绝",
         "withdrawn": "已撤回"
+      }
+    },
+    "adminEnterprises": {
+      "metaTitle": "企业入驻审核",
+      "h1": "企业入驻审核",
+      "subtitle": "审核用户提交的企业入驻申请。通过后该企业标记为「已认证」并展示在供应商目录中。",
+      "noPermission": "无权限",
+      "noPermissionSub": "该页面仅限管理员访问。如需权限，请联系站点管理员把你的邮箱加入 ADMIN_EMAILS。",
+      "tabPending": "待审 ({count})",
+      "tabVerified": "已认证 ({count})",
+      "tabRejected": "已拒绝 ({count})",
+      "tabAll": "全部",
+      "noRecords": "当前筛选条件下暂无入驻申请",
+      "anonymous": "匿名",
+      "statusLabel": {
+        "pending": "待审",
+        "verified": "已认证",
+        "rejected": "已拒绝",
+        "suspended": "已暂停"
+      },
+      "table": {
+        "submittedOn": "提交于 {date}",
+        "applicant": "申请账号：",
+        "contact": "联系人：",
+        "phone": "电话：",
+        "email": "邮箱：",
+        "wechat": "微信：",
+        "website": "官网：",
+        "businessLicense": "营业执照：",
+        "viewAttachment": "查看附件 ↗",
+        "reject": "拒绝",
+        "approve": "通过",
+        "dialogApproveTitle": "通过入驻",
+        "dialogRejectTitle": "拒绝入驻",
+        "dialogCompany": "企业：",
+        "dialogApproveHint": "通过后该企业状态将变为「已认证」，并展示在供应商目录中。",
+        "dialogRejectHint": "拒绝后该企业状态将变为「已拒绝」，不在目录中展示。",
+        "cancel": "取消",
+        "submitting": "提交中...",
+        "confirmApprove": "确认通过",
+        "confirmReject": "确认拒绝",
+        "operationFailed": "操作失败"
       }
     },
     "adminClaims": {
@@ -988,6 +1032,16 @@
       "selectFile": "选择文件",
       "submitNote": "提交后将在1-3个工作日内完成审核，审核通过后企业信息将展示在供应商目录中",
       "submit": "提交入驻申请",
+      "verifyPhone": "验证",
+      "phoneVerified": "已验证",
+      "needVerifyPhone": "请先验证联系电话",
+      "codePlaceholder": "短信验证码",
+      "submitting": "提交中…",
+      "submitSuccess": "入驻申请已提交，审核通过后将展示在供应商目录中。",
+      "uploading": "上传中…",
+      "licenseUploaded": "已上传",
+      "loginRequired": "请先登录后再提交入驻申请",
+      "submitError": "提交失败，请稍后重试",
       "typeSelect": "请选择",
       "employeesSelect": "请选择",
       "employees50": "1-50 人",
@@ -1739,6 +1793,27 @@
   },
   "SignUp": {
     "pageTitle": "注册"
+  },
+  "Auth": {
+    "signInTitle": "登录 / 注册",
+    "signUpTitle": "注册 / 登录",
+    "subtitle": "使用手机号或微信，未注册将自动创建账号",
+    "phoneLabel": "手机号",
+    "phonePlaceholder": "请输入手机号",
+    "codeLabel": "验证码",
+    "codePlaceholder": "6 位验证码",
+    "sendCode": "获取验证码",
+    "resendIn": "{sec} 秒后重发",
+    "submit": "登录",
+    "submitting": "登录中…",
+    "changePhone": "换个手机号",
+    "wechatLogin": "微信登录",
+    "wechatComingSoon": "微信登录即将开放",
+    "orDivider": "或",
+    "devCodeHint": "开发模式验证码：{code}",
+    "errPhone": "请输入有效的手机号",
+    "errGeneric": "操作失败，请稍后重试",
+    "wechatError": "微信登录失败，请重试或改用手机号"
   },
   "Inquiry": {
     "title": "索样 / 询价",

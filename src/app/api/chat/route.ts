@@ -4,7 +4,7 @@ import {
   stepCountIs,
   type UIMessage,
 } from "ai";
-import { auth } from "@clerk/nextjs/server";
+import { getSessionUid } from "@/lib/auth/current-user";
 import {
   getChatModelForRequest,
   isChatConfiguredForRequest,
@@ -71,11 +71,11 @@ export async function POST(req: Request) {
   }
 
   // 匿名访客超过免费额度后引导注册;登录用户跳过。
-  // 我们检查 Clerk userId 即可,不再查 DB 等级(membership 已 neuter 为全直通)。
+  // 只看会话 cookie 是否有效(不查 DB,membership 已 neuter 为全直通)。
   let anonCookieToSet: string | null = null;
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const uid = await getSessionUid();
+    if (!uid) {
       const gate = consumeAnonChatCredit(req);
       if (!gate.ok) {
         return Response.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, savedItems } from "@/lib/db/schema";
+import { savedItems } from "@/lib/db/schema";
+import { getSessionUid } from "@/lib/auth/current-user";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,14 +20,7 @@ const VALID_SOURCES = [
 type SourceType = (typeof VALID_SOURCES)[number];
 
 async function requireUserId() {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return null;
-  const [u] = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.clerkId, clerkId))
-    .limit(1);
-  return u?.id ?? null;
+  return getSessionUid();
 }
 
 export async function POST(req: Request) {
