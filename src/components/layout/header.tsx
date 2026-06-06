@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, UserButton } from "@clerk/nextjs";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
+import { useSession } from "@/lib/auth/use-session";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
@@ -46,11 +46,17 @@ const NEW_BADGE_KEYS: ReadonlySet<NavKey> = new Set(["quote"]);
 // 当前阶段无收费,所有导航项中外侧通用 — 留空集合作为未来再分流时的扩展点
 const ZH_ONLY_NAV: ReadonlySet<NavKey> = new Set();
 
+function userInitial(user: { name: string | null; phone: string | null }): string {
+  if (user.name?.trim()) return user.name.trim()[0].toUpperCase();
+  if (user.phone) return user.phone.slice(-2, -1) || "用";
+  return "用";
+}
+
 function AuthButtons() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { user, isLoaded, signOut } = useSession();
   const t = useTranslations("Nav");
   if (!isLoaded) return <div className="h-8 w-16" aria-hidden />;
-  if (isSignedIn) {
+  if (user) {
     return (
       <>
         <Link href="/dashboard">
@@ -58,7 +64,17 @@ function AuthButtons() {
             {t("dashboard")}
           </Button>
         </Link>
-        <UserButton />
+        <Link href="/dashboard">
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background"
+            title={user.name ?? user.phone ?? ""}
+          >
+            {userInitial(user)}
+          </span>
+        </Link>
+        <Button variant="ghost" size="sm" onClick={() => signOut()}>
+          {t("signOut")}
+        </Button>
       </>
     );
   }
@@ -77,16 +93,28 @@ function AuthButtons() {
 }
 
 function MobileAuthButtons({ onClose }: { onClose: () => void }) {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { user, isLoaded, signOut } = useSession();
   const t = useTranslations("Nav");
   if (!isLoaded) return null;
-  if (isSignedIn) {
+  if (user) {
     return (
-      <Link href="/dashboard" onClick={onClose}>
-        <Button variant="outline" className="w-full text-xs">
-          {t("dashboard")}
+      <div className="flex flex-col gap-2">
+        <Link href="/dashboard" onClick={onClose}>
+          <Button variant="outline" className="w-full text-xs">
+            {t("dashboard")}
+          </Button>
+        </Link>
+        <Button
+          variant="ghost"
+          className="w-full text-xs"
+          onClick={() => {
+            onClose();
+            signOut();
+          }}
+        >
+          {t("signOut")}
         </Button>
-      </Link>
+      </div>
     );
   }
   return (

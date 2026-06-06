@@ -1,37 +1,19 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
-
-const isProtectedRoute = createRouteMatcher(["/:locale?/dashboard(.*)"]);
-const isApiRoute = createRouteMatcher(["/api/(.*)"]);
+import { publicOrigin, publicUrl } from "@/lib/auth/public-origin";
+import { SESSION_COOKIE, verifySession } from "@/lib/auth/session";
 
 const handleIntlRouting = createIntlMiddleware(routing);
 
-// 在 Next.js standalone (ECS / 反向代理) 部署下，request.url 的 host 部分会用
-// 进程的监听 hostname（如 0.0.0.0:3000），而不是浏览器看到的 f1frp.com。
-// 任何把 request.url 当 returnBackUrl 的逻辑都会让用户登录后跳到 0.0.0.0:3000，
-// 浏览器自然访问失败 → 表现为"登录后页面空白"或"管理员面板没反应"。
-// 这里基于 nginx 转发的 X-Forwarded-Host / X-Forwarded-Proto 还原真实 origin。
-function publicOrigin(request: Request): string {
-  const host =
-    request.headers.get("x-forwarded-host") ||
-    request.headers.get("host") ||
-    "f1frp.com";
-  const proto = request.headers.get("x-forwarded-proto") || "https";
-  return `${proto}://${host}`;
-}
-
-function publicUrl(request: Request, pathname?: string, search?: string): string {
-  const u = new URL(request.url);
-  return `${publicOrigin(request)}${pathname ?? u.pathname}${search ?? u.search}`;
+// 受保护路由:剥掉可选的 /zh 或 /en 前缀后,以 /dashboard 开头。
+function isProtectedPath(pathname: string): boolean {
+  const stripped = pathname.replace(/^\/(zh|en)(?=\/|$)/, "");
+  return stripped === "/dashboard" || stripped.startsWith("/dashboard/");
 }
 
 // P2-⑤ Host-based locale guard.
 // f1frp.com (国内) → only zh; getfrp.com (海外) → only en.
-// Belt-and-suspenders for the env-var-driven locale split: even if a build is
-// deployed with both locales enabled, the host enforces the right one.
-// Other hosts (vercel preview, localhost, dev) are not constrained.
 const HOST_LOCALE: Record<string, "zh" | "en"> = {
   "f1frp.com": "zh",
   "www.f1frp.com": "zh",
@@ -39,10 +21,8 @@ const HOST_LOCALE: Record<string, "zh" | "en"> = {
   "www.getfrp.com": "en",
 };
 
-function enforceHostLocale(request: Request): NextResponse | undefined {
-  const rawHost =
-    request.headers.get("x-forwarded-host") ||
-    request.headers.get("host");
+function enforceHostLocale(request: NextRequest): NextResponse | undefined {
+  const rawHost = request.headers.get("x-forwarded-host") || request.headers.get("host");
   const host = rawHost?.toLowerCase().split(":")[0];
   if (!host) return;
   const required = HOST_LOCALE[host];
@@ -57,19 +37,20 @@ function enforceHostLocale(request: Request): NextResponse | undefined {
   }
 }
 
-export default clerkMiddleware(async (auth, request) => {
-  if (isApiRoute(request)) {
-    return;
-  }
+export default async function proxy(request: NextRequest) {
+  const { pathname } = new URL(request.url);
+
+  // API 路由各自鉴权,中间件不拦截。
+  if (pathname.startsWith("/api/")) return;
 
   const hostRedirect = enforceHostLocale(request);
   if (hostRedirect) return hostRedirect;
 
-  if (isProtectedRoute(request)) {
-    const { userId } = await auth();
-    if (!userId) {
-      // Build a clean public-facing returnBackUrl, not the standalone
-      // 0.0.0.0:3000 URL that Clerk's redirectToSignIn would default to.
+  if (isProtectedPath(pathname)) {
+    const token = request.cookies.get(SESSION_COOKIE)?.value;
+    const session = await verifySession(token);
+    if (!session) {
+      // 用 X-Forwarded-* 还原真实 origin,避免回跳到 standalone 的 0.0.0.0:3000。
       const ret = publicUrl(request);
       const signInUrl = `${publicOrigin(request)}/sign-in?redirect_url=${encodeURIComponent(ret)}`;
       return NextResponse.redirect(signInUrl);
@@ -77,7 +58,7 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   return handleIntlRouting(request);
-});
+}
 
 export const config = {
   matcher: [

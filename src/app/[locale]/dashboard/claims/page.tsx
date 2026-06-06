@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { desc, eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { db } from "@/lib/db";
-import { supplierClaims, supplierListings, users } from "@/lib/db/schema";
+import { supplierClaims, supplierListings } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 export async function generateMetadata({
   params,
@@ -42,28 +42,12 @@ export default async function ClaimsPage({
     withdrawn: "secondary",
   };
 
-  const { userId: clerkId } = await auth();
-  if (!clerkId) {
+  const me = await getCurrentUser();
+  if (!me) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
           {t("claimsPage.loginRequired")}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const [me] = await db
-    .select()
-    .from(users)
-    .where(eq(users.clerkId, clerkId))
-    .limit(1);
-
-  if (!me) {
-    return (
-      <Card>
-        <CardContent className="py-12 text-center text-muted-foreground">
-          {t("claimsPage.syncing")}
         </CardContent>
       </Card>
     );

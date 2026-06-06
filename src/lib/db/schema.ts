@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -74,18 +75,21 @@ export const claimStatusEnum = pgEnum("claim_status", [
 ]);
 
 // ═══════════════════════════════════════════
-// Users — synced from Clerk via webhook
+// Users — created by self-built phone/WeChat auth (see src/lib/auth)
 // ═══════════════════════════════════════════
 
 export const users = pgTable(
   "users",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    clerkId: varchar("clerk_id", { length: 255 }).unique().notNull(),
+    // clerkId 为历史遗留字段(已迁移到自建手机/微信认证);新用户无 Clerk 账号 → 可空。
+    clerkId: varchar("clerk_id", { length: 255 }).unique(),
     phone: varchar("phone", { length: 20 }),
     email: varchar("email", { length: 255 }),
     name: varchar("name", { length: 100 }),
     avatarUrl: text("avatar_url"),
+    // 自建会话版本号 — 递增即可让该用户所有已签发 cookie 失效(全端登出)。
+    sessionVersion: integer("session_version").default(0).notNull(),
     role: userRoleEnum("role").default("individual").notNull(),
     enterpriseId: uuid("enterprise_id").references(() => enterprises.id),
     wechatOpenId: varchar("wechat_open_id", { length: 255 }),
@@ -112,8 +116,11 @@ export const users = pgTable(
   },
   (table) => [
     index("users_clerk_id_idx").on(table.clerkId),
-    index("users_phone_idx").on(table.phone),
-    index("users_wechat_union_idx").on(table.wechatUnionId),
+    // 手机号 / 微信 unionid 作为自建认证的唯一身份锚点(部分唯一索引 → 允许多个 NULL)。
+    uniqueIndex("users_phone_uniq").on(table.phone).where(sql`phone is not null`),
+    uniqueIndex("users_wechat_union_uniq")
+      .on(table.wechatUnionId)
+      .where(sql`wechat_union_id is not null`),
     index("users_enterprise_idx").on(table.enterpriseId),
     index("users_stripe_customer_idx").on(table.stripeCustomerId),
   ]
@@ -847,6 +854,28 @@ export const wechatTokens = pgTable("wechat_tokens", {
 });
 
 // ═══════════════════════════════════════════
+// Phone OTP codes — 自建手机验证码登录
+// ═══════════════════════════════════════════
+
+export const phoneOtps = pgTable(
+  "phone_otps",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    // sha256(code + phone + AUTH_SESSION_SECRET) — 不落明文验证码
+    codeHash: varchar("code_hash", { length: 64 }).notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    consumedAt: timestamp("consumed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("phone_otps_phone_idx").on(table.phone),
+    index("phone_otps_created_idx").on(table.createdAt),
+  ]
+);
+
+// ═══════════════════════════════════════════
 // Subscriptions — payment / invoice history
 // ═══════════════════════════════════════════
 
@@ -1065,6 +1094,8 @@ export type RfqBilling = typeof rfqBilling.$inferSelect;
 export type NewRfqBilling = typeof rfqBilling.$inferInsert;
 export type OfflinePayment = typeof offlinePayments.$inferSelect;
 export type NewOfflinePayment = typeof offlinePayments.$inferInsert;
+export type PhoneOtp = typeof phoneOtps.$inferSelect;
+export type NewPhoneOtp = typeof phoneOtps.$inferInsert;
 
 // ═══════════════════════════════════════════
 // Factory product (S2 AI 询盘助手 — v4.1 主现金流)

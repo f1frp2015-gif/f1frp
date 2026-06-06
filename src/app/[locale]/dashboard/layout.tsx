@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { isAdminUser } from "@/lib/admin";
 import { Icon } from "@/components/icon";
 
@@ -44,18 +41,11 @@ export default async function DashboardLayout({
 
   const adminItems = [
     { href: "/dashboard/admin/claims" as const, label: t("nav.adminClaims"), iconKey: "admin-claims" },
+    { href: "/dashboard/admin/enterprises" as const, label: t("nav.adminEnterprises"), iconKey: "admin-claims" },
   ];
 
-  const { userId: clerkId } = await auth();
-  let showAdmin = false;
-  if (clerkId) {
-    const [me] = await db
-      .select({ role: users.role, email: users.email })
-      .from(users)
-      .where(eq(users.clerkId, clerkId))
-      .limit(1);
-    if (me) showAdmin = isAdminUser(me);
-  }
+  const me = await getCurrentUser();
+  const showAdmin = me ? isAdminUser(me) : false;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">

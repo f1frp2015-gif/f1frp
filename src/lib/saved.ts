@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { users, savedItems } from "@/lib/db/schema";
+import { savedItems } from "@/lib/db/schema";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 export type SavedSourceType =
   | "material"
@@ -22,14 +22,9 @@ export async function resolveViewer(): Promise<{
   userId: string | null;
 }> {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return { signedIn: false, userId: null };
-    const [u] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.clerkId, clerkId))
-      .limit(1);
-    return { signedIn: true, userId: u?.id ?? null };
+    const me = await getCurrentUser();
+    if (!me) return { signedIn: false, userId: null };
+    return { signedIn: true, userId: me.id };
   } catch {
     return { signedIn: false, userId: null };
   }
