@@ -19,8 +19,17 @@
  * 微信开放平台账号时才返回,否则只有 openid(本站 find-or-create 已兼容)。
  */
 
+/**
+ * 是否已配置**真实**公众号凭证。
+ * 关键:.env 模板里的占位符是 `wx_xxx` / `xxx`,它们是 truthy —— 若只判存在,
+ * 占位符会骗过门控,生成 appid=wx_xxx 的授权链接,用户在微信里只会拿到报错。
+ * 故按真实格式校验:AppID 形如 wx+16 位字母数字,AppSecret 为 32 位十六进制。
+ * 不达标 → 视为未配置 → 入口降级「即将开放」,而不是抛一个坏链接给用户。
+ */
 export function wechatConfigured(): boolean {
-  return Boolean(process.env.WECHAT_APP_ID && process.env.WECHAT_APP_SECRET);
+  const appId = process.env.WECHAT_APP_ID ?? "";
+  const secret = process.env.WECHAT_APP_SECRET ?? "";
+  return /^wx[0-9a-z]{16,}$/i.test(appId) && /^[0-9a-f]{32}$/i.test(secret);
 }
 
 /**
