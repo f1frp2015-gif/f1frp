@@ -1810,6 +1810,7 @@
     "changePhone": "换个手机号",
     "wechatLogin": "微信登录",
     "wechatComingSoon": "微信登录即将开放",
+    "wechatOpenInApp": "微信登录请在微信中打开本页面;电脑端请用手机号登录",
     "orDivider": "或",
     "devCodeHint": "开发模式验证码：{code}",
     "errPhone": "请输入有效的手机号",

@@ -1,33 +1,43 @@
 /**
- * 微信网页扫码登录(开放平台 snsapi_login)。
+ * 微信公众号网页授权登录(snsapi_userinfo)。
  *
- * 现状:除两处对微信服务器的网络调用外,整条链路(授权 URL 构造、state 校验、
- * find-or-create、签发会话、UI 入口)都已接好。微信凭证齐备后即可激活;未配置时
- * 入口降级为「即将开放」。
+ * ⚠ 这是「公众号网页授权」,不是「开放平台网站应用扫码登录」。两者凭证与授权
+ * 入口不通用:本站只有公众号,故走 oauth2/authorize 链路,凭证用公众号的
+ * WECHAT_APP_ID / WECHAT_APP_SECRET。
  *
- * 所需环境变量(待开通微信开放平台网站应用后填写):
- *   WECHAT_APP_ID
- *   WECHAT_APP_SECRET
+ * 固有限制:公众号网页授权**只在微信内置浏览器里有效**。桌面浏览器打开
+ * authorize 链接会被微信判为非法来源(无法扫码登录 —— 扫码需开放平台网站应用)。
+ * 因此入口侧(/api/auth/wechat/start + 登录表单)对非微信环境降级为提示,
+ * 桌面端走手机号验证码登录。
  *
- * 标注 VERIFY 的两处需在拿到真实凭证后对真机联调一次(unionid 是否返回取决于
- * 该网站应用是否已绑定微信开放平台账号)。
+ * 所需环境变量(公众号后台 → 设置与开发 → 基本配置):
+ *   WECHAT_APP_ID       公众号 AppID(形如 wx981c6e3aa7bb9647)
+ *   WECHAT_APP_SECRET   公众号 AppSecret
+ * 另需在公众号后台「网页授权域名」里填 f1frp.com(不含协议/路径)。
+ *
+ * 标注 VERIFY 的两处需对真机(微信内)联调一次:unionid 仅当该公众号已绑定
+ * 微信开放平台账号时才返回,否则只有 openid(本站 find-or-create 已兼容)。
  */
 
 export function wechatConfigured(): boolean {
   return Boolean(process.env.WECHAT_APP_ID && process.env.WECHAT_APP_SECRET);
 }
 
-/** 构造扫码登录授权地址(已建好,无需凭证即可拼接)。 */
+/**
+ * 构造公众号网页授权地址(snsapi_userinfo —— 弹出授权页,换昵称/头像/unionid)。
+ * 注意:`#wechat_redirect` 必须保留在末尾,微信据此触发授权跳转;redirect_uri
+ * 由 URLSearchParams 自动百分号编码。
+ */
 export function buildAuthorizeUrl(state: string, redirectUri: string): string {
   const appid = process.env.WECHAT_APP_ID ?? "";
   const params = new URLSearchParams({
     appid,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: "snsapi_login",
+    scope: "snsapi_userinfo",
     state,
   });
-  return `https://open.weixin.qq.com/connect/qrconnect?${params.toString()}#wechat_redirect`;
+  return `https://open.weixin.qq.com/connect/oauth2/authorize?${params.toString()}#wechat_redirect`;
 }
 
 export type WechatToken = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,9 @@ function safePath(value: string | null): string {
   return candidate;
 }
 
+// UA(是否微信内置浏览器)在挂载后不会变 → 订阅为空操作,稳定引用避免重复订阅。
+const noopSubscribe = () => () => {};
+
 export function PhoneAuthForm({ mode }: { mode: "signIn" | "signUp" }) {
   const t = useTranslations("Auth");
   const searchParams = useSearchParams();
@@ -36,6 +39,14 @@ export function PhoneAuthForm({ mode }: { mode: "signIn" | "signUp" }) {
   );
   const [devCode, setDevCode] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
+  // 公众号网页授权只在微信内置浏览器有效。用 useSyncExternalStore 读 UA:服务端 /
+  // 首帧快照为 false(显示"请在微信打开"提示,水合安全),客户端水合后据真实 UA
+  // 翻转为可点的微信登录入口。
+  const inWechat = useSyncExternalStore(
+    noopSubscribe,
+    () => /MicroMessenger/i.test(navigator.userAgent),
+    () => false
+  );
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -94,6 +105,13 @@ export function PhoneAuthForm({ mode }: { mode: "signIn" | "signUp" }) {
       setLoading(false);
     }
   }
+
+  const wechatIcon = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M8.7 7.2C5 7.2 2 9.7 2 12.8c0 1.8 1 3.4 2.6 4.4l-.6 2 2.3-1.2c.8.2 1.6.4 2.4.4h.6a4.6 4.6 0 0 1-.2-1.4c0-2.9 2.8-5.2 6.3-5.2h.6C15.4 8.9 12.3 7.2 8.7 7.2Zm-2.4 3a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Zm4.9 0a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Z" />
+      <path d="M22 16.1c0-2.5-2.4-4.5-5.4-4.5s-5.4 2-5.4 4.5 2.4 4.5 5.4 4.5c.6 0 1.2-.1 1.8-.3l1.8 1-.5-1.6c1.4-.8 2.3-2.1 2.3-3.6Zm-7-.8a.7.7 0 1 1 0-1.4.7.7 0 0 1 0 1.4Zm3.6 0a.7.7 0 1 1 0-1.4.7.7 0 0 1 0 1.4Z" />
+    </svg>
+  );
 
   return (
     <div className="w-full max-w-sm space-y-5">
@@ -181,17 +199,24 @@ export function PhoneAuthForm({ mode }: { mode: "signIn" | "signUp" }) {
         <Button type="button" variant="outline" className="w-full" disabled>
           {t("wechatComingSoon")}
         </Button>
-      ) : (
+      ) : inWechat ? (
         <a
           href={`/api/auth/wechat/start?redirect_url=${encodeURIComponent(redirectTo)}`}
           className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-[#07c160] transition-colors hover:bg-muted"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            <path d="M8.7 7.2C5 7.2 2 9.7 2 12.8c0 1.8 1 3.4 2.6 4.4l-.6 2 2.3-1.2c.8.2 1.6.4 2.4.4h.6a4.6 4.6 0 0 1-.2-1.4c0-2.9 2.8-5.2 6.3-5.2h.6C15.4 8.9 12.3 7.2 8.7 7.2Zm-2.4 3a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Zm4.9 0a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Z" />
-            <path d="M22 16.1c0-2.5-2.4-4.5-5.4-4.5s-5.4 2-5.4 4.5 2.4 4.5 5.4 4.5c.6 0 1.2-.1 1.8-.3l1.8 1-.5-1.6c1.4-.8 2.3-2.1 2.3-3.6Zm-7-.8a.7.7 0 1 1 0-1.4.7.7 0 0 1 0 1.4Zm3.6 0a.7.7 0 1 1 0-1.4.7.7 0 0 1 0 1.4Z" />
-          </svg>
+          {wechatIcon}
           {t("wechatLogin")}
         </a>
+      ) : (
+        // 非微信环境(桌面/普通手机浏览器):公众号网页授权点不动,降级为提示,
+        // 引导用手机号登录或在微信中打开。
+        <div className="space-y-1.5">
+          <div className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-muted/40 px-4 py-2 text-sm font-medium text-muted-foreground">
+            {wechatIcon}
+            {t("wechatLogin")}
+          </div>
+          <p className="text-center text-xs text-muted-foreground">{t("wechatOpenInApp")}</p>
+        </div>
       )}
     </div>
   );

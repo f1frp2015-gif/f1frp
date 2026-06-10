@@ -1837,6 +1837,7 @@
     "changePhone": "Use a different number",
     "wechatLogin": "Sign in with WeChat",
     "wechatComingSoon": "WeChat login coming soon",
+    "wechatOpenInApp": "Open this page inside WeChat to sign in with WeChat; on desktop, use your phone number",
     "orDivider": "or",
     "devCodeHint": "Dev code: {code}",
     "errPhone": "Please enter a valid phone number",

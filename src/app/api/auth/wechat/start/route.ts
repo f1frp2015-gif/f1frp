@@ -14,6 +14,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${origin}/sign-in?wechat=unconfigured`);
   }
 
+  // 公众号网页授权只在微信内置浏览器有效。桌面/普通手机浏览器打开 authorize 链接
+  // 会被微信判为非法来源(白屏/报错)。这里提前拦截,回登录页提示改用手机号或在
+  // 微信中打开,避免把用户丢进微信的错误页。
+  const ua = req.headers.get("user-agent") ?? "";
+  if (!/MicroMessenger/i.test(ua)) {
+    return NextResponse.redirect(`${origin}/sign-in?wechat=desktop`);
+  }
+
   const state = randomUUID();
   const callback = `${origin}/api/auth/wechat/callback`;
   const res = NextResponse.redirect(buildAuthorizeUrl(state, callback));
