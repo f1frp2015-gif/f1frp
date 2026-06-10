@@ -24,7 +24,7 @@ import { chinaFrpProvinces } from "@/lib/data/china-standards-crosswalk";
 import { JsonLd } from "@/components/json-ld";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { Badge } from "@/components/ui/badge";
-import { alternates } from "@/lib/seo";
+import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 
 // Cache for an hour: supplier data changes rarely, and a stale supplier page
@@ -258,6 +258,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: alternates(`/suppliers/${id}`),
+    openGraph: og(`/suppliers/${id}`, { title, description }),
   };
 }
 

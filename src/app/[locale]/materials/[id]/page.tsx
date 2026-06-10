@@ -33,7 +33,7 @@ import { InquiryButton } from "./inquiry-button";
 import { SaveButton } from "@/components/save-button";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
-import { alternates } from "@/lib/seo";
+import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 3600;
@@ -170,6 +170,10 @@ export async function generateMetadata({
     title: t("metaTitle", { name }),
     description,
     alternates: alternates(`/materials/${m.id}`),
+    openGraph: og(`/materials/${m.id}`, {
+      title: t("metaTitle", { name }),
+      description,
+    }),
   };
 }
 

@@ -16,7 +16,7 @@ import { patentCategories, patentStatusLabels, patentStatusLabelsEn } from "@/li
 import { SaveButton } from "@/components/save-button";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
-import { alternates } from "@/lib/seo";
+import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 600;
@@ -58,6 +58,7 @@ export async function generateMetadata({
     title: titleText,
     description: descText,
     alternates: alternates(`/patents/${slug}`),
+    openGraph: og(`/patents/${slug}`, { title: titleText, description: descText }),
     ...(thinContent ? { robots: { index: false, follow: true } } : {}),
   };
 }

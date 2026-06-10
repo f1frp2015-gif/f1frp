@@ -16,7 +16,7 @@ import { paperCategories } from "@/lib/data/papers";
 import { SaveButton } from "@/components/save-button";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
-import { alternates } from "@/lib/seo";
+import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 600;
@@ -60,6 +60,7 @@ export async function generateMetadata({
     title: titleText,
     description: descText,
     alternates: alternates(`/papers/${slug}`),
+    openGraph: og(`/papers/${slug}`, { title: titleText, description: descText }),
     ...(thinContent ? { robots: { index: false, follow: true } } : {}),
   };
 }

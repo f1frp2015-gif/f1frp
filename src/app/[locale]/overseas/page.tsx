@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { sql, isNotNull } from "drizzle-orm";
 import { setRequestLocale } from "next-intl/server";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
@@ -64,7 +64,9 @@ export default async function OverseasPage({
   // their products through getfrp. It has no purpose on the EN-host (getfrp.com),
   // so redirect overseas-side visitors back to the English home.
   if (ACTIVE_LOCALE === "en" || locale === "en") {
-    redirect("/");
+    // 308 (permanent) so Google retires the EN /overseas URL instead of
+    // re-checking it on every crawl (307 keeps the old URL "alive").
+    permanentRedirect("/");
   }
 
   setRequestLocale(locale);

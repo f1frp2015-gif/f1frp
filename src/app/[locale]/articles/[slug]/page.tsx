@@ -10,7 +10,7 @@ import { articles, authors } from "@/lib/db/schema";
 import { ArticleBody } from "@/components/article-body";
 import { JsonLd } from "@/components/json-ld";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
-import { alternates } from "@/lib/seo";
+import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 600;
@@ -55,12 +55,18 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
+  const ogTitle = isEn ? row.article.titleEn ?? "" : row.article.title;
+  const ogDesc = isEn
+    ? row.article.excerptEn ?? undefined
+    : row.article.excerpt ?? undefined;
   return {
-    title: isEn ? row.article.titleEn ?? "" : row.article.title,
-    description: isEn
-      ? row.article.excerptEn ?? undefined
-      : row.article.excerpt ?? undefined,
+    title: ogTitle,
+    description: ogDesc,
     alternates: alternates(`/articles/${row.article.slug}`),
+    openGraph: og(`/articles/${row.article.slug}`, {
+      title: ogTitle,
+      description: ogDesc,
+    }),
   };
 }
 
