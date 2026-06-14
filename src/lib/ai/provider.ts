@@ -176,6 +176,35 @@ function buildDashscope() {
   });
 }
 
+// GLM-4.5+ / GLM-5 are reasoning models: by default they stream chain-of-
+// thought into `reasoning_content`, which the OpenAI-compatible provider
+// surfaces as visible answer text — leaking "用户问的是…让我调用工具…" into the
+// reply. This chat persona wants clean, concise answers (see SYSTEM_PROMPT
+// 排版规则), so we inject 智谱's body param `thinking:{type:"disabled"}` via a
+// fetch middleware (the only reliable hook for a provider-specific body field).
+// Override by setting ZHIPU_THINKING=enabled.
+const zhipuFetch = async (
+  input: Parameters<typeof fetch>[0],
+  init?: Parameters<typeof fetch>[1],
+): Promise<Response> => {
+  if (
+    process.env.ZHIPU_THINKING !== "enabled" &&
+    init?.body &&
+    typeof init.body === "string"
+  ) {
+    try {
+      const body = JSON.parse(init.body);
+      if (body && typeof body === "object" && !("thinking" in body)) {
+        body.thinking = { type: "disabled" };
+        init = { ...init, body: JSON.stringify(body) };
+      }
+    } catch {
+      // body isn't JSON we can touch — forward unchanged
+    }
+  }
+  return fetch(input, init);
+};
+
 function buildZhipu() {
   const apiKey = process.env.ZHIPU_API_KEY;
   if (!apiKey) {
@@ -190,6 +219,7 @@ function buildZhipu() {
     apiKey,
     baseURL:
       process.env.ZHIPU_BASE_URL ?? "https://open.bigmodel.cn/api/paas/v4",
+    fetch: zhipuFetch,
   });
 }
 
