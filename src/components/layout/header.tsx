@@ -201,6 +201,7 @@ export function Header() {
   const aiItems: NavDropdownItem[] = [
     { href: "/ai", label: t("aiAssistant") },
     { href: "/pultrusion/quote", label: t("quote"), isNew: true },
+    { href: "/pultrusion/calc", label: t("engCalc"), isNew: true },
   ];
   const techActive = techItems.some((it) => isActive(it.href));
   const aiActive = aiItems.some((it) => isActive(it.href));

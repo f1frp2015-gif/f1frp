@@ -13,6 +13,7 @@ import {
   patents,
   formulas,
   articles,
+  supplierListings,
 } from "../src/lib/db/schema";
 import { embedBatch } from "../src/lib/ai/embed";
 
@@ -190,6 +191,36 @@ async function buildChunks(): Promise<Chunk[]> {
     });
   }
   console.log(`  articles: ${artRows.length}`);
+
+  // Suppliers (T1.2 数据飞轮:让 AI 能引用真实供应商目录)
+  const supRows = await db.select().from(supplierListings);
+  for (const s of supRows) {
+    const parts: string[] = [];
+    if (s.nameEn) parts.push(`英文名: ${s.nameEn}`);
+    if (s.location) parts.push(`所在地: ${s.location}`);
+    if (s.category) parts.push(`类别: ${s.category}`);
+    if (s.products && (s.products as string[]).length) {
+      parts.push(`产品: ${(s.products as string[]).join("、")}`);
+    }
+    if (s.processList && (s.processList as string[]).length) {
+      parts.push(`工艺: ${(s.processList as string[]).join("、")}`);
+    }
+    if (s.certifications && (s.certifications as string[]).length) {
+      parts.push(`认证: ${(s.certifications as string[]).join("、")}`);
+    }
+    if (s.established) parts.push(`成立: ${s.established}`);
+    if (s.description) parts.push(s.description);
+    chunks.push({
+      id: `supplier:${s.id}`,
+      sourceType: "supplier",
+      sourceId: s.id,
+      title: s.name,
+      content: [s.name, ...parts].join("\n"),
+      url: `/suppliers/${s.id}`,
+      metadata: { category: s.category, province: s.province, verified: s.verified },
+    });
+  }
+  console.log(`  suppliers: ${supRows.length}`);
 
   return chunks;
 }
