@@ -30,6 +30,23 @@ const nextConfig: NextConfig = {
   // ali-oss has dynamic optional require('proxy-agent') that breaks bundling.
   // Mark as external so it's resolved at runtime (server-only anyway).
   serverExternalPackages: ["ali-oss"],
+  async redirects() {
+    // /downloads、/factories 页面已下线 → 301 到最相关的存活页(同时兼容带 locale 前缀)
+    return [
+      { source: "/downloads", destination: "/materials", statusCode: 301 },
+      {
+        source: "/:locale(zh|en)/downloads",
+        destination: "/:locale/materials",
+        statusCode: 301,
+      },
+      { source: "/factories", destination: "/", statusCode: 301 },
+      {
+        source: "/:locale(zh|en)/factories",
+        destination: "/:locale",
+        statusCode: 301,
+      },
+    ];
+  },
   async headers() {
     return [
       {

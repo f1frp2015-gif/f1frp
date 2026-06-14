@@ -43,7 +43,6 @@ const staticRoutes: StaticRoute[] = [
   { path: "/suppliers", changeFrequency: "daily", priority: 0.9 },
   { path: "/tech", changeFrequency: "weekly", priority: 0.7 },
   { path: "/articles", changeFrequency: "daily", priority: 0.8 },
-  { path: "/downloads", changeFrequency: "weekly", priority: 0.7 },
   { path: "/fibers", changeFrequency: "monthly", priority: 0.7 },
   { path: "/matrix", changeFrequency: "monthly", priority: 0.6 },
   { path: "/ai", changeFrequency: "monthly", priority: 0.7 },
@@ -54,8 +53,7 @@ const staticRoutes: StaticRoute[] = [
   { path: "/overseas", changeFrequency: "weekly", priority: 0.9, zhOnly: true },
   { path: "/source-from-china", changeFrequency: "weekly", priority: 0.8 },
   // /pricing 已永久重定向 /overseas,不再单独出 sitemap 条目
-  // 工厂 AI 助手产品方向页 — ZH-only(海外侧 buyer 场景,不投放此 page)
-  { path: "/factories", changeFrequency: "weekly", priority: 0.7, zhOnly: true },
+  // /downloads → /materials、/factories → / 已 301(next.config.ts),不出 sitemap 条目
 ];
 
 async function safeFetch<T>(fn: () => Promise<T>): Promise<T | []> {
