@@ -284,7 +284,7 @@ export function lookupWindowUValue(opts: {
       UwUnfilled: unfilled,
       grade: g,
       meets571: g >= JGT571_MIN_GRADE,
-      summary: `${r.glass} → Uw ${base.toFixed(2)} W/m²K (casement/平开, ${gasLabel}), grade/保温 ${g}级${g >= JGT571_MIN_GRADE ? "" : " (below 571 min)"}; sliding/推拉 +0.3 → ${sliding.toFixed(2)}; cavity-unfilled/未填充泡沫 +0.15 → ${unfilled.toFixed(2)}`,
+      summary: `${r.glass} → Uw ${base.toFixed(2)} W/m²K (casement/平开, ${gasLabel}), grade/保温 ${g}级${g >= JGT571_MIN_GRADE ? "" : " (below 571 min)"}; sliding/推拉 +0.3 → ${sliding.toFixed(2)} (grade ${thermalGrade(sliding)}级); cavity-unfilled/未填充泡沫 +0.15 → ${unfilled.toFixed(2)} (grade ${thermalGrade(unfilled)}级)`,
     };
   };
 
@@ -303,7 +303,7 @@ export function lookupWindowUValue(opts: {
   });
 
   return {
-    standard: "JG/T 571-2019 附录C 表C.1 整窗传热配置表（框玻比 30:70）",
+    standard: "JG/T 571-2019《玻纤增强聚氨酯节能门窗》附录C 表C.1 整窗传热配置表（框玻比 30:70）",
     minGrade: JGT571_MIN_GRADE,
     adjustments: { slidingNote4: SLIDING_PENALTY, unfilledFoamNote3: FOAM_PENALTY },
     results,

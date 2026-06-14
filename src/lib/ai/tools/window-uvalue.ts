@@ -15,7 +15,7 @@ export function makeWindowUValueTool() {
       "Call this whenever the user asks about FRP / 聚氨酯 window or door U-value, 传热系数, 保温性能 / 等级, 节能配置, or which profile series + glass build hits a target Uw. " +
       "Returns exact standard values — do NOT estimate window Uw yourself when this tool applies. " +
       "CRITICAL: each returned config has a `summary` line that binds one glass build to ITS OWN figures — report each build's Uw from its own summary; never swap or mix Uw values between different glass builds. " +
-      "After calling, cite 'JG/T 571-2019 附录C 表C.1' and mention the +0.3 sliding (注4) / +0.15 unfilled-cavity (注3) corrections when relevant.",
+      "Cite the standard EXACTLY as given in the result's `standard` field — do NOT invent or guess the standard's Chinese title. Each summary already includes the thermal grade for the sliding and unfilled-cavity variants, so use those rather than recomputing grades yourself.",
     inputSchema: z.object({
       series: z
         .number()
