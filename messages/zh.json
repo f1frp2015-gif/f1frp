@@ -469,10 +469,10 @@
   "Tech": {
     "pageTitle": "工艺百科",
     "pageDescription": "7 大工艺 + 在线计算器，从拉挤到真空导入全覆盖。",
-    "metaTitle": "技术中心 - FRP复合材料工艺百科与在线工具",
-    "metaDescription": "FRP 复合材料七大成型工艺详解，在线计算工具和工程参考。",
+    "metaTitle": "技术中心 - FRP复合材料成型工艺百科与工程参考",
+    "metaDescription": "FRP 复合材料七大成型工艺详解（拉挤 / RTM / 缠绕 / 手糊 / 真空导入 / SMC / 预浸料）与工程参考。",
     "h1": "技术中心",
-    "subtitle": "FRP 复合材料工艺百科 · 在线工具 · 工程参考",
+    "subtitle": "FRP 复合材料工艺百科 · 工程参考",
     "processWikiTitle": "工艺百科",
     "processWikiSub": "{count} 大 FRP 复合材料成型工艺详细解读",
     "processDetailTitle": "工艺详情",
