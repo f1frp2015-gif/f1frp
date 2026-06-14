@@ -146,6 +146,11 @@
     "greetingSub": "问我任何关于纤维复合材料的问题",
     "disclaimer": "AI 回答基于平台知识库，仅供参考",
     "sourcesLabel": "Sources · {count} 条",
+    "attach": "上传图纸 / 图片 / PDF",
+    "attachRemove": "移除",
+    "attachUnsupported": "仅支持图片（JPG/PNG/WebP）和 PDF",
+    "attachTooBig": "单个文件不能超过 {max}MB",
+    "attachTooMany": "最多上传 {max} 个附件",
     "scenariosTitle": "选择场景",
     "scenarios": {
       "select": {

@@ -82,6 +82,14 @@ const CHAT_MODEL_GLOBAL = "gemini-2.5-flash";
 const CHAT_MODEL_DOMESTIC = "deepseek-chat";
 const CHAT_MODEL_OPENROUTER = "google/gemini-2.5-flash";
 
+// Vision model for the *domestic* side. deepseek-chat is text-only, so when a
+// f1frp.com request carries image/PDF attachments we switch to Alibaba's
+// Qwen-VL via the (already-present) DashScope OpenAI-compatible endpoint —
+// same Hangzhou region as the ECS box. Override with DASHSCOPE_VL_MODEL
+// (e.g. qwen-vl-plus for cheaper, qwen-vl-max for best drawing reading).
+// Overseas (Gemini) is already multimodal, so it needs no special model.
+const CHAT_MODEL_DOMESTIC_VISION = "qwen-vl-max";
+
 // Embedding provider — picked via EMBEDDING_PROVIDER env. Default 'google'
 // preserves historical behaviour; switch to 'dashscope' for国产 + no-gateway
 // access (Alibaba's OpenAI-compatible endpoint, same Hangzhou region as ECS
@@ -187,6 +195,42 @@ export function getChatModelForRequest(req: Request): LanguageModel {
   const host =
     req.headers.get("x-forwarded-host") || req.headers.get("host");
   return getChatModel(host);
+}
+
+export type VisionResolution = {
+  /** Multimodal-capable model, or null when the domestic side lacks DashScope. */
+  model: LanguageModel | null;
+  /** false → vision not provisioned for this host; caller should degrade. */
+  ok: boolean;
+  provider: ChatProvider;
+};
+
+// Pick a *vision-capable* chat model for a request that carries image / PDF
+// attachments. The host-split is the same as text chat, but the domestic
+// branch diverges: deepseek-chat can't see images, so we route to Qwen-VL via
+// DashScope. If DASHSCOPE_API_KEY is absent we return ok:false (model:null)
+// rather than throwing, so the chat route can stream a friendly "image
+// recognition is being provisioned" message instead of a 500. Overseas/Gemini
+// is already multimodal → reuse the normal chat model.
+export function getVisionChatModel(host?: string | null): VisionResolution {
+  const provider = pickProviderForHost(host);
+  if (provider === "deepseek") {
+    if (!process.env.DASHSCOPE_API_KEY) {
+      return { model: null, ok: false, provider };
+    }
+    const model = buildDashscope().chatModel(
+      process.env.DASHSCOPE_VL_MODEL ?? CHAT_MODEL_DOMESTIC_VISION,
+    );
+    return { model, ok: true, provider };
+  }
+  // google / openrouter → Gemini, already multimodal.
+  return { model: getChatModel(host), ok: true, provider };
+}
+
+export function getVisionChatModelForRequest(req: Request): VisionResolution {
+  const host =
+    req.headers.get("x-forwarded-host") || req.headers.get("host");
+  return getVisionChatModel(host);
 }
 
 export function getEmbeddingModel(): EmbeddingModel {

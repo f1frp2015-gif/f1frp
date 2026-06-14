@@ -173,6 +173,11 @@
     "greetingSub": "Ask me anything about fiber-reinforced composites",
     "disclaimer": "Answers are grounded in the platform knowledge base. For reference only.",
     "sourcesLabel": "Sources · {count}",
+    "attach": "Attach a drawing / image / PDF",
+    "attachRemove": "Remove",
+    "attachUnsupported": "Only images (JPG/PNG/WebP) and PDF are supported",
+    "attachTooBig": "Each file must be under {max}MB",
+    "attachTooMany": "Up to {max} attachments",
     "scenariosTitle": "Scenarios",
     "scenarios": {
       "select": {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
 import { useLocale, useTranslations } from "next-intl";
 import { getMessageText } from "@/lib/ai/utils";
 import { AiMessage, type Citation } from "@/components/ai-message";
@@ -16,6 +16,9 @@ import {
   Check,
   MessagesSquare,
   Plus,
+  Paperclip,
+  FileText,
+  X,
   FlaskConical,
   Search,
   Scale,
@@ -46,6 +49,43 @@ const SKILL_ICONS: Record<AiSkill["icon"], typeof Sparkles> = {
   pen: PenLine,
 };
 
+// ── Attachment handling (drawings / images / PDF) ─────────────────────────
+const MAX_FILES = 4;
+const MAX_FILE_MB = 10;
+// Images (Gemini + Qwen-VL) and PDF (Gemini native; Qwen-VL best-effort).
+const ACCEPT_ATTACH = "image/png,image/jpeg,image/webp,image/gif,application/pdf";
+
+function isAcceptedFile(f: File): boolean {
+  return f.type.startsWith("image/") || f.type === "application/pdf";
+}
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+// File[] → FileUIPart[] with inline data URLs. The AI SDK parses these data
+// URLs (splitDataUrl) and hands the bytes to whichever provider serves the
+// request — no OSS round-trip needed for ephemeral chat vision.
+async function filesToParts(files: File[]): Promise<FileUIPart[]> {
+  return Promise.all(
+    files.map(async (f) => ({
+      type: "file" as const,
+      mediaType: f.type || "application/octet-stream",
+      filename: f.name,
+      url: await fileToDataUrl(f),
+    })),
+  );
+}
+
+function getFileParts(m: UIMessage): FileUIPart[] {
+  return m.parts.filter((p): p is FileUIPart => p.type === "file");
+}
+
 type UIMsg = {
   id: string;
   role: "user" | "assistant" | "system";
@@ -63,8 +103,11 @@ export function AiAssistantClient({
   const isEn = locale === "en";
 
   const [input, setInput] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachError, setAttachError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const autoSentRef = useRef(false);
 
   const transport = useMemo(
@@ -83,6 +126,49 @@ export function AiAssistantClient({
   const busy = status === "streaming" || status === "submitted";
   const hasMessages = messages.length > 0;
 
+  // Object-URL thumbnails for staged image attachments; revoked on change.
+  const previews = useMemo(
+    () =>
+      attachments.map((f) => ({
+        file: f,
+        url: f.type.startsWith("image/") ? URL.createObjectURL(f) : null,
+      })),
+    [attachments],
+  );
+  useEffect(
+    () => () =>
+      previews.forEach((p) => {
+        if (p.url) URL.revokeObjectURL(p.url);
+      }),
+    [previews],
+  );
+
+  function addFiles(list: FileList | null) {
+    if (!list || list.length === 0) return;
+    const incoming = Array.from(list);
+    if (incoming.some((f) => !isAcceptedFile(f))) {
+      setAttachError(t("attachUnsupported"));
+      return;
+    }
+    if (incoming.some((f) => f.size > MAX_FILE_MB * 1024 * 1024)) {
+      setAttachError(t("attachTooBig", { max: MAX_FILE_MB }));
+      return;
+    }
+    setAttachments((prev) => {
+      if (prev.length + incoming.length > MAX_FILES) {
+        setAttachError(t("attachTooMany", { max: MAX_FILES }));
+      } else {
+        setAttachError(null);
+      }
+      return [...prev, ...incoming].slice(0, MAX_FILES);
+    });
+  }
+
+  function removeAttachment(idx: number) {
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
+    setAttachError(null);
+  }
+
   useEffect(() => {
     if (scrollRef.current)
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -97,15 +183,30 @@ export function AiAssistantClient({
   }, [initialQuery]);
 
   async function send(text?: string) {
+    // No arg → composer submit (carries staged attachments).
+    // With arg → programmatic follow-up (text only, no attachments).
+    const fromComposer = text === undefined;
     const msg = (text ?? input).trim();
-    if (!msg || busy) return;
-    setInput("");
-    await sendMessage({ text: msg });
+    const files = fromComposer ? attachments : [];
+    if ((!msg && files.length === 0) || busy) return;
+    if (fromComposer) {
+      setInput("");
+      setAttachments([]);
+      setAttachError(null);
+    }
+    if (files.length > 0) {
+      const parts = await filesToParts(files);
+      await sendMessage(msg ? { text: msg, files: parts } : { files: parts });
+    } else {
+      await sendMessage({ text: msg });
+    }
   }
 
   function newChat() {
     setMessages([]);
     setInput("");
+    setAttachments([]);
+    setAttachError(null);
     autoSentRef.current = false;
   }
 
@@ -132,55 +233,94 @@ export function AiAssistantClient({
       {slashOpen && (
         <SlashMenu skills={slashSkills} locale={locale} onPick={pickSkill} />
       )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept={ACCEPT_ATTACH}
+        className="hidden"
+        onChange={(e) => {
+          addFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
       <form
         onSubmit={(e) => {
           e.preventDefault();
           send();
         }}
-        className="group relative flex items-end gap-2 rounded-2xl border-2 border-border/80 bg-background p-2.5 shadow-sm transition-all focus-within:border-foreground/50"
+        className="group relative flex flex-col gap-2 rounded-2xl border-2 border-border/80 bg-background p-2.5 shadow-sm transition-all focus-within:border-foreground/50"
       >
-        <Sparkles
-          size={16}
-          className="ml-1 mt-2 shrink-0 self-start text-muted-foreground transition-colors group-focus-within:text-foreground"
-        />
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape" && slashQuery !== null) {
-              setInput("");
-              return;
-            }
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              if (slashOpen) {
-                pickSkill(slashSkills[0]);
-              } else {
-                send();
+        {previews.length > 0 && (
+          <div className="flex flex-wrap gap-2 px-1 pt-1">
+            {previews.map((p, i) => (
+              <AttachmentChip
+                key={`${p.file.name}-${i}`}
+                name={p.file.name}
+                previewUrl={p.url}
+                onRemove={() => removeAttachment(i)}
+                removeLabel={t("attachRemove")}
+              />
+            ))}
+          </div>
+        )}
+        <div className="flex items-end gap-2">
+          <Sparkles
+            size={16}
+            className="ml-1 mt-2 shrink-0 self-start text-muted-foreground transition-colors group-focus-within:text-foreground"
+          />
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && slashQuery !== null) {
+                setInput("");
+                return;
               }
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (slashOpen) {
+                  pickSkill(slashSkills[0]);
+                } else {
+                  send();
+                }
+              }
+            }}
+            placeholder={
+              isEn
+                ? "Ask anything, attach a drawing, or type / for skills…"
+                : "问任何复材问题、上传图纸,或打 / 选技能…"
             }
-          }}
-          placeholder={
-            isEn
-              ? "Ask anything, or type / for skills…"
-              : "问任何复材问题,或打 / 选技能…"
-          }
-          disabled={busy}
-          rows={3}
-          spellCheck={false}
-          autoComplete="off"
-          className="max-h-60 min-h-[88px] flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 disabled:opacity-60"
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() || busy}
-          aria-label={isEn ? "Send" : "发送"}
-          className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center self-end rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          <ArrowUp size={14} strokeWidth={2.5} />
-        </button>
+            disabled={busy}
+            rows={3}
+            spellCheck={false}
+            autoComplete="off"
+            className="max-h-60 min-h-[88px] flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 disabled:opacity-60"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={busy || attachments.length >= MAX_FILES}
+            aria-label={t("attach")}
+            title={t("attach")}
+            className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center self-end rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <Paperclip size={16} />
+          </button>
+          <button
+            type="submit"
+            disabled={(!input.trim() && attachments.length === 0) || busy}
+            aria-label={isEn ? "Send" : "发送"}
+            className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center self-end rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <ArrowUp size={14} strokeWidth={2.5} />
+          </button>
+        </div>
       </form>
+      {attachError && (
+        <p className="mt-1.5 px-1 text-[11px] text-red-500">{attachError}</p>
+      )}
       <p className="mt-2 text-center text-[10px] text-muted-foreground">
         {t("disclaimer")}
       </p>
@@ -226,7 +366,11 @@ export function AiAssistantClient({
             {messages.map((m, idx) => {
               if (m.role === "user") {
                 return (
-                  <UserQuery key={m.id} text={getMessageText(m)} />
+                  <UserQuery
+                    key={m.id}
+                    text={getMessageText(m)}
+                    files={getFileParts(m)}
+                  />
                 );
               }
               if (m.role === "assistant") {
@@ -394,15 +538,81 @@ function SlashMenu({
   );
 }
 
-function UserQuery({ text }: { text: string }) {
+function UserQuery({ text, files }: { text: string; files: FileUIPart[] }) {
   return (
     <div>
       <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
         Question
       </div>
-      <h2 className="mt-1.5 text-xl font-semibold leading-snug tracking-[-0.01em] sm:text-2xl">
-        {text}
-      </h2>
+      {files.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {files.map((f, i) =>
+            f.mediaType.startsWith("image/") ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={`${f.url.slice(0, 24)}-${i}`}
+                src={f.url}
+                alt={f.filename ?? "attachment"}
+                className="h-20 w-20 rounded-lg border border-border/60 object-cover"
+              />
+            ) : (
+              <span
+                key={`${f.filename ?? "doc"}-${i}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-2.5 py-1.5 text-[12px] text-muted-foreground"
+              >
+                <FileText size={13} />
+                {f.filename ?? "document.pdf"}
+              </span>
+            ),
+          )}
+        </div>
+      )}
+      {text && (
+        <h2 className="mt-1.5 text-xl font-semibold leading-snug tracking-[-0.01em] sm:text-2xl">
+          {text}
+        </h2>
+      )}
+    </div>
+  );
+}
+
+function AttachmentChip({
+  name,
+  previewUrl,
+  onRemove,
+  removeLabel,
+}: {
+  name: string;
+  previewUrl: string | null;
+  onRemove: () => void;
+  removeLabel: string;
+}) {
+  return (
+    <div className="relative flex items-center gap-2 rounded-lg border border-border/70 bg-muted/40 py-1 pl-1 pr-7 text-[12px]">
+      {previewUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={previewUrl}
+          alt={name}
+          className="h-8 w-8 rounded object-cover"
+        />
+      ) : (
+        <span className="flex h-8 w-8 items-center justify-center rounded bg-background text-muted-foreground">
+          <FileText size={15} />
+        </span>
+      )}
+      <span className="max-w-[140px] truncate text-muted-foreground">
+        {name}
+      </span>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={removeLabel}
+        title={removeLabel}
+        className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+      >
+        <X size={12} />
+      </button>
     </div>
   );
 }

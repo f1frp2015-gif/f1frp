@@ -1,12 +1,15 @@
 import {
   streamText,
   convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
   stepCountIs,
   type UIMessage,
 } from "ai";
 import { getSessionUid } from "@/lib/auth/current-user";
 import {
   getChatModelForRequest,
+  getVisionChatModelForRequest,
   isChatConfiguredForRequest,
 } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
@@ -22,7 +25,13 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 function normalizeMessages(raw: unknown[]): UIMessage[] {
-  return raw.map((m: any, i: number) => {
+  return raw.map((entry, i) => {
+    const m = (entry ?? {}) as {
+      parts?: UIMessage["parts"];
+      id?: string;
+      role?: UIMessage["role"];
+      content?: string;
+    };
     if (m.parts) return m as UIMessage;
     return {
       id: m.id || String(i),
@@ -63,6 +72,36 @@ function citationGuidance(locale: string): string {
 - 如果没有相关检索结果能支持某陈述，请明确说"复材站库中暂无此信息，以下为通用知识"。
 - 不允许编造 DOI、专利号、标准号。
 - 请在答案末尾不用再列"参考文献"，前文行内 [#N] 已足够。`;
+}
+
+function hasFilePart(uiMessages: UIMessage[]): boolean {
+  return uiMessages.some((m) => m.parts.some((p) => p.type === "file"));
+}
+
+// Extra system guidance injected only when the turn carries attachments —
+// steers the model to actually *read* drawings/photos and pull out specs.
+function visionInstruction(locale: string): string {
+  if (locale === "en") {
+    return `The user has attached one or more files (engineering drawings, product photos, or PDFs). Before answering:
+1. Read each attachment carefully. For drawings/photos, extract the concrete information visible: dimensions, cross-section shape, material callouts, standard codes, tolerances, quantities, and any annotations.
+2. Restate what you can see so the user can confirm you read it correctly.
+3. Explicitly flag anything unreadable, ambiguous, or missing (e.g. "wall thickness is not dimensioned").
+4. Then answer using composites expertise, grounded in the library where possible.
+Never invent dimensions or values that are not legible in the attachment.`;
+  }
+  return `用户上传了一个或多个附件（工程图纸、产品照片或 PDF）。回答前请：
+1. 仔细识别每个附件。对图纸/照片，提取可见的具体信息：尺寸、截面形状、材料标注、标准号、公差、数量及任何注释。
+2. 复述你识别到的内容，便于用户确认识别无误。
+3. 明确指出无法识别、有歧义或缺失的部分（例如"壁厚未标注尺寸"）。
+4. 然后结合复材专业知识作答，尽量基于复材站库。
+绝不编造附件中无法辨认的尺寸或数值。`;
+}
+
+function visionUnavailableText(locale: string): string {
+  if (locale === "en") {
+    return "Image and PDF recognition isn't enabled on this site yet. For now, please describe the drawing or specs in text and I'll help — or visit getfrp.com where attachment recognition is live.";
+  }
+  return "本站的图纸 / 图片 / PDF 识别功能正在开通中，暂时无法读取附件。你可以先用文字描述图纸或参数，我来帮你分析；或访问 getfrp.com（海外站已支持附件识别）。";
 }
 
 export async function POST(req: Request) {
@@ -108,6 +147,34 @@ export async function POST(req: Request) {
         }
       | undefined;
 
+    // Attachments → vision-capable model. Overseas (Gemini) is already
+    // multimodal; domestic (DeepSeek) is text-only and routes to Qwen-VL via
+    // DashScope. When the domestic vision model isn't provisioned we stream a
+    // friendly message rather than 500-ing.
+    const withAttachments = hasFilePart(uiMessages);
+    let model = getChatModelForRequest(req);
+    if (withAttachments) {
+      const vision = getVisionChatModelForRequest(req);
+      if (!vision.ok || !vision.model) {
+        const stream = createUIMessageStream({
+          execute: ({ writer }) => {
+            const id = "vision-unavailable";
+            writer.write({ type: "text-start", id });
+            writer.write({
+              type: "text-delta",
+              id,
+              delta: visionUnavailableText(locale),
+            });
+            writer.write({ type: "text-end", id });
+          },
+        });
+        const resp = createUIMessageStreamResponse({ stream });
+        if (anonCookieToSet) resp.headers.append("Set-Cookie", anonCookieToSet);
+        return resp;
+      }
+      model = vision.model;
+    }
+
     const query = lastUserQuery(uiMessages);
     let retrieved: Retrieved[] = [];
     try {
@@ -124,6 +191,7 @@ export async function POST(req: Request) {
       localeInstruction(locale),
       citationGuidance(locale),
     ];
+    if (withAttachments) systemParts.push(visionInstruction(locale));
 
     const ragBlock = buildRagContext(retrieved);
     if (ragBlock) systemParts.push(ragBlock);
@@ -160,21 +228,23 @@ export async function POST(req: Request) {
       systemParts.push(lines.join("\n"));
     }
 
-    // Web search is opt-in via TAVILY_API_KEY env. When absent we omit
-    // tools entirely so the LLM behaves exactly as before — graceful
-    // degrade, no errors.
+    // Web search is opt-in via TAVILY_API_KEY env. When absent we omit tools
+    // entirely so the LLM behaves exactly as before — graceful degrade, no
+    // errors. Also disabled on attachment turns — the focus is reading the
+    // image, and the vision models (Qwen-VL) have shakier tool support.
     const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
-    const toolsConfig = isWebSearchConfigured(host)
-      ? {
-          tools: { web_search: makeWebSearchTool(host) },
-          // Cap multi-step tool calling so the model can't recursion-loop
-          // through web searches on a single user turn.
-          stopWhen: stepCountIs(3),
-        }
-      : {};
+    const toolsConfig =
+      isWebSearchConfigured(host) && !withAttachments
+        ? {
+            tools: { web_search: makeWebSearchTool(host) },
+            // Cap multi-step tool calling so the model can't recursion-loop
+            // through web searches on a single user turn.
+            stopWhen: stepCountIs(3),
+          }
+        : {};
 
     const result = streamText({
-      model: getChatModelForRequest(req),
+      model,
       system: systemParts.join("\n\n"),
       messages: await convertToModelMessages(uiMessages),
       maxOutputTokens: 2000,
