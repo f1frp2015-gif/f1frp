@@ -26,7 +26,6 @@ export async function Footer() {
       links: [
         { label: tn("ai"), href: "/ai" as const },
         { label: tn("suppliers"), href: "/suppliers" as const },
-        { label: tn("downloads"), href: "/downloads" as const },
         { label: tn("articles"), href: "/articles" as const },
       ],
     },
