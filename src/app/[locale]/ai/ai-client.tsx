@@ -16,32 +16,41 @@ import {
   Check,
   MessagesSquare,
   Plus,
+  FlaskConical,
+  Search,
+  Scale,
+  Wrench,
+  Layers,
+  Lightbulb,
+  Telescope,
+  ShieldCheck,
+  PenLine,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import {
+  AI_SKILLS,
+  SKILL_CATEGORIES,
+  filterSkills,
+  type AiSkill,
+} from "@/lib/ai/skills";
+
+const SKILL_ICONS: Record<AiSkill["icon"], typeof Sparkles> = {
+  flask: FlaskConical,
+  search: Search,
+  scale: Scale,
+  wrench: Wrench,
+  layers: Layers,
+  lightbulb: Lightbulb,
+  telescope: Telescope,
+  shield: ShieldCheck,
+  pen: PenLine,
+};
 
 type UIMsg = {
   id: string;
   role: "user" | "assistant" | "system";
   metadata?: { citations?: Citation[] };
 };
-
-const STARTER_EN: ReadonlyArray<string> = [
-  "Find a verified Chinese FRP grating supplier with CE marking, MOQ 200 m².",
-  "Compare GFRP vs CFRP for a 3 m marine spar — strength, weight, cost.",
-  "What CBAM data do I request from a Chinese FRP profile manufacturer?",
-  "Which GB standard maps to ASTM D3039 tensile?",
-  "Recommend a vinyl ester resin for 30% HCl service at 60 °C.",
-  "ISO 9001 + EN 13706 pultrusion suppliers in Jiangsu, ranked by scale.",
-];
-
-const STARTER_ZH: ReadonlyArray<string> = [
-  "推荐一款耐 30% 盐酸 60℃ 服役的乙烯基酯树脂。",
-  "GB/T 1447 与 ASTM D3039 拉伸试验如何对照？",
-  "国内 ISO 9001 + EN 13706 拉挤厂家，按规模排序给我 5 家。",
-  "为风电叶片选材：玻纤 vs 碳纤的造价与性能对比。",
-  "出口欧洲的 FRP 型材需要哪些合规文件（CBAM / REACH / CE）？",
-  "真空导入工艺常见的孔隙率超标，怎么排查？",
-];
 
 export function AiAssistantClient({
   initialQuery,
@@ -55,6 +64,7 @@ export function AiAssistantClient({
 
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const autoSentRef = useRef(false);
 
   const transport = useMemo(
@@ -99,7 +109,22 @@ export function AiAssistantClient({
     autoSentRef.current = false;
   }
 
-  const starters = isEn ? STARTER_EN : STARTER_ZH;
+  // 选中技能 → 模板填入输入框,聚焦让用户补全 【____】 占位再发送。
+  function pickSkill(skill: AiSkill) {
+    setInput(skill.template[locale]);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    });
+  }
+
+  // Slash 菜单:输入以 "/" 开头时,按其后文本过滤技能。
+  const slashQuery = input.startsWith("/") ? input.slice(1) : null;
+  const slashSkills = slashQuery !== null ? filterSkills(slashQuery, locale) : [];
+  const slashOpen = slashQuery !== null && slashSkills.length > 0;
 
   return (
     <div className="relative mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl flex-col px-4 sm:px-6">
@@ -128,8 +153,8 @@ export function AiAssistantClient({
         {!hasMessages ? (
           <EmptyState
             isEn={isEn}
-            starters={starters}
-            onAsk={(q) => send(q)}
+            locale={locale}
+            onPick={pickSkill}
             disabled={busy}
           />
         ) : (
@@ -181,46 +206,60 @@ export function AiAssistantClient({
 
       {/* Sticky input bar */}
       <div className="sticky bottom-0 -mx-4 border-t border-border/60 bg-background/95 px-4 pb-5 pt-3 backdrop-blur sm:-mx-6 sm:px-6">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send();
-          }}
-          className="group relative flex items-end gap-2 rounded-2xl border-2 border-border/80 bg-background p-2.5 shadow-sm transition-all focus-within:border-foreground/50"
-        >
-          <Sparkles
-            size={16}
-            className="mb-1.5 ml-1 shrink-0 text-muted-foreground transition-colors group-focus-within:text-foreground"
-          />
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send();
-              }
+        <div className="relative">
+          {slashOpen && (
+            <SlashMenu skills={slashSkills} locale={locale} onPick={pickSkill} />
+          )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send();
             }}
-            placeholder={
-              isEn
-                ? "Ask anything about sourcing FRP from China…"
-                : "问任何复材选材、配方、标准、供应商问题…"
-            }
-            disabled={busy}
-            rows={1}
-            spellCheck={false}
-            autoComplete="off"
-            className="min-h-[36px] max-h-40 flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 disabled:opacity-60"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || busy}
-            aria-label={isEn ? "Send" : "发送"}
-            className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-30"
+            className="group relative flex items-end gap-2 rounded-2xl border-2 border-border/80 bg-background p-2.5 shadow-sm transition-all focus-within:border-foreground/50"
           >
-            <ArrowUp size={14} strokeWidth={2.5} />
-          </button>
-        </form>
+            <Sparkles
+              size={16}
+              className="mb-1.5 ml-1 shrink-0 text-muted-foreground transition-colors group-focus-within:text-foreground"
+            />
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && slashQuery !== null) {
+                  setInput("");
+                  return;
+                }
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (slashOpen) {
+                    pickSkill(slashSkills[0]);
+                  } else {
+                    send();
+                  }
+                }
+              }}
+              placeholder={
+                isEn
+                  ? "Ask anything, or type / for skills…"
+                  : "问任何复材问题,或打 / 选技能…"
+              }
+              disabled={busy}
+              rows={1}
+              spellCheck={false}
+              autoComplete="off"
+              className="min-h-[36px] max-h-40 flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 disabled:opacity-60"
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || busy}
+              aria-label={isEn ? "Send" : "发送"}
+              className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <ArrowUp size={14} strokeWidth={2.5} />
+            </button>
+          </form>
+        </div>
         <p className="mt-2 text-center text-[10px] text-muted-foreground">
           {t("disclaimer")}
         </p>
@@ -231,13 +270,13 @@ export function AiAssistantClient({
 
 function EmptyState({
   isEn,
-  starters,
-  onAsk,
+  locale,
+  onPick,
   disabled,
 }: {
   isEn: boolean;
-  starters: ReadonlyArray<string>;
-  onAsk: (q: string) => void;
+  locale: "zh" | "en";
+  onPick: (skill: AiSkill) => void;
   disabled: boolean;
 }) {
   return (
@@ -246,32 +285,96 @@ function EmptyState({
         <Sparkles size={20} />
       </div>
       <h1 className="mt-5 text-center text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">
-        {isEn
-          ? "Ask anything about sourcing FRP from China."
-          : "问关于复合材料的任何问题。"}
+        {isEn ? "Ask anything about composites." : "问关于复合材料的任何问题。"}
       </h1>
       <p className="mt-3 max-w-xl text-center text-[14px] leading-relaxed text-muted-foreground">
         {isEn
-          ? "Verified suppliers, ASTM-mapped specs, and CBAM-ready paperwork — in one cited answer."
-          : "从材料、配方、标准到国内供应商的统一回答，每条结论都附引用。"}
+          ? "Pick a skill below, or type / in the box. Every answer is grounded in the library and cited."
+          : "选一个技能,或在输入框打 / 唤起技能菜单。每条结论都基于复材站库并附引用。"}
       </p>
-      <div className="mt-8 grid w-full gap-2 sm:grid-cols-2">
-        {starters.map((s) => (
-          <button
-            key={s}
-            type="button"
-            disabled={disabled}
-            onClick={() => onAsk(s)}
-            className="group flex items-start gap-2 rounded-lg border border-border/60 bg-background p-3 text-left text-[13px] leading-snug transition-colors hover:border-foreground/40 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Sparkles
-              size={13}
-              className="mt-1 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-foreground"
-            />
-            <span>{s}</span>
-          </button>
+      <div className="mt-8 w-full space-y-6">
+        {SKILL_CATEGORIES.map((cat) => (
+          <div key={cat.id}>
+            <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              {cat.label[locale]}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {AI_SKILLS.filter((s) => s.category === cat.id).map((skill) => {
+                const Icon = SKILL_ICONS[skill.icon];
+                return (
+                  <button
+                    key={skill.id}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => onPick(skill)}
+                    className="group flex items-start gap-2.5 rounded-lg border border-border/60 bg-background p-3 text-left transition-colors hover:border-foreground/40 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Icon
+                      size={15}
+                      className="mt-0.5 shrink-0 text-muted-foreground/70 transition-colors group-hover:text-foreground"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-medium leading-snug">
+                        {skill.label[locale]}
+                      </span>
+                      <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
+                        {skill.desc[locale]}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function SlashMenu({
+  skills,
+  locale,
+  onPick,
+}: {
+  skills: AiSkill[];
+  locale: "zh" | "en";
+  onPick: (skill: AiSkill) => void;
+}) {
+  return (
+    <div className="absolute bottom-full left-0 right-0 mb-2 max-h-72 overflow-y-auto rounded-xl border border-border bg-background p-1.5 shadow-lg">
+      <div className="px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        {locale === "en" ? "Skills" : "技能"}
+      </div>
+      {skills.map((skill) => {
+        const Icon = SKILL_ICONS[skill.icon];
+        const cat = SKILL_CATEGORIES.find((c) => c.id === skill.category);
+        return (
+          <button
+            key={skill.id}
+            type="button"
+            // mousedown + preventDefault: 选中时不让 textarea 失焦
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onPick(skill);
+            }}
+            className="flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted"
+          >
+            <Icon size={15} className="mt-0.5 shrink-0 text-muted-foreground" />
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center gap-2">
+                <span className="text-[13px] font-medium">{skill.label[locale]}</span>
+                <span className="rounded bg-muted px-1 py-px text-[9px] text-muted-foreground">
+                  {cat?.label[locale]}
+                </span>
+              </span>
+              <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
+                {skill.desc[locale]}
+              </span>
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
