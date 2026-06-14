@@ -9,49 +9,11 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 
-const NAV_KEYS = [
-  "materials",
-  "formulas",
-  "standards",
-  "papers",
-  "patents",
-  "suppliers",
-  "tech",
-  "downloads",
-  "articles",
-] as const;
+// 顶部导航(2026-06 简化):供应库 · 技术库▾ · 资讯库 · AI▾ · 出海
+//   供应库 = 供应商目录;技术库 = 全部技术知识库(材料/配方/标准/工艺/论文/专利);
+//   资讯库 = 行业资讯。下载、工厂 AI 助手已下线。
 
-type NavKey = (typeof NAV_KEYS)[number];
-
-const NAV_HREFS: Record<NavKey, string> = {
-  materials: "/materials",
-  formulas: "/formulas",
-  standards: "/standards",
-  papers: "/papers",
-  patents: "/patents",
-  suppliers: "/suppliers",
-  tech: "/tech",
-  downloads: "/downloads",
-  articles: "/articles",
-};
-
-// 当前阶段无收费,所有导航项中外侧通用 — 留空集合作为未来再分流时的扩展点
-const ZH_ONLY_NAV: ReadonlySet<NavKey> = new Set();
-
-// AI 菜单:把 AI 助手 / AI 报价 / AI 工厂助手 统一收进顶部导航的「AI」下拉。
-// labelKey → Nav 命名空间的 i18n key;zhOnly 的项(工厂助手)只在国内 zh 侧出现。
-type AiItem = {
-  key: string;
-  href: string;
-  labelKey: "aiAssistant" | "quote" | "factoryAi";
-  zhOnly?: boolean;
-  isNew?: boolean;
-};
-const AI_MENU: readonly AiItem[] = [
-  { key: "ai", href: "/ai", labelKey: "aiAssistant" },
-  { key: "quote", href: "/pultrusion/quote", labelKey: "quote", isNew: true },
-  { key: "factories", href: "/factories", labelKey: "factoryAi", zhOnly: true },
-];
+type NavDropdownItem = { href: string; label: string; isNew?: boolean };
 
 function userInitial(user: { name: string | null; phone: string | null }): string {
   if (user.name?.trim()) return user.name.trim()[0].toUpperCase();
@@ -131,6 +93,89 @@ function MobileAuthButtons({ onClose }: { onClose: () => void }) {
   );
 }
 
+// 桌面端 hover/focus 下拉(技术库、AI 共用)。href 有值则触发器是链接,否则是纯菜单按钮。
+function NavDropdown({
+  label,
+  href,
+  items,
+  active,
+  pathname,
+}: {
+  label: string;
+  href?: string;
+  items: NavDropdownItem[];
+  active: boolean;
+  pathname: string;
+}) {
+  const triggerClass = [
+    "relative flex items-center gap-0.5 px-2.5 py-1.5 text-[13px] font-medium transition-colors",
+    active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+  ].join(" ");
+  const chevron = (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="opacity-60 transition-transform duration-150 group-hover:rotate-180"
+      aria-hidden
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+  const underline = active ? (
+    <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
+  ) : null;
+
+  return (
+    <div className="group relative">
+      {href ? (
+        <Link href={href} aria-haspopup="menu" className={triggerClass}>
+          {label}
+          {chevron}
+          {underline}
+        </Link>
+      ) : (
+        <button type="button" aria-haspopup="menu" className={triggerClass}>
+          {label}
+          {chevron}
+          {underline}
+        </button>
+      )}
+      <div className="invisible absolute left-0 top-full z-50 min-w-[176px] pt-2 opacity-0 transition-opacity duration-100 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+        <div className="rounded-lg border border-border bg-background p-1 shadow-lg">
+          {items.map((item) => {
+            const itemActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={[
+                  "flex items-center justify-between gap-4 rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
+                  itemActive
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ].join(" ")}
+              >
+                <span>{item.label}</span>
+                {item.isNew && (
+                  <span className="rounded bg-foreground px-1 py-px text-[8px] font-semibold leading-none text-background">
+                    NEW
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Header() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -144,9 +189,27 @@ export function Header() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  // AI 下拉的子项(按 locale 过滤掉 zhOnly 的工厂助手)
-  const aiItems = AI_MENU.filter((item) => !item.zhOnly || locale === "zh");
-  const aiActive = aiItems.some((item) => isActive(item.href));
+  // 技术库 = 全部技术知识库;AI = AI 助手 + AI 报价(工厂助手已下线)
+  const techItems: NavDropdownItem[] = [
+    { href: "/materials", label: t("materials") },
+    { href: "/formulas", label: t("formulas") },
+    { href: "/standards", label: t("standards") },
+    { href: "/tech", label: t("processes") },
+    { href: "/papers", label: t("papers") },
+    { href: "/patents", label: t("patents") },
+  ];
+  const aiItems: NavDropdownItem[] = [
+    { href: "/ai", label: t("aiAssistant") },
+    { href: "/pultrusion/quote", label: t("quote"), isNew: true },
+  ];
+  const techActive = techItems.some((it) => isActive(it.href));
+  const aiActive = aiItems.some((it) => isActive(it.href));
+
+  const singleLinkClass = (isOn: boolean) =>
+    [
+      "relative px-2.5 py-1.5 text-[13px] transition-colors",
+      isOn ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+    ].join(" ");
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur">
@@ -159,98 +222,43 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-px md:flex">
-          {NAV_KEYS.filter((k) => locale === "zh" || !ZH_ONLY_NAV.has(k)).map((key) => {
-            const href = NAV_HREFS[key];
-            const active = isActive(href);
-            return (
-              <Link
-                key={key}
-                href={href}
-                className={[
-                  "relative px-2.5 py-1.5 text-[13px] transition-colors",
-                  active
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                ].join(" ")}
-              >
-                {t(key)}
-                {active && (
-                  <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
-                )}
-              </Link>
-            );
-          })}
+          {/* 供应库 */}
+          <Link href="/suppliers" className={singleLinkClass(isActive("/suppliers"))}>
+            {t("supplyLib")}
+            {isActive("/suppliers") && (
+              <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
+            )}
+          </Link>
 
-          {/* AI 菜单(hover/focus 下拉):AI 助手 / AI 报价 / AI 工厂助手 */}
-          <div className="group relative">
-            <Link
-              href="/ai"
-              aria-haspopup="menu"
-              className={[
-                "relative flex items-center gap-0.5 px-2.5 py-1.5 text-[13px] font-medium transition-colors",
-                aiActive
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              ].join(" ")}
-            >
-              {t("ai")}
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="opacity-60 transition-transform duration-150 group-hover:rotate-180"
-                aria-hidden
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-              {aiActive && (
-                <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
-              )}
-            </Link>
-            {/* 面板:pt-2 桥接 trigger 与卡片之间的空隙,避免 hover 断开 */}
-            <div className="invisible absolute left-0 top-full z-50 min-w-[176px] pt-2 opacity-0 transition-opacity duration-100 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-              <div className="rounded-lg border border-border bg-background p-1 shadow-lg">
-                {aiItems.map((item) => {
-                  const itemActive = isActive(item.href);
-                  return (
-                    <Link
-                      key={item.key}
-                      href={item.href}
-                      className={[
-                        "flex items-center justify-between gap-4 rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
-                        itemActive
-                          ? "bg-muted text-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                      ].join(" ")}
-                    >
-                      <span>{t(item.labelKey)}</span>
-                      {item.isNew && (
-                        <span className="rounded bg-foreground px-1 py-px text-[8px] font-semibold leading-none text-background">
-                          NEW
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+          {/* 技术库 ▾ */}
+          <NavDropdown
+            label={t("techLib")}
+            items={techItems}
+            active={techActive}
+            pathname={pathname}
+          />
+
+          {/* 资讯库 */}
+          <Link href="/articles" className={singleLinkClass(isActive("/articles"))}>
+            {t("infoLib")}
+            {isActive("/articles") && (
+              <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
+            )}
+          </Link>
+
+          {/* AI ▾ */}
+          <NavDropdown
+            label={t("ai")}
+            href="/ai"
+            items={aiItems}
+            active={aiActive}
+            pathname={pathname}
+          />
 
           {showSourcing && (
             <Link
               href={"/source-from-china" as never}
-              className={[
-                "relative px-2.5 py-1.5 text-[13px] transition-colors",
-                isActive("/source-from-china")
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-                "font-medium",
-              ].join(" ")}
+              className={[singleLinkClass(isActive("/source-from-china")), "font-medium"].join(" ")}
             >
               Source from China
               {isActive("/source-from-china") && (
@@ -261,13 +269,7 @@ export function Header() {
           {showOverseas && (
             <Link
               href={"/overseas" as never}
-              className={[
-                "relative px-2.5 py-1.5 text-[13px] transition-colors",
-                isActive("/overseas")
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-                "font-medium",
-              ].join(" ")}
+              className={[singleLinkClass(isActive("/overseas")), "font-medium"].join(" ")}
             >
               出海
               {isActive("/overseas") && (
@@ -300,16 +302,42 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="right" className="w-64 p-0">
             <nav className="flex flex-col p-4 pt-12">
-              {NAV_KEYS.filter((k) => locale === "zh" || !ZH_ONLY_NAV.has(k)).map((key) => (
-                <Link
-                  key={key}
-                  href={NAV_HREFS[key]}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <span>{t(key)}</span>
-                </Link>
-              ))}
+              {/* 供应库 */}
+              <Link
+                href="/suppliers"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span>{t("supplyLib")}</span>
+              </Link>
+
+              {/* 技术库 分组 */}
+              <div className="border-b py-2">
+                <div className="px-0 py-1 text-xs font-medium text-muted-foreground">
+                  {t("techLib")}
+                </div>
+                <div className="flex flex-col">
+                  {techItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className="py-2 pl-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* 资讯库 */}
+              <Link
+                href="/articles"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span>{t("infoLib")}</span>
+              </Link>
 
               {/* AI 分组 */}
               <div className="border-b py-2">
@@ -319,12 +347,12 @@ export function Header() {
                 <div className="flex flex-col">
                   {aiItems.map((item) => (
                     <Link
-                      key={item.key}
+                      key={item.href}
                       href={item.href}
                       onClick={() => setOpen(false)}
                       className="flex items-center justify-between gap-2 py-2 pl-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
-                      <span>{t(item.labelKey)}</span>
+                      <span>{item.label}</span>
                       {item.isNew && (
                         <span className="rounded bg-foreground px-1.5 py-0.5 text-[9px] font-semibold leading-none text-background">
                           NEW
