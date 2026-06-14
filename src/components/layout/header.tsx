@@ -19,8 +19,6 @@ const NAV_KEYS = [
   "tech",
   "downloads",
   "articles",
-  "ai",
-  "quote",
 ] as const;
 
 type NavKey = (typeof NAV_KEYS)[number];
@@ -35,16 +33,25 @@ const NAV_HREFS: Record<NavKey, string> = {
   tech: "/tech",
   downloads: "/downloads",
   articles: "/articles",
-  ai: "/ai",
-  quote: "/pultrusion/quote",
 };
-
-// 新功能视觉强化(2026-05-29 上线)— quote 走粗体 + NEW 角标。
-// 30 天后可以拆掉,跟 ai 一样的普通态。
-const NEW_BADGE_KEYS: ReadonlySet<NavKey> = new Set(["quote"]);
 
 // 当前阶段无收费,所有导航项中外侧通用 — 留空集合作为未来再分流时的扩展点
 const ZH_ONLY_NAV: ReadonlySet<NavKey> = new Set();
+
+// AI 菜单:把 AI 助手 / AI 报价 / AI 工厂助手 统一收进顶部导航的「AI」下拉。
+// labelKey → Nav 命名空间的 i18n key;zhOnly 的项(工厂助手)只在国内 zh 侧出现。
+type AiItem = {
+  key: string;
+  href: string;
+  labelKey: "aiAssistant" | "quote" | "factoryAi";
+  zhOnly?: boolean;
+  isNew?: boolean;
+};
+const AI_MENU: readonly AiItem[] = [
+  { key: "ai", href: "/ai", labelKey: "aiAssistant" },
+  { key: "quote", href: "/pultrusion/quote", labelKey: "quote", isNew: true },
+  { key: "factories", href: "/factories", labelKey: "factoryAi", zhOnly: true },
+];
 
 function userInitial(user: { name: string | null; phone: string | null }): string {
   if (user.name?.trim()) return user.name.trim()[0].toUpperCase();
@@ -137,6 +144,10 @@ export function Header() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  // AI 下拉的子项(按 locale 过滤掉 zhOnly 的工厂助手)
+  const aiItems = AI_MENU.filter((item) => !item.zhOnly || locale === "zh");
+  const aiActive = aiItems.some((item) => isActive(item.href));
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
@@ -151,8 +162,6 @@ export function Header() {
           {NAV_KEYS.filter((k) => locale === "zh" || !ZH_ONLY_NAV.has(k)).map((key) => {
             const href = NAV_HREFS[key];
             const active = isActive(href);
-            const emphasized = key === "ai" || NEW_BADGE_KEYS.has(key);
-            const showNew = NEW_BADGE_KEYS.has(key) && !active;
             return (
               <Link
                 key={key}
@@ -162,23 +171,76 @@ export function Header() {
                   active
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground",
-                  emphasized && !active ? "font-medium text-foreground" : "",
                 ].join(" ")}
               >
-                <span className="inline-flex items-center gap-1">
-                  {t(key)}
-                  {showNew && (
-                    <span className="rounded bg-foreground px-1 py-px text-[8px] font-semibold leading-none text-background">
-                      NEW
-                    </span>
-                  )}
-                </span>
+                {t(key)}
                 {active && (
                   <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
                 )}
               </Link>
             );
           })}
+
+          {/* AI 菜单(hover/focus 下拉):AI 助手 / AI 报价 / AI 工厂助手 */}
+          <div className="group relative">
+            <Link
+              href="/ai"
+              aria-haspopup="menu"
+              className={[
+                "relative flex items-center gap-0.5 px-2.5 py-1.5 text-[13px] font-medium transition-colors",
+                aiActive
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              {t("ai")}
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="opacity-60 transition-transform duration-150 group-hover:rotate-180"
+                aria-hidden
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+              {aiActive && (
+                <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
+              )}
+            </Link>
+            {/* 面板:pt-2 桥接 trigger 与卡片之间的空隙,避免 hover 断开 */}
+            <div className="invisible absolute left-0 top-full z-50 min-w-[176px] pt-2 opacity-0 transition-opacity duration-100 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+              <div className="rounded-lg border border-border bg-background p-1 shadow-lg">
+                {aiItems.map((item) => {
+                  const itemActive = isActive(item.href);
+                  return (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      className={[
+                        "flex items-center justify-between gap-4 rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
+                        itemActive
+                          ? "bg-muted text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ].join(" ")}
+                    >
+                      <span>{t(item.labelKey)}</span>
+                      {item.isNew && (
+                        <span className="rounded bg-foreground px-1 py-px text-[8px] font-semibold leading-none text-background">
+                          NEW
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           {showSourcing && (
             <Link
               href={"/source-from-china" as never}
@@ -209,23 +271,6 @@ export function Header() {
             >
               出海
               {isActive("/overseas") && (
-                <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
-              )}
-            </Link>
-          )}
-          {showOverseas && (
-            <Link
-              href={"/factories" as never}
-              className={[
-                "relative px-2.5 py-1.5 text-[13px] transition-colors",
-                isActive("/factories")
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-                "font-semibold",
-              ].join(" ")}
-            >
-              工厂 AI 助手
-              {isActive("/factories") && (
                 <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
               )}
             </Link>
@@ -263,13 +308,33 @@ export function Header() {
                   className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <span>{t(key)}</span>
-                  {NEW_BADGE_KEYS.has(key) && (
-                    <span className="rounded bg-foreground px-1.5 py-0.5 text-[9px] font-semibold leading-none text-background">
-                      NEW
-                    </span>
-                  )}
                 </Link>
               ))}
+
+              {/* AI 分组 */}
+              <div className="border-b py-2">
+                <div className="px-0 py-1 text-xs font-medium text-muted-foreground">
+                  {t("ai")}
+                </div>
+                <div className="flex flex-col">
+                  {aiItems.map((item) => (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className="flex items-center justify-between gap-2 py-2 pl-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <span>{t(item.labelKey)}</span>
+                      {item.isNew && (
+                        <span className="rounded bg-foreground px-1.5 py-0.5 text-[9px] font-semibold leading-none text-background">
+                          NEW
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
               {showSourcing && (
                 <Link
                   href={"/source-from-china" as never}
@@ -286,15 +351,6 @@ export function Header() {
                   className="border-b py-3 text-sm font-medium text-foreground transition-colors hover:text-foreground"
                 >
                   出海
-                </Link>
-              )}
-              {showOverseas && (
-                <Link
-                  href={"/factories" as never}
-                  onClick={() => setOpen(false)}
-                  className="border-b py-3 text-sm font-semibold text-foreground transition-colors hover:text-foreground"
-                >
-                  工厂 AI 助手
                 </Link>
               )}
               <div className="mt-4 border-b pb-3">
