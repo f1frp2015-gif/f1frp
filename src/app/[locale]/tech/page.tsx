@@ -44,12 +44,6 @@ export default async function TechPage({
   // 静态数据 source of truth — DB processes 表是其副本，无额外字段
   const rows = [...processesData].sort((a, b) => a.id.localeCompare(b.id));
 
-  const tools = [
-    // FRP 型材计算器 + 门窗U值计算器 已整合到 顶部导航 AI ▸ 工程核算 / 门窗核算,此处不再重复列出
-    { nameKey: "tool3Name" as const, descKey: "tool3Desc" as const, statusKey: "soon" as const, href: "#" as const },
-    { nameKey: "tool4Name" as const, descKey: "tool4Desc" as const, statusKey: "soon" as const, href: "#" as const },
-  ];
-
   const inLanguage = locale === "en" ? "en" : "zh-CN";
   const techItemListJsonLd = {
     "@context": "https://schema.org",
@@ -205,39 +199,6 @@ export default async function TechPage({
               );
             })}
           </Accordion>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section id="tools" className="my-12">
-        <h2 className="text-2xl font-bold">{t("toolsTitle")}</h2>
-        <p className="mt-1 text-muted-foreground">{t("toolsSub")}</p>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {tools.map((tool) => {
-            const isLive = (tool.statusKey as string) === "live";
-            return (
-              <Link key={tool.nameKey} href={tool.href}>
-                <Card
-                  className={`h-full transition-colors ${isLive ? "hover:border-primary/50" : "opacity-70"}`}
-                >
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">{t(tool.nameKey)}</CardTitle>
-                      <Badge
-                        variant={isLive ? "default" : "outline"}
-                        className="text-xs"
-                      >
-                        {t(`toolStatus.${tool.statusKey}`)}
-                      </Badge>
-                    </div>
-                    <CardDescription>{t(tool.descKey)}</CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            );
-          })}
         </div>
       </section>
 
