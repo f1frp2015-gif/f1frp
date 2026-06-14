@@ -15,6 +15,7 @@ import {
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
 import { makeWebSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search";
+import { makeWindowUValueTool } from "@/lib/ai/tools/window-uvalue";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 import {
   consumeAnonChatCredit,
@@ -228,20 +229,22 @@ export async function POST(req: Request) {
       systemParts.push(lines.join("\n"));
     }
 
-    // Web search is opt-in via TAVILY_API_KEY env. When absent we omit tools
-    // entirely so the LLM behaves exactly as before — graceful degrade, no
-    // errors. Also disabled on attachment turns — the focus is reading the
-    // image, and the vision models (Qwen-VL) have shakier tool support.
+    // Tools are disabled on attachment turns — the focus is reading the image,
+    // and the vision models (Qwen-VL) have shakier tool support.
+    //   - window_u_value: always on (pure local JG/T 571 table lookup, no env)
+    //   - web_search:     opt-in, gated on the per-host search provider's key
+    // stopWhen is required so the model produces a final text answer AFTER a
+    // tool call (and is capped so it can't recursion-loop tool calls).
     const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
-    const toolsConfig =
-      isWebSearchConfigured(host) && !withAttachments
-        ? {
-            tools: { web_search: makeWebSearchTool(host) },
-            // Cap multi-step tool calling so the model can't recursion-loop
-            // through web searches on a single user turn.
-            stopWhen: stepCountIs(3),
-          }
-        : {};
+    const tools = withAttachments
+      ? undefined
+      : {
+          window_u_value: makeWindowUValueTool(),
+          ...(isWebSearchConfigured(host)
+            ? { web_search: makeWebSearchTool(host) }
+            : {}),
+        };
+    const toolsConfig = tools ? { tools, stopWhen: stepCountIs(3) } : {};
 
     const result = streamText({
       model,

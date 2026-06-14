@@ -4,13 +4,15 @@ import { useState, useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   JGT571_APPENDIX_C,
+  COMPARISON_FRAMES,
+  FRP_LAMBDA,
   FOAM_PENALTY,
   SLIDING_PENALTY,
   psiFor,
   thermalGrade,
   JGT571_MIN_GRADE,
   type Gas,
-} from "./jgt571";
+} from "@/lib/data/jgt571";
 
 // ── EN ISO 10077-1 / JGJ/T 151 area-weighted Uw for the optional
 // actual-size refinement, fed with 571 Uf/Ug/Ψ values. ───────────────────
@@ -128,6 +130,24 @@ export default function UValueCalculator() {
   const Uw = mode === "custom" ? customUw : stdUw;
   const grade = Uw != null ? thermalGrade(Uw) : 0;
   const meets571 = grade >= JGT571_MIN_GRADE;
+
+  // Frame-material comparison at the current glass build (table 30:70,
+  // casement, foam-filled). Swapping only the frame shifts Uw by the frame's
+  // 30% contribution: ΔUw = 0.3·(Uf_material − Uf_frp).
+  const cmpRows = COMPARISON_FRAMES.map((m) => ({
+    ...m,
+    Uw: Math.round((baseUw + 0.3 * (m.Uf - selSeries.Uf)) * 100) / 100,
+  }));
+  const aluNoBreak = cmpRows.find((m) => m.id === "alu-no-break")!;
+  const vsAluPct = Math.round(((aluNoBreak.Uw - baseUw) / aluNoBreak.Uw) * 100);
+  const matLabel = (id: string) =>
+    id === "alu-no-break"
+      ? t("uvalue.matAluNoBreak")
+      : id === "alu-break"
+        ? t("uvalue.matAluBreak")
+        : id === "pvc"
+          ? t("uvalue.matPvc")
+          : t("uvalue.matTimber");
 
   function changeSeries(idx: number) {
     setSeriesIdx(idx);
@@ -517,6 +537,63 @@ export default function UValueCalculator() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Frame-material comparison (vs aluminium / PVC / timber) */}
+      <div className="mt-14">
+        <h3 className="text-2xl font-bold">{t("uvalue.cmpTitle")}</h3>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          {t("uvalue.cmpSub")}
+        </p>
+
+        <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950">
+          <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+            {t("uvalue.cmpHeadline", { pct: vsAluPct })}
+          </p>
+        </div>
+
+        <div className="mt-5 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2 text-left">
+                <th className="pb-2 pr-5 font-bold">{t("uvalue.colFrameMat")}</th>
+                <th className="pb-2 pr-5 font-bold">{t("uvalue.colFrameUf")}</th>
+                <th className="pb-2 pr-5 font-bold">{t("uvalue.colWinUw")}</th>
+                <th className="pb-2 pr-5 font-bold">{t("uvalue.colLambda")}</th>
+                <th className="pb-2 font-bold">{t("uvalue.colBreak")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b bg-primary/5">
+                <td className="py-2 pr-5 font-medium">
+                  {t("uvalue.matFrpPu", { n: selSeries.series })}
+                </td>
+                <td className="py-2 pr-5 font-medium">{selSeries.Uf}</td>
+                <td className="py-2 pr-5 font-bold">{baseUw.toFixed(2)}</td>
+                <td className="py-2 pr-5 text-muted-foreground">{FRP_LAMBDA}</td>
+                <td className="py-2 text-muted-foreground">{t("uvalue.breakNo")}</td>
+              </tr>
+              {cmpRows.map((m) => (
+                <tr key={m.id} className="border-b">
+                  <td className="py-2 pr-5">{matLabel(m.id)}</td>
+                  <td className="py-2 pr-5">{m.Uf}</td>
+                  <td className="py-2 pr-5 font-medium">{m.Uw.toFixed(2)}</td>
+                  <td className="py-2 pr-5 text-muted-foreground">{m.lambda}</td>
+                  <td className="py-2 text-muted-foreground">
+                    {m.id === "alu-break"
+                      ? t("uvalue.breakYes")
+                      : m.id === "alu-no-break"
+                        ? "—"
+                        : t("uvalue.breakNo")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          {t("uvalue.cmpNote")}
+        </p>
       </div>
 
       {/* 571 series Uf quick-reference */}

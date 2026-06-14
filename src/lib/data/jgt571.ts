@@ -1,19 +1,20 @@
 // JG/T 571-2019《玻纤增强聚氨酯节能门窗》附录 C（资料性附录）整窗传热配置表
 // 表 C.1 整窗传热配置（框玻比为 30:70）
 //
-// This is the authoritative source-of-truth for the FRP (GFRP-PU) window
-// U-value calculator. Values are transcribed verbatim from the published
-// industry standard JG/T 571-2019, Appendix C, Table C.1. Where the table
-// lists two values "x/y", the first is air-filled (A) and the second is
-// argon-filled (Ar). Single values apply to the gas named in the glass spec.
+// Authoritative source-of-truth for the FRP (GFRP-PU) window U-value
+// calculator AND the AI `window_u_value` tool. Values are transcribed
+// verbatim from the published industry standard JG/T 571-2019, Appendix C,
+// Table C.1. Where the table lists two values "x/y", the first is air-filled
+// (A) and the second argon-filled (Ar). Single values apply to the gas named
+// in the glass spec.
 //
-// Uf  = 框传热系数 (frame U-value), fixed per series.
-// Ug  = 玻璃传热系数 (glass U-value), {air, ar}.
-// Uw  = 整窗传热系数 (whole-window U-value) at 框玻比 30:70, casement,
-//       profile cavity filled with qualifying foam (注3 baseline), {air, ar}.
+//   Uf  = 框传热系数 (frame U-value), fixed per series.
+//   Ug  = 玻璃传热系数 (glass U-value), {air, ar}.
+//   Uw  = 整窗传热系数 (whole-window U-value) at 框玻比 30:70, casement,
+//         profile cavity filled with qualifying foam (注3 baseline), {air, ar}.
 //
 // Adjustment notes (表 C.1 注):
-//   注1  线传热系数 Ψ (frame-glass junction): 普通玻璃 0.04, Low-E 0.06 W/(m·K);
+//   注1  线传热系数 Ψ: 普通玻璃 0.04, Low-E 0.06 W/(m·K);
 //        暖边 两玻单腔 0.04 (表值 -0.1), 三玻两腔 0.03 (表值 -0.15) — 暖边行已含此修正。
 //   注2  玻纤增强聚氨酯材料导热系数约 0.36 W/(m·K).
 //   注3  型材腔体未填充 λ≤0.033 泡沫 → 整窗传热系数 +0.15 W/(m²·K).
@@ -181,6 +182,14 @@ export const PSI = {
   warmTriple: 0.03, // 暖边 三玻两腔
 } as const;
 
+// 对比框材典型框传热系数 Uf W/(m²·K)（行业参考值，非 571 数据）+ 材料导热系数 λ。
+export const COMPARISON_FRAMES = [
+  { id: "alu-no-break", Uf: 5.9, lambda: 160, thermalBreak: false },
+  { id: "alu-break", Uf: 3.2, lambda: 160, thermalBreak: true },
+  { id: "pvc", Uf: 1.5, lambda: 0.17, thermalBreak: false },
+  { id: "timber", Uf: 1.4, lambda: 0.13, thermalBreak: false },
+] as const;
+
 // 线传热系数 Ψ by glass build, per 注1.
 export function psiFor(row: { lowE: boolean; warmEdge?: boolean; panes: 2 | 3 }): number {
   if (row.warmEdge) return row.panes === 3 ? PSI.warmTriple : PSI.warmDouble;
@@ -203,3 +212,100 @@ export function thermalGrade(Uw: number): number {
 }
 
 export const JGT571_MIN_GRADE = 6; // 571 §6: 保温性能 ≥ 6 级
+
+// ── Lookup for the AI `window_u_value` tool ───────────────────────────────
+// Pure, deterministic table lookup so the model reports exact standard values
+// instead of hallucinating. Returns structured data; the model phrases the
+// answer in the user's language.
+
+export type WindowConfigResult = {
+  glass: string;
+  panes: 2 | 3;
+  lowE: boolean;
+  warmEdge: boolean;
+  gas: Gas;
+  Ug: number;
+  /** Casement, foam-filled baseline Uw (table value). */
+  Uw: number;
+  /** Uw if sliding (+0.3, 注4). */
+  UwSliding: number;
+  /** Uw if profile cavity NOT foam-filled (+0.15, 注3). */
+  UwUnfilled: number;
+  grade: number;
+  meets571: boolean;
+};
+
+export function lookupWindowUValue(opts: {
+  series?: number;
+  gas?: Gas;
+  glassQuery?: string;
+}): {
+  standard: string;
+  minGrade: number;
+  adjustments: { slidingNote4: number; unfilledFoamNote3: number };
+  results: { series: number; Uf: number; configs: WindowConfigResult[] }[];
+  seriesSummary?: { series: number; Uf: number; bestUw: number }[];
+} {
+  const gas: Gas = opts.gas === "air" ? "air" : "ar";
+  const q = opts.glassQuery?.trim().toLowerCase() ?? "";
+
+  const matchRow = (r: GlassRow): boolean => {
+    if (!q) return true;
+    const hay = r.glass.toLowerCase();
+    if (hay.includes(q)) return true;
+    // keyword fallbacks
+    if ((q.includes("low-e") || q.includes("lowe") || q.includes("低辐射")) && r.lowE) return true;
+    if ((q.includes("三玻") || q.includes("triple") || q.includes("两腔")) && r.panes === 3) return true;
+    if ((q.includes("双玻") || q.includes("double") || q.includes("单腔")) && r.panes === 2) return true;
+    if ((q.includes("暖边") || q.includes("warm")) && r.warmEdge) return true;
+    return false;
+  };
+
+  const toResult = (r: GlassRow, effGas: Gas): WindowConfigResult => {
+    const base = r.Uw[effGas];
+    return {
+      glass: r.glass,
+      panes: r.panes,
+      lowE: r.lowE,
+      warmEdge: !!r.warmEdge,
+      gas: effGas,
+      Ug: r.Ug[effGas],
+      Uw: base,
+      UwSliding: Math.round((base + SLIDING_PENALTY) * 100) / 100,
+      UwUnfilled: Math.round((base + FOAM_PENALTY) * 100) / 100,
+      grade: thermalGrade(base),
+      meets571: thermalGrade(base) >= JGT571_MIN_GRADE,
+    };
+  };
+
+  const seriesList = opts.series
+    ? JGT571_APPENDIX_C.filter((s) => s.series === opts.series)
+    : JGT571_APPENDIX_C;
+
+  const results = seriesList.map((s) => {
+    let rows = s.rows.filter(matchRow);
+    if (rows.length === 0) rows = s.rows; // fall back to all rows on no match
+    return {
+      series: s.series,
+      Uf: s.Uf,
+      configs: rows.map((r) => toResult(r, r.gasFixed ?? gas)),
+    };
+  });
+
+  return {
+    standard: "JG/T 571-2019 附录C 表C.1 整窗传热配置表（框玻比 30:70）",
+    minGrade: JGT571_MIN_GRADE,
+    adjustments: { slidingNote4: SLIDING_PENALTY, unfilledFoamNote3: FOAM_PENALTY },
+    results,
+    // When no series specified, also hand the model a quick Uf overview.
+    ...(opts.series
+      ? {}
+      : {
+          seriesSummary: JGT571_APPENDIX_C.map((s) => ({
+            series: s.series,
+            Uf: s.Uf,
+            bestUw: Math.min(...s.rows.map((r) => r.Uw.ar)),
+          })),
+        }),
+  };
+}
