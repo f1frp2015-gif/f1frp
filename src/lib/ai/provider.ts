@@ -27,21 +27,25 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel, EmbeddingModel } from "ai";
 
 type Profile = "global" | "domestic";
-type ChatProvider = "openrouter" | "google" | "deepseek";
+type ChatProvider = "openrouter" | "google" | "deepseek" | "zhipu" | "qwen";
 
 const profile: Profile =
   process.env.AI_PROFILE === "domestic" ? "domestic" : "global";
 
 export const aiProfile = profile;
 
-const explicitProvider: ChatProvider | null =
-  process.env.CHAT_PROVIDER === "openrouter"
-    ? "openrouter"
-    : process.env.CHAT_PROVIDER === "google"
-      ? "google"
-      : process.env.CHAT_PROVIDER === "deepseek"
-        ? "deepseek"
-        : null;
+const CHAT_PROVIDERS: ChatProvider[] = [
+  "openrouter",
+  "google",
+  "deepseek",
+  "zhipu",
+  "qwen",
+];
+const explicitProvider: ChatProvider | null = CHAT_PROVIDERS.includes(
+  process.env.CHAT_PROVIDER as ChatProvider,
+)
+  ? (process.env.CHAT_PROVIDER as ChatProvider)
+  : null;
 
 const DOMESTIC_HOSTS = new Set(["f1frp.com", "www.f1frp.com"]);
 const OVERSEAS_HOSTS = new Set(["getfrp.com", "www.getfrp.com"]);
@@ -61,6 +65,17 @@ function isOverseasHost(host?: string | null): boolean {
   return h !== null && OVERSEAS_HOSTS.has(h);
 }
 
+// Domestic (f1frp.com) text-chat provider priority, by which API key is set:
+//   智谱 GLM (primary) → 通义千问 Qwen (auxiliary) → DeepSeek (legacy fallback)
+// 2026-06-14: switched primary DeepSeek → 智谱 GLM, with Qwen as the auxiliary.
+// Resolution is key-driven so the domestic side degrades gracefully and the
+// switch flips on the moment ZHIPU_API_KEY lands on the ECS box.
+function pickDomesticProvider(): ChatProvider {
+  if (process.env.ZHIPU_API_KEY) return "zhipu";
+  if (process.env.DASHSCOPE_API_KEY) return "qwen";
+  return "deepseek";
+}
+
 function pickProviderForHost(host?: string | null): ChatProvider {
   // Known production hosts are authoritative — they win even over the
   // CHAT_PROVIDER env var. This prevents a stale escape-hatch env (left
@@ -68,19 +83,26 @@ function pickProviderForHost(host?: string | null): ChatProvider {
   // wrong provider, which is exactly the bug we hit 2026-05-18 when
   // CHAT_PROVIDER=openrouter pinned getfrp.com to an out-of-credits
   // OpenRouter account.
-  if (isDomesticHost(host)) return "deepseek";
+  if (isDomesticHost(host)) return pickDomesticProvider();
   if (isOverseasHost(host)) return "google";
 
   // For non-prod hosts (localhost, preview deploys, cron/scripts with no
   // host header) we still honour CHAT_PROVIDER as a debug-friendly override.
   if (explicitProvider) return explicitProvider;
-  if (profile === "domestic") return "deepseek";
+  if (profile === "domestic") return pickDomesticProvider();
   return "google";
 }
 
 const CHAT_MODEL_GLOBAL = "gemini-2.5-flash";
 const CHAT_MODEL_DOMESTIC = "deepseek-chat";
 const CHAT_MODEL_OPENROUTER = "google/gemini-2.5-flash";
+// 智谱 GLM (primary domestic). Override the exact model via ZHIPU_CHAT_MODEL —
+// e.g. set it to the GLM-4.6 / GLM-Z1 / latest string from the BigModel
+// console without a code change.
+const CHAT_MODEL_ZHIPU = "glm-4.6";
+// 通义千问 Qwen text (auxiliary domestic), via the DashScope OpenAI-compatible
+// endpoint. Override via QWEN_CHAT_MODEL (qwen-plus / qwen-max / qwen-turbo).
+const CHAT_MODEL_QWEN = "qwen-plus";
 
 // Vision model for the *domestic* side. deepseek-chat is text-only, so when a
 // f1frp.com request carries image/PDF attachments we switch to Alibaba's
@@ -140,9 +162,9 @@ function buildDashscope() {
   const apiKey = process.env.DASHSCOPE_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "DASHSCOPE_API_KEY required for embedding provider=dashscope. " +
-        "Get one at https://bailian.console.aliyun.com (model studio → " +
-        "API-KEY). Free quota: 100M tokens / model / 90 days.",
+      "DASHSCOPE_API_KEY required for Qwen (chat/vision) or dashscope " +
+        "embeddings. Get one at https://bailian.console.aliyun.com (model " +
+        "studio → API-KEY). Free quota: 100M tokens / model / 90 days.",
     );
   }
   return createOpenAICompatible({
@@ -151,6 +173,23 @@ function buildDashscope() {
     baseURL:
       process.env.DASHSCOPE_BASE_URL ??
       "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  });
+}
+
+function buildZhipu() {
+  const apiKey = process.env.ZHIPU_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "ZHIPU_API_KEY required for chatProvider=zhipu (智谱 GLM, primary " +
+        "domestic). Get one at https://open.bigmodel.cn (API keys). The " +
+        "endpoint is OpenAI-compatible (paas/v4).",
+    );
+  }
+  return createOpenAICompatible({
+    name: "zhipu",
+    apiKey,
+    baseURL:
+      process.env.ZHIPU_BASE_URL ?? "https://open.bigmodel.cn/api/paas/v4",
   });
 }
 
@@ -178,6 +217,16 @@ export function getChatModel(host?: string | null): LanguageModel {
   if (provider === "openrouter") {
     return buildOpenRouter().chatModel(
       process.env.OPENROUTER_CHAT_MODEL ?? CHAT_MODEL_OPENROUTER,
+    );
+  }
+  if (provider === "zhipu") {
+    return buildZhipu().chatModel(
+      process.env.ZHIPU_CHAT_MODEL ?? CHAT_MODEL_ZHIPU,
+    );
+  }
+  if (provider === "qwen") {
+    return buildDashscope().chatModel(
+      process.env.QWEN_CHAT_MODEL ?? CHAT_MODEL_QWEN,
     );
   }
   if (provider === "deepseek") {
@@ -214,17 +263,21 @@ export type VisionResolution = {
 // is already multimodal → reuse the normal chat model.
 export function getVisionChatModel(host?: string | null): VisionResolution {
   const provider = pickProviderForHost(host);
-  if (provider === "deepseek") {
-    if (!process.env.DASHSCOPE_API_KEY) {
-      return { model: null, ok: false, provider };
-    }
-    const model = buildDashscope().chatModel(
-      process.env.DASHSCOPE_VL_MODEL ?? CHAT_MODEL_DOMESTIC_VISION,
-    );
-    return { model, ok: true, provider };
+  // Overseas Gemini (and OpenRouter→Gemini) is already multimodal — reuse it.
+  if (provider === "google" || provider === "openrouter") {
+    return { model: getChatModel(host), ok: true, provider };
   }
-  // google / openrouter → Gemini, already multimodal.
-  return { model: getChatModel(host), ok: true, provider };
+  // All domestic text providers (智谱 GLM / Qwen text / DeepSeek) are routed
+  // as text-only here, so vision always goes to Qwen-VL via DashScope — this
+  // is Qwen's "auxiliary" role. Needs DASHSCOPE_API_KEY; degrade gracefully
+  // (ok:false) when absent so the chat route streams a friendly message.
+  if (!process.env.DASHSCOPE_API_KEY) {
+    return { model: null, ok: false, provider };
+  }
+  const model = buildDashscope().chatModel(
+    process.env.DASHSCOPE_VL_MODEL ?? CHAT_MODEL_DOMESTIC_VISION,
+  );
+  return { model, ok: true, provider };
 }
 
 export function getVisionChatModelForRequest(req: Request): VisionResolution {
@@ -264,6 +317,8 @@ export function isChatConfigured(host?: string | null): boolean {
   if (provider === "openrouter") {
     return Boolean(process.env.OPENROUTER_API_KEY);
   }
+  if (provider === "zhipu") return Boolean(process.env.ZHIPU_API_KEY);
+  if (provider === "qwen") return Boolean(process.env.DASHSCOPE_API_KEY);
   if (provider === "deepseek") return Boolean(process.env.DEEPSEEK_API_KEY);
   return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
 }
