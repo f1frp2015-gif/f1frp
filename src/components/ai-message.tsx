@@ -54,6 +54,40 @@ function renderWithCitations(
   return out;
 }
 
+// Inline: render **bold** → <strong>, then [#N] citation pills inside each segment.
+// 解决模型(尤其 DeepSeek)爱输出裸 ** 导致原始符号显示在页面上的问题。
+function renderInline(text: string, citations?: Citation[]): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
+  const re = /\*\*(.+?)\*\*/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let k = 0;
+  while ((m = re.exec(text))) {
+    if (m.index > last) {
+      out.push(
+        <React.Fragment key={`p${k}`}>
+          {renderWithCitations(text.slice(last, m.index), citations)}
+        </React.Fragment>,
+      );
+    }
+    out.push(
+      <strong key={`b${k}`} className="font-semibold">
+        {renderWithCitations(m[1], citations)}
+      </strong>,
+    );
+    last = m.index + m[0].length;
+    k++;
+  }
+  if (last < text.length) {
+    out.push(
+      <React.Fragment key={`p${k}`}>
+        {renderWithCitations(text.slice(last), citations)}
+      </React.Fragment>,
+    );
+  }
+  return out;
+}
+
 function parseLine(line: string, citations?: Citation[]): React.ReactNode {
   // Inline: links [text](url)
   const parts = line.split(/(\[[^\]#][^\]]*?\]\([^)]*?\))/g);
@@ -88,14 +122,14 @@ function parseLine(line: string, citations?: Citation[]): React.ReactNode {
         }
         return (
           <React.Fragment key={`${i}-${j}`}>
-            {renderWithCitations(cp, citations)}
+            {renderInline(cp, citations)}
           </React.Fragment>
         );
       });
     }
     return (
       <React.Fragment key={i}>
-        {renderWithCitations(part, citations)}
+        {renderInline(part, citations)}
       </React.Fragment>
     );
   });
@@ -119,6 +153,13 @@ export function AiMessage({
     // Empty line → spacer
     if (line.trim() === "") {
       elements.push(<div key={i} className="h-2" />);
+      i++;
+      continue;
+    }
+
+    // Horizontal rule: ---, ***, ___ (AI 爱用的分隔线) → 干净细线,不显示原始符号
+    if (/^\s*([-*_])\1{2,}\s*$/.test(line)) {
+      elements.push(<hr key={i} className="my-3 border-t border-border/60" />);
       i++;
       continue;
     }
