@@ -6,21 +6,24 @@
 import { generateText } from "ai";
 import { getChatModelForRequest } from "@/lib/ai/provider";
 import type { QuoteInput, QuoteResult } from "./types";
+import type { PriceDisplay } from "./display";
 
 export async function explainQuote(
   input: QuoteInput,
   result: QuoteResult,
+  display: PriceDisplay,
   req: Request,
   locale: "zh" | "en",
 ): Promise<string | null> {
   const model = getChatModelForRequest(req);
 
-  // 构造紧凑的 breakdown 文本,不让模型重新算
+  // 构造紧凑的 breakdown 文本,不让模型重新算。金额按 display 币种显示
+  // (海外 USD = CNY × factor);占比 pct 与币种无关(加成均匀缩放,占比不变)。
   const breakdownLine = result.breakdown
     .filter((b) => b.pct >= 1)
     .map(
       (b) =>
-        `${locale === "en" ? b.label_en : b.label_zh}: ¥${b.amount_per_meter_cny.toFixed(2)}/m (${b.pct}%)`,
+        `${locale === "en" ? b.label_en : b.label_zh}: ${display.symbol}${(b.amount_per_meter_cny * display.factor).toFixed(2)}/m (${b.pct}%)`,
     )
     .join(" · ");
 
@@ -28,13 +31,14 @@ export async function explainQuote(
 
   const system =
     locale === "en"
-      ? `You are a senior FRP pultrusion engineer at f1frp.com. Given a rough-quote breakdown, write a 80-140 word plain-English paragraph explaining WHY this price range, calling out the biggest cost driver and one practical engineering note. DO NOT recompute or change any number. DO NOT add disclaimers about it being a rough quote (the UI already shows that). No markdown, no bullet lists, no headers.`
+      ? `You are a senior FRP pultrusion sourcing engineer at getfrp.com (export sourcing for Asian composites). Given a rough-quote breakdown, write a 80-140 word plain-English paragraph explaining WHY this USD price range, calling out the biggest cost driver and one practical engineering note. The figure is an indicative export price in USD with sourcing & export handling included — do NOT itemize, reveal, or mention any markup, agency margin, or any China-domestic price. DO NOT recompute or change any number. DO NOT add disclaimers about it being a rough quote (the UI already shows that). No markdown, no bullet lists, no headers.`
       : `你是 f1frp.com 的拉挤型材资深工程师。给定一个粗测分项,用 80-140 字自然中文段落,解释为什么是这个价格区间,点出最大成本驱动 + 一条工程提示。不要重算或修改任何数字。不要重复"粗测仅供参考"(UI 已写)。不要 markdown、不要列表、不要标题。`;
 
+  const unitRange = `${display.symbol}${display.unit_price_low.toFixed(2)} – ${display.symbol}${display.unit_price_high.toFixed(2)}`;
   const prompt =
     locale === "en"
-      ? `Profile: ${profileDesc}\nUnit price range: ¥${result.unit_price_low_cny.toFixed(2)} – ¥${result.unit_price_high_cny.toFixed(2)} / m\nBreakdown: ${breakdownLine}\nTotal meters: ${result.total_meters.toFixed(0)} m\nWeight: ${result.weight_kg_per_m.toFixed(2)} kg/m`
-      : `型材描述:${profileDesc}\n单米价格区间:¥${result.unit_price_low_cny.toFixed(2)} – ¥${result.unit_price_high_cny.toFixed(2)} / 米\n成本分项:${breakdownLine}\n订单总长:${result.total_meters.toFixed(0)} 米\n单米重量:${result.weight_kg_per_m.toFixed(2)} kg/m`;
+      ? `Profile: ${profileDesc}\nUnit price range: ${unitRange} / m\nBreakdown: ${breakdownLine}\nTotal meters: ${result.total_meters.toFixed(0)} m\nWeight: ${result.weight_kg_per_m.toFixed(2)} kg/m`
+      : `型材描述:${profileDesc}\n单米价格区间:${unitRange} / 米\n成本分项:${breakdownLine}\n订单总长:${result.total_meters.toFixed(0)} 米\n单米重量:${result.weight_kg_per_m.toFixed(2)} kg/m`;
 
   try {
     const { text } = await generateText({

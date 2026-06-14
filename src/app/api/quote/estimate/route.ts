@@ -20,6 +20,7 @@ import { db } from "@/lib/db";
 import { quoteLogs } from "@/lib/db/schema";
 import { QuoteInputSchema } from "@/lib/quote/types";
 import { estimate } from "@/lib/quote/pricing";
+import { buildPriceDisplay, marketForLocale } from "@/lib/quote/display";
 import { explainQuote } from "@/lib/quote/explain";
 
 export const runtime = "nodejs";
@@ -62,12 +63,16 @@ export async function POST(req: Request) {
   const input = parsed.data;
   const locale = resolveServerLocale(req, body.locale);
 
-  // 1) 算价格 — 同步,毫秒级
+  // 1) 算价格 — 同步,毫秒级(引擎纯 CNY 基线)
   const result = estimate(input);
 
-  // 2) AI 解释 — 不阻塞;失败 null
+  // 1.5) 对外展示口径 — 海外(getfrp.com/en)在 CNY 基线上加成 50%+ 并换算 USD,
+  //      国内(f1frp.com/zh)原样 CNY。详见 display.ts。
+  const display = buildPriceDisplay(result, marketForLocale(locale));
+
+  // 2) AI 解释 — 不阻塞;失败 null。按 display 的币种/数值口径解释。
   const explanation = aiAvailable
-    ? await explainQuote(input, result, req, locale).catch(() => null)
+    ? await explainQuote(input, result, display, req, locale).catch(() => null)
     : null;
 
   // 3) 写日志 — try/catch 包好,DB 抖动不能挡用户
@@ -111,7 +116,7 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ result, explanation, logId });
+  return NextResponse.json({ result, display, explanation, logId });
 }
 
 // 匿名 fingerprint:用 IP + UA hash(粗略,够做"同一访客重复粗测"聚合)

@@ -20,6 +20,7 @@ import type {
   ProfileType,
   Complexity,
 } from "@/lib/quote/types";
+import type { PriceDisplay } from "@/lib/quote/display";
 import {
   crossSectionMm2,
   outerPerimeterMm,
@@ -88,6 +89,7 @@ export function QuoteTool() {
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [estimating, setEstimating] = useState(false);
   const [result, setResult] = useState<QuoteResult | null>(null);
+  const [display, setDisplay] = useState<PriceDisplay | null>(null);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"chat" | "form">("chat");
@@ -260,6 +262,7 @@ export function QuoteTool() {
       }
       const data = await res.json();
       setResult(data.result);
+      setDisplay(data.display ?? null);
       setExplanation(data.explanation);
     } catch (e) {
       setError(e instanceof Error ? e.message : "estimate failed");
@@ -341,8 +344,8 @@ export function QuoteTool() {
         </div>
       )}
 
-      {result && (
-        <ResultCard result={result} explanation={explanation} t={t} />
+      {result && display && (
+        <ResultCard result={result} display={display} explanation={explanation} t={t} />
       )}
     </div>
   );
@@ -647,9 +650,10 @@ function ToggleGroup({ title, children }: { title: string; children: React.React
 }
 
 function ResultCard({
-  result, explanation, t,
+  result, display, explanation, t,
 }: {
   result: QuoteResult;
+  display: PriceDisplay;
   explanation: string | null;
   t: ReturnType<typeof useTranslations>;
 }) {
@@ -658,6 +662,9 @@ function ResultCard({
   // 海外侧(en / getfrp.com)保留 /rfq 跳转 — 那里是海外代理服务的入口。
   const locale = useLocale();
   const isZh = locale === "zh";
+  // 报价口径:国内 ¥ 原值;海外(getfrp.com)按 display 加成 50%+ 后以 USD 展示。
+  const sym = display.symbol;
+  const isUsd = display.currency === "USD";
   return (
     <Card className="border-border/70">
       <CardContent className="space-y-4 p-6">
@@ -666,16 +673,22 @@ function ResultCard({
             {t("result.eyebrow")}
           </div>
           <div className="mt-1 text-3xl font-semibold tracking-tight">
-            ¥{result.unit_price_low_cny} – ¥{result.unit_price_high_cny}
+            {sym}{display.unit_price_low.toLocaleString()} – {sym}{display.unit_price_high.toLocaleString()}
             <span className="ml-2 text-sm font-normal text-muted-foreground">/ m</span>
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
             {t("result.totalRange", {
-              low: result.total_low_cny.toLocaleString(),
-              high: result.total_high_cny.toLocaleString(),
+              sym,
+              low: display.total_low.toLocaleString(),
+              high: display.total_high.toLocaleString(),
               meters: result.total_meters.toLocaleString(),
             })}
           </div>
+          {isUsd && (
+            <div className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {t("result.exportNote")}
+            </div>
+          )}
         </div>
 
         <div>
@@ -685,7 +698,7 @@ function ResultCard({
           <div className="mt-2 space-y-1">
             {result.breakdown.filter((b) => b.pct >= 1).map((b) => (
               <div key={b.key} className="flex items-center gap-3 text-sm">
-                <div className="w-24 text-muted-foreground">{b.label_zh}</div>
+                <div className="w-24 text-muted-foreground">{isZh ? b.label_zh : b.label_en}</div>
                 <div className="h-2 flex-1 overflow-hidden rounded bg-accent">
                   <div className="h-full bg-foreground/80" style={{ width: `${b.pct}%` }} />
                 </div>
