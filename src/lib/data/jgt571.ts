@@ -233,6 +233,11 @@ export type WindowConfigResult = {
   UwUnfilled: number;
   grade: number;
   meets571: boolean;
+  /**
+   * Atomic, copy-ready line binding THIS glass spec to ITS exact figures, so
+   * the model reproduces values without swapping them between similar builds.
+   */
+  summary: string;
 };
 
 export function lookupWindowUValue(opts: {
@@ -263,6 +268,10 @@ export function lookupWindowUValue(opts: {
 
   const toResult = (r: GlassRow, effGas: Gas): WindowConfigResult => {
     const base = r.Uw[effGas];
+    const sliding = Math.round((base + SLIDING_PENALTY) * 100) / 100;
+    const unfilled = Math.round((base + FOAM_PENALTY) * 100) / 100;
+    const g = thermalGrade(base);
+    const gasLabel = effGas === "ar" ? "argon/氩气" : "air/空气";
     return {
       glass: r.glass,
       panes: r.panes,
@@ -271,10 +280,11 @@ export function lookupWindowUValue(opts: {
       gas: effGas,
       Ug: r.Ug[effGas],
       Uw: base,
-      UwSliding: Math.round((base + SLIDING_PENALTY) * 100) / 100,
-      UwUnfilled: Math.round((base + FOAM_PENALTY) * 100) / 100,
-      grade: thermalGrade(base),
-      meets571: thermalGrade(base) >= JGT571_MIN_GRADE,
+      UwSliding: sliding,
+      UwUnfilled: unfilled,
+      grade: g,
+      meets571: g >= JGT571_MIN_GRADE,
+      summary: `${r.glass} → Uw ${base.toFixed(2)} W/m²K (casement/平开, ${gasLabel}), grade/保温 ${g}级${g >= JGT571_MIN_GRADE ? "" : " (below 571 min)"}; sliding/推拉 +0.3 → ${sliding.toFixed(2)}; cavity-unfilled/未填充泡沫 +0.15 → ${unfilled.toFixed(2)}`,
     };
   };
 

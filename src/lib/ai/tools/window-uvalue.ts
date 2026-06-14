@@ -13,7 +13,9 @@ export function makeWindowUValueTool() {
     description:
       "Look up the whole-window heat-transfer coefficient (整窗传热系数 Uw) and thermal-insulation grade of a glass-fiber reinforced polyurethane (玻纤增强聚氨酯 / GFRP-PU / FRP) energy-saving window or door, per Chinese industry standard JG/T 571-2019 Appendix C, Table C.1 (frame-to-glass ratio 30:70). " +
       "Call this whenever the user asks about FRP / 聚氨酯 window or door U-value, 传热系数, 保温性能 / 等级, 节能配置, or which profile series + glass build hits a target Uw. " +
-      "Returns exact standard values — do NOT estimate window Uw yourself when this tool applies. After calling, cite 'JG/T 571-2019 附录C 表C.1' and mention the +0.3 sliding (注4) / +0.15 unfilled-cavity (注3) corrections when relevant.",
+      "Returns exact standard values — do NOT estimate window Uw yourself when this tool applies. " +
+      "CRITICAL: each returned config has a `summary` line that binds one glass build to ITS OWN figures — report each build's Uw from its own summary; never swap or mix Uw values between different glass builds. " +
+      "After calling, cite 'JG/T 571-2019 附录C 表C.1' and mention the +0.3 sliding (注4) / +0.15 unfilled-cavity (注3) corrections when relevant.",
     inputSchema: z.object({
       series: z
         .number()
