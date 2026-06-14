@@ -23,7 +23,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "出海方案 — 全链路出海代理 | 复材站",
   description:
-    "复材站作为出口实体接管整个出海流程 — 英文站、SEO、AI 询盘、商务谈判、报关、CBAM、退税全部由我们做,工厂只负责按图生产、按时交付。仅按成交订单 GMV 1-3% 收费,不收年费、不签长约。想自己接询盘 → 见工厂 AI 助手 SaaS 工具。",
+    "复材站作为出口实体接管整个出海流程 — 英文站、SEO、AI 询盘、商务谈判、报关、CBAM、退税全部由我们做,工厂只负责按图生产、按时交付。仅按成交订单 GMV 收费,不收年费、不签长约。想自己接询盘 → 见工厂 AI 助手 SaaS 工具。",
 };
 
 async function countOne(
@@ -146,7 +146,7 @@ export default async function OverseasPage({
               <span className="text-muted-foreground">被全世界采购商找到。</span>
             </h1>
             <p className="mt-6 max-w-2xl text-[15px] leading-[1.75] text-muted-foreground sm:text-base">
-              <span className="font-semibold text-foreground">getfrp.com</span> 是 f1frp 的英文海外版。<span className="font-semibold text-foreground">复材站以出口实体身份接管整个出海流程</span> — 英文站、SEO、AI 询盘、商务谈判、Incoterms、信用证、报关、CBAM、海运、退税全部由我们做。工厂只负责按图生产、按时交付，<span className="font-semibold text-foreground">仅按成交订单 GMV 1-3% 收费</span>，不收年费、不签长约。
+              <span className="font-semibold text-foreground">getfrp.com</span> 是 f1frp 的英文海外版。<span className="font-semibold text-foreground">复材站以出口实体身份接管整个出海流程</span> — 英文站、SEO、AI 询盘、商务谈判、Incoterms、信用证、报关、CBAM、海运、退税全部由我们做。工厂只负责按图生产、按时交付，<span className="font-semibold text-foreground">仅按成交订单 GMV 收费</span>，不收年费、不签长约。
             </p>
             <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
               想保留自己的业务员、用 AI 工具提效自营海外？请见{" "}
@@ -337,7 +337,7 @@ export default async function OverseasPage({
             </h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
               不收年费、不卖竞价排名、不锁定包年合同。复材站作为出口实体接管全部海外环节，
-              <span className="font-medium text-foreground">仅按成交订单 GMV 1-3% 收费</span>
+              <span className="font-medium text-foreground">仅按成交订单 GMV 收费</span>
               {" "}— 没成交不收费，激励完全对齐。
             </p>
           </div>
@@ -357,11 +357,11 @@ export default async function OverseasPage({
                 复材站 · 全链路出海代理
               </h3>
               <div className="mt-4 flex items-baseline gap-1.5">
-                <span className="text-5xl font-semibold tabular-nums tracking-tight">
-                  1-3%
+                <span className="text-4xl font-semibold tracking-tight">
+                  成交分成
                 </span>
                 <span className="text-base text-muted-foreground">
-                  / 成交订单 GMV
+                  / 按订单 GMV 谈定
                 </span>
               </div>
               <p className="mt-3 text-[13px] text-muted-foreground">
@@ -545,7 +545,7 @@ export default async function OverseasPage({
                     alibaba: "¥10-30 万/年会员 + 运营人力",
                     site: "¥5-20 万建站 + 长期 SEO 运营",
                     ads: "¥20-100 万/年 CPC 烧钱",
-                    getfrp: "¥0 前期 · 仅按成交订单 GMV 1-3% 分成",
+                    getfrp: "¥0 前期 · 按成交订单 GMV 分成",
                   },
                   {
                     dim: "流量类型",
@@ -690,9 +690,7 @@ export default async function OverseasPage({
               </Link>
             </div>
             <p className="mt-6 font-mono text-[11px] uppercase tracking-wider text-muted-foreground/80">
-              业务对接 · f1frp2015@gmail.com
-              <span className="mx-2 opacity-50">|</span>
-              技术咨询 · f1frp2015@gmail.com
+              联系邮箱 · f1frp2015@gmail.com
             </p>
           </div>
         </div>
