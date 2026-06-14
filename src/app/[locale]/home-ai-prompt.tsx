@@ -25,20 +25,21 @@ export function HomeAiPrompt({ placeholder }: { placeholder: string }) {
         e.preventDefault();
         submit();
       }}
-      className="group mt-10 flex w-full items-center gap-3 rounded-xl border border-border/80 bg-background/80 p-3 shadow-sm backdrop-blur transition-all focus-within:border-foreground/40 focus-within:shadow-md hover:border-foreground/30 hover:shadow-md sm:p-4"
+      className="group mt-10 flex w-full items-end gap-3 rounded-xl border border-border/80 bg-background/80 p-3 shadow-sm backdrop-blur transition-all focus-within:border-foreground/40 focus-within:shadow-md hover:border-foreground/30 hover:shadow-md sm:p-4"
     >
       <Sparkles
         size={16}
-        className="shrink-0 text-muted-foreground transition-colors group-focus-within:text-foreground"
+        className="mt-2 shrink-0 self-start text-muted-foreground transition-colors group-focus-within:text-foreground"
       />
-      <input
-        type="text"
+      <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         disabled={submitting}
         autoComplete="off"
-        className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60"
+        rows={3}
+        spellCheck={false}
+        className="max-h-44 min-h-[80px] flex-1 resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-muted-foreground disabled:opacity-60"
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -50,7 +51,7 @@ export function HomeAiPrompt({ placeholder }: { placeholder: string }) {
         type="submit"
         disabled={submitting || !value.trim()}
         aria-label="Ask AI"
-        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background transition-all hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
+        className="mb-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center self-end rounded-lg bg-foreground text-background transition-all hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
       >
         <ArrowUpRight size={16} />
       </button>

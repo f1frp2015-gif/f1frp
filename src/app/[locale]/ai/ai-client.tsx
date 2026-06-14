@@ -8,7 +8,7 @@ import { AiMessage, type Citation } from "@/components/ai-message";
 import { SourceCards } from "@/components/ai-source-cards";
 import { AiFollowups } from "@/components/ai-followups";
 import { AuthRequiredNotice } from "@/components/auth-required-notice";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, type ReactNode } from "react";
 import {
   ArrowUp,
   Sparkles,
@@ -126,6 +126,67 @@ export function AiAssistantClient({
   const slashSkills = slashQuery !== null ? filterSkills(slashQuery, locale) : [];
   const slashOpen = slashQuery !== null && slashSkills.length > 0;
 
+  // 输入条(slash 菜单 + 文本框 + 发送):空状态放标题下方,对话中固定底部。
+  const inputBar = (
+    <div className="relative">
+      {slashOpen && (
+        <SlashMenu skills={slashSkills} locale={locale} onPick={pickSkill} />
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          send();
+        }}
+        className="group relative flex items-end gap-2 rounded-2xl border-2 border-border/80 bg-background p-2.5 shadow-sm transition-all focus-within:border-foreground/50"
+      >
+        <Sparkles
+          size={16}
+          className="ml-1 mt-2 shrink-0 self-start text-muted-foreground transition-colors group-focus-within:text-foreground"
+        />
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && slashQuery !== null) {
+              setInput("");
+              return;
+            }
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (slashOpen) {
+                pickSkill(slashSkills[0]);
+              } else {
+                send();
+              }
+            }
+          }}
+          placeholder={
+            isEn
+              ? "Ask anything, or type / for skills…"
+              : "问任何复材问题,或打 / 选技能…"
+          }
+          disabled={busy}
+          rows={3}
+          spellCheck={false}
+          autoComplete="off"
+          className="max-h-60 min-h-[88px] flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 disabled:opacity-60"
+        />
+        <button
+          type="submit"
+          disabled={!input.trim() || busy}
+          aria-label={isEn ? "Send" : "发送"}
+          className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center self-end rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          <ArrowUp size={14} strokeWidth={2.5} />
+        </button>
+      </form>
+      <p className="mt-2 text-center text-[10px] text-muted-foreground">
+        {t("disclaimer")}
+      </p>
+    </div>
+  );
+
   return (
     <div className="relative mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl flex-col px-4 sm:px-6">
       {/* Top bar: brand + new-chat */}
@@ -148,16 +209,19 @@ export function AiAssistantClient({
         )}
       </div>
 
-      {/* Conversation column. Empty state vs. message stream. */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
-        {!hasMessages ? (
-          <EmptyState
+      {/* 空状态:输入框在上、技能卡在下(位置对调);对话中:消息流 + 底部输入条 */}
+      {!hasMessages ? (
+        <div className="flex-1 overflow-y-auto py-6">
+          <EmptyHero
             isEn={isEn}
             locale={locale}
             onPick={pickSkill}
             disabled={busy}
+            inputBar={inputBar}
           />
-        ) : (
+        </div>
+      ) : (
+        <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
           <div className="space-y-10">
             {messages.map((m, idx) => {
               if (m.role === "user") {
@@ -201,86 +265,34 @@ export function AiAssistantClient({
             )}
             <AuthRequiredNotice error={error} />
           </div>
-        )}
-      </div>
-
-      {/* Sticky input bar */}
-      <div className="sticky bottom-0 -mx-4 border-t border-border/60 bg-background/95 px-4 pb-5 pt-3 backdrop-blur sm:-mx-6 sm:px-6">
-        <div className="relative">
-          {slashOpen && (
-            <SlashMenu skills={slashSkills} locale={locale} onPick={pickSkill} />
-          )}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              send();
-            }}
-            className="group relative flex items-end gap-2 rounded-2xl border-2 border-border/80 bg-background p-2.5 shadow-sm transition-all focus-within:border-foreground/50"
-          >
-            <Sparkles
-              size={16}
-              className="mb-1.5 ml-1 shrink-0 text-muted-foreground transition-colors group-focus-within:text-foreground"
-            />
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape" && slashQuery !== null) {
-                  setInput("");
-                  return;
-                }
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  if (slashOpen) {
-                    pickSkill(slashSkills[0]);
-                  } else {
-                    send();
-                  }
-                }
-              }}
-              placeholder={
-                isEn
-                  ? "Ask anything, or type / for skills…"
-                  : "问任何复材问题,或打 / 选技能…"
-              }
-              disabled={busy}
-              rows={1}
-              spellCheck={false}
-              autoComplete="off"
-              className="min-h-[36px] max-h-40 flex-1 resize-none bg-transparent px-1 py-1.5 text-[14px] leading-relaxed outline-none placeholder:text-muted-foreground/60 disabled:opacity-60"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || busy}
-              aria-label={isEn ? "Send" : "发送"}
-              className="mb-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              <ArrowUp size={14} strokeWidth={2.5} />
-            </button>
-          </form>
         </div>
-        <p className="mt-2 text-center text-[10px] text-muted-foreground">
-          {t("disclaimer")}
-        </p>
-      </div>
+      )}
+
+      {/* 对话中:输入条固定底部(空状态时输入条在上方 hero 里) */}
+      {hasMessages && (
+        <div className="sticky bottom-0 -mx-4 border-t border-border/60 bg-background/95 px-4 pb-5 pt-3 backdrop-blur sm:-mx-6 sm:px-6">
+          {inputBar}
+        </div>
+      )}
     </div>
   );
 }
 
-function EmptyState({
+function EmptyHero({
   isEn,
   locale,
   onPick,
   disabled,
+  inputBar,
 }: {
   isEn: boolean;
   locale: "zh" | "en";
   onPick: (skill: AiSkill) => void;
   disabled: boolean;
+  inputBar: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center pt-12 pb-16 sm:pt-20">
+    <div className="flex flex-col items-center pt-8 pb-16 sm:pt-12">
       <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-background">
         <Sparkles size={20} />
       </div>
@@ -289,9 +301,12 @@ function EmptyState({
       </h1>
       <p className="mt-3 max-w-xl text-center text-[14px] leading-relaxed text-muted-foreground">
         {isEn
-          ? "Pick a skill below, or type / in the box. Every answer is grounded in the library and cited."
-          : "选一个技能,或在输入框打 / 唤起技能菜单。每条结论都基于复材站库并附引用。"}
+          ? "Type your question or pick a skill below. Every answer is grounded in the library and cited."
+          : "直接提问,或选下方一个技能。每条结论都基于复材站库并附引用。"}
       </p>
+      {/* 对话框(上) */}
+      <div className="mt-6 w-full">{inputBar}</div>
+      {/* 技能卡(下) */}
       <div className="mt-8 w-full space-y-6">
         {SKILL_CATEGORIES.map((cat) => (
           <div key={cat.id}>
