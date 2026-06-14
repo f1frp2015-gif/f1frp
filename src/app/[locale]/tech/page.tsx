@@ -45,7 +45,7 @@ export default async function TechPage({
   const rows = [...processesData].sort((a, b) => a.id.localeCompare(b.id));
 
   const tools = [
-    { nameKey: "tool1Name" as const, descKey: "tool1Desc" as const, statusKey: "live" as const, href: "/tech/calculator" as const },
+    // FRP 型材计算器已整合到 顶部导航 AI ▸ 工程核算(/tech/calculator),此处不再重复列出
     { nameKey: "tool2Name" as const, descKey: "tool2Desc" as const, statusKey: "live" as const, href: "/tech/u-value-calculator" as const },
     { nameKey: "tool3Name" as const, descKey: "tool3Desc" as const, statusKey: "soon" as const, href: "#" as const },
     { nameKey: "tool4Name" as const, descKey: "tool4Desc" as const, statusKey: "soon" as const, href: "#" as const },

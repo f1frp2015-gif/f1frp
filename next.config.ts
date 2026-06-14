@@ -45,6 +45,13 @@ const nextConfig: NextConfig = {
         destination: "/:locale",
         statusCode: 301,
       },
+      // 旧的 /pultrusion/calc(短暂上线)已整合进既有 /tech/calculator
+      { source: "/pultrusion/calc", destination: "/tech/calculator", statusCode: 301 },
+      {
+        source: "/:locale(zh|en)/pultrusion/calc",
+        destination: "/:locale/tech/calculator",
+        statusCode: 301,
+      },
     ];
   },
   async headers() {
