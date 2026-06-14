@@ -163,6 +163,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             updatedAt: materials.updatedAt,
           })
           .from(materials)
+          .where(eq(materials.status, "verified"))
           .limit(2000),
       ),
       // /suppliers/[id] programmatic pages — only emit rows with an English

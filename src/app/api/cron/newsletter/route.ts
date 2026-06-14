@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { papers, articles, materials } from "@/lib/db/schema";
-import { desc, gte } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -166,7 +166,7 @@ export async function GET(req: Request) {
     db
       .select({ id: materials.id, name: materials.name, description: materials.description, createdAt: materials.createdAt })
       .from(materials)
-      .where(gte(materials.createdAt, sevenDaysAgo))
+      .where(and(gte(materials.createdAt, sevenDaysAgo), eq(materials.status, "verified")))
       .orderBy(desc(materials.createdAt))
       .limit(3),
   ]);

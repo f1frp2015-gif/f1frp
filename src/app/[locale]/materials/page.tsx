@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { and, asc, isNotNull, ne, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, ne, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/lib/db";
 import { materials as materialsTable } from "@/lib/db/schema";
@@ -40,13 +40,17 @@ export default async function MaterialsPage({
     .select()
     .from(materialsTable)
     .where(
-      isEn
-        ? and(
-            isNotNull(materialsTable.nameEn),
-            ne(materialsTable.nameEn, ""),
-            sql`${materialsTable.id} ~ '^[\\x00-\\x7F]+$'`,
-          )
-        : undefined,
+      and(
+        // UGC 产品默认 pending,公开列表只显 verified(含全部官方策展)
+        eq(materialsTable.status, "verified"),
+        isEn
+          ? and(
+              isNotNull(materialsTable.nameEn),
+              ne(materialsTable.nameEn, ""),
+              sql`${materialsTable.id} ~ '^[\\x00-\\x7F]+$'`,
+            )
+          : undefined,
+      ),
     )
     .orderBy(asc(materialsTable.category), asc(materialsTable.name))
     .limit(500);

@@ -198,12 +198,20 @@ export const materials = pgTable(
     applicationsEn: jsonb("applications_en").$type<string[]>(),
     description: text("description"),
     descriptionEn: text("description_en"),
+    // UGC 入库(企业注册上传产品 → AI 结构化):
+    //   source: curated=官方策展 | ugc=企业贡献; enterpriseId=贡献企业(curated 为 null)
+    //   status: verified | pending | rejected — 公开读路径只显 verified;
+    //   ugc 默认 pending 需后台审核通过(并嵌入 RAG)后才可见。
+    enterpriseId: uuid("enterprise_id"),
+    source: varchar("source", { length: 16 }).default("curated").notNull(),
+    status: varchar("status", { length: 16 }).default("verified").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     index("materials_category_idx").on(table.category),
     index("materials_brand_idx").on(table.brand),
+    index("materials_status_idx").on(table.status),
   ]
 );
 

@@ -63,7 +63,11 @@ const CATEGORY_TO_SUPPLIER: Record<string, string[]> = {
 };
 
 async function loadMaterial(id: string) {
-  const [m] = await db.select().from(materials).where(eq(materials.id, id)).limit(1);
+  const [m] = await db
+    .select()
+    .from(materials)
+    .where(and(eq(materials.id, id), eq(materials.status, "verified")))
+    .limit(1);
   return m;
 }
 
