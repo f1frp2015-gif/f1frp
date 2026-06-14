@@ -202,6 +202,7 @@ export function Header() {
     { href: "/ai", label: t("aiAssistant") },
     { href: "/pultrusion/quote", label: t("quote"), isNew: true },
     { href: "/tech/calculator", label: t("engCalc"), isNew: true },
+    { href: "/tech/u-value-calculator", label: t("windowCalc"), isNew: true },
   ];
   const techActive = techItems.some((it) => isActive(it.href));
   const aiActive = aiItems.some((it) => isActive(it.href));
@@ -223,6 +224,14 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-px md:flex">
+          {/* 资讯库 */}
+          <Link href="/articles" className={singleLinkClass(isActive("/articles"))}>
+            {t("infoLib")}
+            {isActive("/articles") && (
+              <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
+            )}
+          </Link>
+
           {/* 供应库 */}
           <Link href="/suppliers" className={singleLinkClass(isActive("/suppliers"))}>
             {t("supplyLib")}
@@ -238,14 +247,6 @@ export function Header() {
             active={techActive}
             pathname={pathname}
           />
-
-          {/* 资讯库 */}
-          <Link href="/articles" className={singleLinkClass(isActive("/articles"))}>
-            {t("infoLib")}
-            {isActive("/articles") && (
-              <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
-            )}
-          </Link>
 
           {/* AI ▾ */}
           <NavDropdown
@@ -303,6 +304,15 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="right" className="w-64 p-0">
             <nav className="flex flex-col p-4 pt-12">
+              {/* 资讯库 */}
+              <Link
+                href="/articles"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span>{t("infoLib")}</span>
+              </Link>
+
               {/* 供应库 */}
               <Link
                 href="/suppliers"
@@ -330,15 +340,6 @@ export function Header() {
                   ))}
                 </div>
               </div>
-
-              {/* 资讯库 */}
-              <Link
-                href="/articles"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span>{t("infoLib")}</span>
-              </Link>
 
               {/* AI 分组 */}
               <div className="border-b py-2">

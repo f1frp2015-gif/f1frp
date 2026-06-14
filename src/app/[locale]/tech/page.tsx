@@ -45,8 +45,7 @@ export default async function TechPage({
   const rows = [...processesData].sort((a, b) => a.id.localeCompare(b.id));
 
   const tools = [
-    // FRP 型材计算器已整合到 顶部导航 AI ▸ 工程核算(/tech/calculator),此处不再重复列出
-    { nameKey: "tool2Name" as const, descKey: "tool2Desc" as const, statusKey: "live" as const, href: "/tech/u-value-calculator" as const },
+    // FRP 型材计算器 + 门窗U值计算器 已整合到 顶部导航 AI ▸ 工程核算 / 门窗核算,此处不再重复列出
     { nameKey: "tool3Name" as const, descKey: "tool3Desc" as const, statusKey: "soon" as const, href: "#" as const },
     { nameKey: "tool4Name" as const, descKey: "tool4Desc" as const, statusKey: "soon" as const, href: "#" as const },
   ];
@@ -217,7 +216,7 @@ export default async function TechPage({
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {tools.map((tool) => {
-            const isLive = tool.statusKey === "live";
+            const isLive = (tool.statusKey as string) === "live";
             return (
               <Link key={tool.nameKey} href={tool.href}>
                 <Card
