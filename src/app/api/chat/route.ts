@@ -16,6 +16,7 @@ import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
 import { makeWebSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search";
 import { makeWindowUValueTool } from "@/lib/ai/tools/window-uvalue";
+import { makeExportExcelTool } from "@/lib/ai/tools/export-excel";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 import {
   consumeAnonChatCredit,
@@ -88,6 +89,7 @@ function visionInstruction(locale: string): string {
 2. Restate what you can see so the user can confirm you read it correctly.
 3. Explicitly flag anything unreadable, ambiguous, or missing (e.g. "wall thickness is not dimensioned").
 4. Then answer using composites expertise, grounded in the library where possible.
+5. If the user wants a parts list / bill of materials, present it as a clean table. Then add a one-line offer: reply "导出 Excel" (or "export to Excel") on the next message and you'll generate a downloadable .xlsx file.
 Never invent dimensions or values that are not legible in the attachment.`;
   }
   return `用户上传了一个或多个附件（工程图纸、产品照片或 PDF）。回答前请：
@@ -95,6 +97,7 @@ Never invent dimensions or values that are not legible in the attachment.`;
 2. 复述你识别到的内容，便于用户确认识别无误。
 3. 明确指出无法识别、有歧义或缺失的部分（例如"壁厚未标注尺寸"）。
 4. 然后结合复材专业知识作答，尽量基于复材站库。
+5. 若用户需要零件 / 物料清单（BOM），用清晰的表格列出；并在结尾主动提示一句：在下一条消息回复"导出 Excel"，我就把清单生成可下载的 .xlsx 表格文件。
 绝不编造附件中无法辨认的尺寸或数值。`;
 }
 
@@ -285,8 +288,12 @@ export async function POST(req: Request) {
     }
 
     // Tools are disabled on attachment turns — the focus is reading the image,
-    // and the vision models (Qwen-VL) have shakier tool support.
+    // and the vision models (Qwen-VL) have shakier tool support. So a drawing is
+    // read on the attachment turn; Excel export happens on the NEXT
+    // (attachment-free) turn when the user asks (visionInstruction primes them).
     //   - window_u_value: always on (pure local JG/T 571 table lookup, no env)
+    //   - export_excel:   always on (BOM / 清单 → downloadable .xlsx; the tool
+    //                      itself degrades to ok:false when OSS env is unset)
     //   - web_search:     opt-in, gated on the per-host search provider's key
     // stopWhen is required so the model produces a final text answer AFTER a
     // tool call (and is capped so it can't recursion-loop tool calls).
@@ -295,6 +302,7 @@ export async function POST(req: Request) {
       ? undefined
       : {
           window_u_value: makeWindowUValueTool(),
+          export_excel: makeExportExcelTool(),
           ...(isWebSearchConfigured(host)
             ? { web_search: makeWebSearchTool(host) }
             : {}),

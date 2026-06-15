@@ -18,6 +18,7 @@ import {
   Plus,
   Paperclip,
   FileText,
+  FileSpreadsheet,
   X,
   FlaskConical,
   Search,
@@ -117,6 +118,29 @@ async function prepareParts(
 
 function getFileParts(m: UIMessage): FileUIPart[] {
   return m.parts.filter((p): p is FileUIPart => p.type === "file");
+}
+
+// Pull download links out of the `export_excel` tool result parts (AI SDK v6
+// shape: { type: "tool-export_excel", state: "output-available", output }).
+// Rendered verbatim as a button so a long signed URL never depends on the model
+// echoing it correctly into its text.
+type ExcelExport = { url: string; filename: string };
+function getExcelExports(m: UIMessage): ExcelExport[] {
+  const out: ExcelExport[] = [];
+  for (const p of m.parts as Array<Record<string, unknown>>) {
+    if (
+      p.type === "tool-export_excel" &&
+      p.state === "output-available" &&
+      p.output &&
+      typeof p.output === "object"
+    ) {
+      const o = p.output as { ok?: boolean; url?: string; filename?: string };
+      if (o.ok && typeof o.url === "string") {
+        out.push({ url: o.url, filename: o.filename ?? "export.xlsx" });
+      }
+    }
+  }
+  return out;
 }
 
 type UIMsg = {
@@ -444,6 +468,7 @@ export function AiAssistantClient({
                     streaming={streaming}
                     onAsk={(q) => send(q)}
                     disabled={busy}
+                    exports={getExcelExports(m)}
                   />
                 );
               }
@@ -688,6 +713,7 @@ function AssistantAnswer({
   streaming,
   onAsk,
   disabled,
+  exports,
 }: {
   id: string;
   text: string;
@@ -697,6 +723,7 @@ function AssistantAnswer({
   streaming: boolean;
   onAsk: (q: string) => void;
   disabled: boolean;
+  exports: ExcelExport[];
 }) {
   const isEn = locale === "en";
   const [copied, setCopied] = useState(false);
@@ -736,6 +763,27 @@ function AssistantAnswer({
       <div className="prose prose-sm dark:prose-invert max-w-none">
         <AiMessage content={text} citations={citations} />
       </div>
+
+      {exports.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {exports.map((ex, i) => (
+            <a
+              key={i}
+              href={ex.url}
+              download={ex.filename}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+            >
+              <FileSpreadsheet size={14} />
+              {isEn ? "Download Excel" : "下载 Excel"}
+              <span className="max-w-[180px] truncate text-emerald-600/80 dark:text-emerald-400/70">
+                · {ex.filename}
+              </span>
+            </a>
+          ))}
+        </div>
+      )}
 
       {!streaming && (
         <>
