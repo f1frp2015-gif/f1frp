@@ -68,18 +68,51 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-// File[] → FileUIPart[] with inline data URLs. The AI SDK parses these data
-// URLs (splitDataUrl) and hands the bytes to whichever provider serves the
-// request — no OSS round-trip needed for ephemeral chat vision.
-async function filesToParts(files: File[]): Promise<FileUIPart[]> {
-  return Promise.all(
-    files.map(async (f) => ({
+// Max PDF pages rasterized across all attachments in one turn — bounds the
+// upload size on the domestic (PDF→image) path.
+const MAX_PDF_PAGES_TOTAL = 6;
+
+// File[] → FileUIPart[]. Images/other files become inline data URLs (the AI SDK
+// splits these and hands the bytes to whichever provider serves the request —
+// no OSS round-trip). On the domestic side a PDF is rasterized to page images,
+// because Qwen-VL (DashScope) can't ingest a PDF `file` part; on any failure —
+// or overseas, where Gemini reads PDF natively — the original file is sent as-is
+// and the chat route's server-side guard handles it gracefully.
+async function prepareParts(
+  files: File[],
+  domestic: boolean,
+): Promise<FileUIPart[]> {
+  const out: FileUIPart[] = [];
+  let pdfBudget = MAX_PDF_PAGES_TOTAL;
+  for (const f of files) {
+    if (domestic && f.type === "application/pdf" && pdfBudget > 0) {
+      try {
+        const { pdfToImageDataUrls } = await import("@/lib/pdf-to-images");
+        const pages = await pdfToImageDataUrls(f, { maxPages: pdfBudget });
+        const stem = f.name.replace(/\.pdf$/i, "");
+        pages.forEach((url, i) =>
+          out.push({
+            type: "file" as const,
+            mediaType: "image/jpeg",
+            filename: `${stem}-p${i + 1}.jpg`,
+            url,
+          }),
+        );
+        pdfBudget -= pages.length;
+        continue;
+      } catch {
+        // Fall through → send the original PDF; the domestic chat route strips
+        // it and replies with a graceful "upload an image" message.
+      }
+    }
+    out.push({
       type: "file" as const,
       mediaType: f.type || "application/octet-stream",
       filename: f.name,
       url: await fileToDataUrl(f),
-    })),
-  );
+    });
+  }
+  return out;
 }
 
 function getFileParts(m: UIMessage): FileUIPart[] {
@@ -105,6 +138,7 @@ export function AiAssistantClient({
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const [attachError, setAttachError] = useState<string | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -123,7 +157,7 @@ export function AiAssistantClient({
     transport,
   });
 
-  const busy = status === "streaming" || status === "submitted";
+  const busy = preparing || status === "streaming" || status === "submitted";
   const hasMessages = messages.length > 0;
 
   // Object-URL thumbnails for staged image attachments; revoked on change.
@@ -195,7 +229,13 @@ export function AiAssistantClient({
       setAttachError(null);
     }
     if (files.length > 0) {
-      const parts = await filesToParts(files);
+      let parts: FileUIPart[] = [];
+      setPreparing(true);
+      try {
+        parts = await prepareParts(files, locale === "zh");
+      } finally {
+        setPreparing(false);
+      }
       await sendMessage(msg ? { text: msg, files: parts } : { files: parts });
     } else {
       await sendMessage({ text: msg });
@@ -320,6 +360,11 @@ export function AiAssistantClient({
       </form>
       {attachError && (
         <p className="mt-1.5 px-1 text-[11px] text-red-500">{attachError}</p>
+      )}
+      {preparing && (
+        <p className="mt-1.5 px-1 text-[11px] text-muted-foreground">
+          {isEn ? "Processing attachment…" : "正在处理附件…"}
+        </p>
       )}
       <p className="mt-2 text-center text-[10px] text-muted-foreground">
         {t("disclaimer")}
