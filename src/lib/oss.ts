@@ -46,34 +46,3 @@ export function signedPutUrl(key: string, contentType: string, expiresInSec = 60
 export function signedGetUrl(key: string, expiresInSec = 3600): string {
   return client().signatureUrl(key, { method: "GET", expires: expiresInSec });
 }
-
-// AI 生成的导出文件(如 BOM Excel)前缀。
-export const AI_EXPORT_PREFIX = "ai-exports";
-
-// 服务端直传一个 Buffer 到 OSS(例如 AI 工具生成的 Excel),不经客户端。
-export async function putObject(
-  key: string,
-  body: Buffer,
-  contentType: string,
-): Promise<void> {
-  await client().put(key, body, { headers: { "Content-Type": contentType } });
-}
-
-// 签名下载 URL —— 带 Content-Disposition: attachment,让浏览器以指定文件名
-// 下载而非内联打开;filename* 走 RFC 5987 兼容中文名。
-export function signedDownloadUrl(
-  key: string,
-  filename: string,
-  expiresInSec = 7 * 24 * 3600,
-): string {
-  const asciiName =
-    filename.replace(/[^\x20-\x7E]/g, "_").replace(/"/g, "") || "download.xlsx";
-  const disposition =
-    `attachment; filename="${asciiName}"; ` +
-    `filename*=UTF-8''${encodeURIComponent(filename)}`;
-  return client().signatureUrl(key, {
-    method: "GET",
-    expires: expiresInSec,
-    response: { "content-disposition": disposition },
-  });
-}

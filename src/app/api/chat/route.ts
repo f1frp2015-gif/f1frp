@@ -292,8 +292,8 @@ export async function POST(req: Request) {
     // read on the attachment turn; Excel export happens on the NEXT
     // (attachment-free) turn when the user asks (visionInstruction primes them).
     //   - window_u_value: always on (pure local JG/T 571 table lookup, no env)
-    //   - export_excel:   always on (BOM / 清单 → downloadable .xlsx; the tool
-    //                      itself degrades to ok:false when OSS env is unset)
+    //   - export_excel:   always on (BOM / 清单 → table echoed; the browser
+    //                      builds the .xlsx on download — no OSS / storage)
     //   - web_search:     opt-in, gated on the per-host search provider's key
     // stopWhen is required so the model produces a final text answer AFTER a
     // tool call (and is capped so it can't recursion-loop tool calls).

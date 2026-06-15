@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
 import { useLocale, useTranslations } from "next-intl";
 import { getMessageText } from "@/lib/ai/utils";
+import type { BomTable } from "@/lib/bom-to-xlsx";
 import { AiMessage, type Citation } from "@/components/ai-message";
 import { SourceCards } from "@/components/ai-source-cards";
 import { AiFollowups } from "@/components/ai-followups";
@@ -120,11 +121,11 @@ function getFileParts(m: UIMessage): FileUIPart[] {
   return m.parts.filter((p): p is FileUIPart => p.type === "file");
 }
 
-// Pull download links out of the `export_excel` tool result parts (AI SDK v6
-// shape: { type: "tool-export_excel", state: "output-available", output }).
-// Rendered verbatim as a button so a long signed URL never depends on the model
-// echoing it correctly into its text.
-type ExcelExport = { url: string; filename: string };
+// Pull export tables out of the `export_excel` tool result parts (AI SDK v6
+// shape: { type: "tool-export_excel", state: "output-available", output }). The
+// tool only returns the structured table; the .xlsx is built in the browser when
+// the user clicks download (src/lib/bom-to-xlsx.ts).
+type ExcelExport = { filename: string; table: BomTable };
 function getExcelExports(m: UIMessage): ExcelExport[] {
   const out: ExcelExport[] = [];
   for (const p of m.parts as Array<Record<string, unknown>>) {
@@ -134,9 +135,9 @@ function getExcelExports(m: UIMessage): ExcelExport[] {
       p.output &&
       typeof p.output === "object"
     ) {
-      const o = p.output as { ok?: boolean; url?: string; filename?: string };
-      if (o.ok && typeof o.url === "string") {
-        out.push({ url: o.url, filename: o.filename ?? "export.xlsx" });
+      const o = p.output as { ok?: boolean; filename?: string; table?: BomTable };
+      if (o.ok && o.table && Array.isArray(o.table.headers) && Array.isArray(o.table.rows)) {
+        out.push({ filename: o.filename ?? "export.xlsx", table: o.table });
       }
     }
   }
@@ -704,6 +705,56 @@ function ThinkingIndicator({ label }: { label: string }) {
   );
 }
 
+// Download button for an AI-generated BOM table. Lazy-imports the xlsx builder
+// (and exceljs's browser build) on click, so neither ships in the main bundle.
+function ExcelDownloadButton({
+  table,
+  filename,
+  isEn,
+}: {
+  table: BomTable;
+  filename: string;
+  isEn: boolean;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        setErr(false);
+        try {
+          const { downloadBomXlsx } = await import("@/lib/bom-to-xlsx");
+          await downloadBomXlsx(table, filename);
+        } catch {
+          setErr(true);
+        } finally {
+          setBusy(false);
+        }
+      }}
+      className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-100 disabled:opacity-60 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+    >
+      <FileSpreadsheet size={14} />
+      {busy
+        ? isEn
+          ? "Generating…"
+          : "生成中…"
+        : err
+          ? isEn
+            ? "Failed — retry"
+            : "失败,重试"
+          : isEn
+            ? "Download Excel"
+            : "下载 Excel"}
+      <span className="max-w-[180px] truncate text-emerald-600/80 dark:text-emerald-400/70">
+        · {filename}
+      </span>
+    </button>
+  );
+}
+
 function AssistantAnswer({
   id,
   text,
@@ -767,20 +818,12 @@ function AssistantAnswer({
       {exports.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {exports.map((ex, i) => (
-            <a
+            <ExcelDownloadButton
               key={i}
-              href={ex.url}
-              download={ex.filename}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-            >
-              <FileSpreadsheet size={14} />
-              {isEn ? "Download Excel" : "下载 Excel"}
-              <span className="max-w-[180px] truncate text-emerald-600/80 dark:text-emerald-400/70">
-                · {ex.filename}
-              </span>
-            </a>
+              table={ex.table}
+              filename={ex.filename}
+              isEn={isEn}
+            />
           ))}
         </div>
       )}
