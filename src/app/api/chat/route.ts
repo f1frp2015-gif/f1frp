@@ -105,6 +105,47 @@ function visionUnavailableText(locale: string): string {
   return "本站的图纸 / 图片 / PDF 识别功能正在开通中，暂时无法读取附件。你可以先用文字描述图纸或参数，我来帮你分析；或访问 getfrp.com（海外站已支持附件识别）。";
 }
 
+// Qwen-VL (domestic, via DashScope's OpenAI-compatible endpoint) only accepts
+// `image_url` content — a `file` (PDF) part makes DashScope return a 400
+// (`Invalid value: file ...`) *after* the 200/stream has opened, which drops
+// the SSE connection and surfaces to the user as "无法连接服务器". Gemini
+// (overseas) ingests PDF natively, so this only runs on the domestic path.
+// Strip every PDF part (images are kept), backfilling a marker so no message is
+// left with zero parts (convertToModelMessages rejects empty content).
+function stripPdfParts(
+  uiMessages: UIMessage[],
+  locale: string,
+): { messages: UIMessage[]; removed: boolean } {
+  let removed = false;
+  const messages = uiMessages.map((m) => {
+    const kept = m.parts.filter((p) => {
+      const isPdf = p.type === "file" && p.mediaType === "application/pdf";
+      if (isPdf) removed = true;
+      return !isPdf;
+    });
+    if (kept.length === 0) {
+      kept.push({
+        type: "text",
+        text:
+          locale === "en"
+            ? "(PDF attachment omitted — not readable on this assistant)"
+            : "(已省略无法读取的 PDF 附件)",
+      });
+    }
+    return { ...m, parts: kept };
+  });
+  return { messages, removed };
+}
+
+// System steer appended when a PDF was stripped on the domestic path, so the
+// model tells the user how to get the drawing read instead of silently ignoring it.
+function pdfDroppedInstruction(locale: string): string {
+  if (locale === "en") {
+    return "One or more PDF attachments could not be read here. Briefly tell the user that this assistant can't read PDF — they should upload the drawing as an image (PNG/JPG) or a screenshot, or use getfrp.com which reads PDF. Still answer what you can from any images and text provided.";
+  }
+  return "用户上传的 PDF 附件本助手无法读取。请在回答中简短告知:本站暂不支持读取 PDF,请把图纸导出为图片(PNG/JPG)或截图后上传,或使用海外站 getfrp.com(支持 PDF);同时就已有的图片与文字尽量作答。";
+}
+
 export async function POST(req: Request) {
   if (!isChatConfiguredForRequest(req)) {
     return Response.json({ error: "AI not configured" }, { status: 503 });
@@ -154,6 +195,8 @@ export async function POST(req: Request) {
     // friendly message rather than 500-ing.
     const withAttachments = hasFilePart(uiMessages);
     let model = getChatModelForRequest(req);
+    let chatMessages = uiMessages;
+    let pdfDropped = false;
     if (withAttachments) {
       const vision = getVisionChatModelForRequest(req);
       if (!vision.ok || !vision.model) {
@@ -174,9 +217,20 @@ export async function POST(req: Request) {
         return resp;
       }
       model = vision.model;
+
+      // Only Gemini (overseas) ingests PDF natively. Qwen-VL (domestic) rejects
+      // `file` parts mid-stream → dropped SSE connection. On non-Gemini vision
+      // paths, strip PDFs (keep images) and steer the model to ask for an image.
+      const modelHandlesPdf =
+        vision.provider === "google" || vision.provider === "openrouter";
+      if (!modelHandlesPdf) {
+        const sanitized = stripPdfParts(uiMessages, locale);
+        chatMessages = sanitized.messages;
+        pdfDropped = sanitized.removed;
+      }
     }
 
-    const query = lastUserQuery(uiMessages);
+    const query = lastUserQuery(chatMessages);
     let retrieved: Retrieved[] = [];
     try {
       if (query) retrieved = await retrieveTopK(query, 8);
@@ -193,6 +247,7 @@ export async function POST(req: Request) {
       citationGuidance(locale),
     ];
     if (withAttachments) systemParts.push(visionInstruction(locale));
+    if (pdfDropped) systemParts.push(pdfDroppedInstruction(locale));
 
     const ragBlock = buildRagContext(retrieved);
     if (ragBlock) systemParts.push(ragBlock);
@@ -249,7 +304,7 @@ export async function POST(req: Request) {
     const result = streamText({
       model,
       system: systemParts.join("\n\n"),
-      messages: await convertToModelMessages(uiMessages),
+      messages: await convertToModelMessages(chatMessages),
       maxOutputTokens: 2000,
       ...toolsConfig,
     });
