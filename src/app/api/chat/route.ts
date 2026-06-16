@@ -11,6 +11,7 @@ import {
   getChatModelForRequest,
   getVisionChatModelForRequest,
   isChatConfiguredForRequest,
+  parseRequestedProvider,
 } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/ai/knowledge";
 import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve";
@@ -196,8 +197,12 @@ export async function POST(req: Request) {
     // multimodal; domestic (DeepSeek) is text-only and routes to Qwen-VL via
     // DashScope. When the domestic vision model isn't provisioned we stream a
     // friendly message rather than 500-ing.
+    // Client model-picker selection (domestic side). parseRequestedProvider +
+    // the host invariant in getChatModel ensure this can only switch *within*
+    // the domestic provider set — it can never pull f1frp.com onto Google.
+    const requestedProvider = parseRequestedProvider(body.model);
     const withAttachments = hasFilePart(uiMessages);
-    let model = getChatModelForRequest(req);
+    let model = getChatModelForRequest(req, requestedProvider);
     let chatMessages = uiMessages;
     let pdfDropped = false;
     if (withAttachments) {

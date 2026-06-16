@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { listAvailableChatModels } from "@/lib/ai/provider";
 import { AiAssistantClient } from "./ai-client";
 
 export async function generateMetadata({
@@ -29,5 +30,14 @@ export default async function AiPage({
   const raw = sp.q;
   const initialQuery = Array.isArray(raw) ? raw[0] : raw;
 
-  return <AiAssistantClient initialQuery={initialQuery ?? undefined} />;
+  // Domestic (f1frp.com / AI_PROFILE=domestic) build → the 3 国产 model options
+  // for the picker; overseas (getfrp.com) build → [] (single Gemini, no picker).
+  const availableModels = listAvailableChatModels();
+
+  return (
+    <AiAssistantClient
+      initialQuery={initialQuery ?? undefined}
+      availableModels={availableModels}
+    />
+  );
 }

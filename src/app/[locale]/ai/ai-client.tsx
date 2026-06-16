@@ -38,6 +38,7 @@ import {
   filterSkills,
   type AiSkill,
 } from "@/lib/ai/skills";
+import type { ChatModelOption } from "@/lib/ai/provider";
 
 const SKILL_ICONS: Record<AiSkill["icon"], typeof Sparkles> = {
   flask: FlaskConical,
@@ -152,13 +153,24 @@ type UIMsg = {
 
 export function AiAssistantClient({
   initialQuery,
+  availableModels = [],
 }: {
   initialQuery?: string;
+  availableModels?: ChatModelOption[];
 }) {
   const t = useTranslations("AI");
   const localeRaw = useLocale();
   const locale: "zh" | "en" = localeRaw === "en" ? "en" : "zh";
   const isEn = locale === "en";
+
+  // Domestic model picker (智谱 GLM / 通义 Qwen / DeepSeek). Empty on the
+  // overseas build → no picker. Default to the first key-configured provider
+  // (mirrors the server's key-priority resolution); falls back to the first
+  // listed when none are configured yet.
+  const [model, setModel] = useState<string | null>(() => {
+    const configured = availableModels.find((m) => m.configured);
+    return (configured ?? availableModels[0])?.id ?? null;
+  });
 
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -237,7 +249,7 @@ export function AiAssistantClient({
     if (!initialQuery) return;
     if (autoSentRef.current) return;
     autoSentRef.current = true;
-    sendMessage({ text: initialQuery });
+    sendMessage({ text: initialQuery }, model ? { body: { model } } : undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery]);
 
@@ -261,9 +273,12 @@ export function AiAssistantClient({
       } finally {
         setPreparing(false);
       }
-      await sendMessage(msg ? { text: msg, files: parts } : { files: parts });
+      await sendMessage(
+        msg ? { text: msg, files: parts } : { files: parts },
+        model ? { body: { model } } : undefined,
+      );
     } else {
-      await sendMessage({ text: msg });
+      await sendMessage({ text: msg }, model ? { body: { model } } : undefined);
     }
   }
 
@@ -407,16 +422,40 @@ export function AiAssistantClient({
             {isEn ? "getfrp · sourcing assistant" : "复材 AI · 选材与采购助手"}
           </span>
         </div>
-        {hasMessages && (
-          <button
-            type="button"
-            onClick={newChat}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
-          >
-            <Plus size={11} />
-            {isEn ? "New chat" : "新对话"}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {availableModels.length > 0 && model && (
+            <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className="hidden sm:inline">
+                {isEn ? "Model" : "模型"}
+              </span>
+              <select
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                disabled={busy}
+                aria-label={isEn ? "Choose AI model" : "选择 AI 模型"}
+                className="rounded-md border border-border/70 bg-background px-2 py-1 text-[11px] text-foreground outline-none transition-colors hover:border-foreground/30 focus:border-foreground/50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {availableModels.map((m) => (
+                  <option key={m.id} value={m.id} disabled={!m.configured}>
+                    {m.configured
+                      ? `${m.label} · ${m.model}`
+                      : `${m.label}${isEn ? " (not set)" : "（未配置）"}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {hasMessages && (
+            <button
+              type="button"
+              onClick={newChat}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+            >
+              <Plus size={11} />
+              {isEn ? "New chat" : "新对话"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 空状态:输入框在上、技能卡在下(位置对调);对话中:消息流 + 底部输入条 */}
