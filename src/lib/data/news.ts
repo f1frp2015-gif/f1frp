@@ -27,11 +27,12 @@ export const newsCategories = [
 
 // 2026-06-16: titles/summaries/bodies fact-checked against public sources and
 // rewritten to remove fabricated figures (see article-bodies.ts header). Slugs
-// are intentionally kept at their original values to preserve live URLs.
+// were migrated to clean ASCII (the old fabricated-text slugs 301-redirect to
+// these in next.config.ts). seed-from-static.ts keys off this slug.
 export const newsList: NewsItem[] = [
   {
     id: "1",
-    slug: "2026年中国复合材料市场规模预计突破3500亿-风电和新能源汽车成主要驱动力",
+    slug: "china-composites-output-2023-wind-ev",
     title: "中国复合材料产量稳步增长，风电与新能源汽车是主要拉动力",
     titleEn:
       "China's composites output keeps growing — wind power and EVs lead demand",
@@ -47,7 +48,7 @@ export const newsList: NewsItem[] = [
   },
   {
     id: "2",
-    slug: "国家标准gb-t-31539-2026-纤维增强塑料拉挤型材-正式发布实施",
+    slug: "gb-t-31539-2015-frp-pultruded-profiles",
     title: "拉挤型材的现行国标是哪一部？GB/T 31539-2015 仍是验收依据",
     titleEn:
       "Which national standard governs FRP pultruded profiles? GB/T 31539-2015 remains in force",
@@ -63,7 +64,7 @@ export const newsList: NewsItem[] = [
   },
   {
     id: "3",
-    slug: "巨石集团年产30万吨高性能玻纤智能制造基地投产-全球产能跃居首位",
+    slug: "china-jushi-glass-fiber-leader",
     title: "中国巨石：全球玻纤龙头的产能与智能制造版图",
     titleEn:
       "China Jushi: capacity and smart-manufacturing footprint of the world's top glass-fiber maker",
@@ -78,7 +79,7 @@ export const newsList: NewsItem[] = [
   },
   {
     id: "4",
-    slug: "碳纤维复合材料在新能源汽车电池箱体中的应用取得突破性进展",
+    slug: "composite-battery-enclosure-smc",
     title: "复合材料电池箱体盖板进入规模化应用：SMC 是主流，CFRP 用于高端",
     titleEn:
       "Composite battery enclosure covers go mainstream — SMC leads, CFRP for high-end",
@@ -93,7 +94,7 @@ export const newsList: NewsItem[] = [
   },
   {
     id: "5",
-    slug: "第28届中国国际复合材料展览会将于9月在上海举办-规模创历史新高",
+    slug: "cce-2026-shanghai-composites-expo",
     title: "第 29 届中国国际复合材料工业技术展览会 9 月在上海举办",
     titleEn:
       "29th China Composites Expo (CCE) opens in Shanghai this September",
@@ -108,7 +109,7 @@ export const newsList: NewsItem[] = [
   },
   {
     id: "6",
-    slug: "真空导入工艺在大型风电叶片制造中的最新优化方案",
+    slug: "vacuum-infusion-large-wind-blades",
     title: "真空灌注仍是大型风电叶片主流工艺，百米级叶片推动工艺升级",
     titleEn:
       "Vacuum infusion remains the mainstream process for large wind blades as blades pass 100 m",
@@ -123,7 +124,7 @@ export const newsList: NewsItem[] = [
   },
   {
     id: "7",
-    slug: "华东地区不饱和聚酯树脂价格小幅上涨-苯乙烯成本推动",
+    slug: "upr-resin-price-styrene-demand",
     title: "不饱和聚酯树脂价格怎么看？盯住苯乙烯成本与需求两端",
     titleEn: "Reading UPR resin prices — watch styrene costs and demand",
     summary:
@@ -137,7 +138,7 @@ export const newsList: NewsItem[] = [
   },
   {
     id: "8",
-    slug: "工信部发布-复合材料行业绿色制造标准-征求意见稿",
+    slug: "composites-green-manufacturing-policy",
     title: "复合材料企业如何对接“绿色制造”政策框架",
     titleEn: "How composites makers fit into China's green-manufacturing framework",
     summary:
@@ -151,7 +152,7 @@ export const newsList: NewsItem[] = [
   },
   {
     id: "9",
-    slug: "光伏组件边框加速-以塑代铝-frp-拉挤型材量产落地",
+    slug: "composite-pv-frames-pu-pultrusion",
     title: "光伏边框“以塑代铝”提速：玻纤增强聚氨酯拉挤边框进入放量期",
     titleEn:
       "Solar frames shift from aluminum to composites — glass/PU pultruded frames enter ramp-up",
