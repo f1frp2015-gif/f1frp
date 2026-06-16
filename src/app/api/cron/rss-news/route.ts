@@ -1,3 +1,8 @@
+// 2026-06-16: DE-SCHEDULED. Removed from vercel.json crons — this pipeline
+// auto-PUBLISHED thin (~800-char) Gemini rewrites of RSS snippets, which is
+// being replaced by the human-reviewed deep-research digest (drafts only, see
+// /api/cron/article-draft + the f1frp-research-digest skill). The route is kept
+// for manual one-off triggering with CRON_SECRET, but no longer runs on a cron.
 import { NextResponse } from "next/server";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";

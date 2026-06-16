@@ -47,6 +47,7 @@ export async function generateMetadata({
   const isEn = locale === "en";
   if (
     !row ||
+    !row.article.publishedAt ||
     (isEn && (!row.article.forEn || !(row.article.titleEn && row.article.titleEn.trim())))
   ) {
     const t = await getTranslations({ locale, namespace: "Articles" });
@@ -80,7 +81,8 @@ export default async function ArticleDetailPage({
 
   const slug = safeDecode(rawSlug);
   const row = await loadArticle(slug);
-  if (!row) notFound();
+  // 草稿(publishedAt IS NULL)不对外展示, 只在管理员草稿箱可见。
+  if (!row || !row.article.publishedAt) notFound();
 
   const isEnLocale = locale === "en";
   const aRaw = row.article;

@@ -48,14 +48,16 @@ export default async function ArticlesPage({
 
   // EN 侧: forEn=true + 必须有英文标题 + slug 必须 ASCII (避免详情页 URL 编码后被
   // Google 识别为低质量)。任何缺一就在 EN 站隐藏, 不向中文 fallback。
+  // publishedAt IS NULL = 草稿(在管理员草稿箱里, 不对外展示)。
   const filter = isEn
     ? and(
         eq(articles.forEn, true),
+        isNotNull(articles.publishedAt),
         isNotNull(articles.titleEn),
         ne(articles.titleEn, ""),
         sql`${articles.slug} ~ '^[\\x00-\\x7F]+$'`,
       )
-    : eq(articles.forZh, true);
+    : and(eq(articles.forZh, true), isNotNull(articles.publishedAt));
 
   const rowsRaw = await db
     .select()

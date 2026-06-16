@@ -116,6 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         db
           .select({ slug: articles.slug, updatedAt: articles.updatedAt })
           .from(articles)
+          .where(isNotNull(articles.publishedAt)) // 草稿不进 sitemap
           .orderBy(desc(articles.publishedAt))
           .limit(1000),
       ),
