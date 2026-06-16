@@ -6,6 +6,8 @@ import { fetchCrossRef, fetchOpenAlex, fetchPatentsView } from "@/lib/ingest/sou
 import { ingestPaper, ingestPatent } from "@/lib/ingest";
 import { fanOutSearchPush } from "@/lib/ingest/search-push";
 import { notifyTelegram } from "@/lib/ingest/telegram-notify";
+import { embedNewRecords } from "@/lib/ingest/embed-records";
+import { refreshDemandDigest } from "@/lib/ingest/demand-digest";
 import {
   paperQueryPool,
   patentQueryPool,
@@ -177,11 +179,32 @@ export async function GET(req: Request) {
     })),
   ]);
 
+  // Live-embed the newly-ingested papers/patents into knowledge_chunks, and
+  // refresh the demand digest — so fresh literature + market demand are
+  // RAG-citable the same day (no manual embed-corpus run). Non-blocking.
+  let embed: { papers: number; patents: number; errors: number } | null = null;
+  let demand: Awaited<ReturnType<typeof refreshDemandDigest>> | null = null;
+  try {
+    embed = await embedNewRecords({
+      paperIds: results.papers.inserted,
+      patentIds: results.patents.inserted,
+    });
+  } catch (e) {
+    console.warn("[cron] embed new records failed:", e instanceof Error ? e.message : e);
+  }
+  try {
+    demand = await refreshDemandDigest(today);
+  } catch (e) {
+    console.warn("[cron] demand digest failed:", e instanceof Error ? e.message : e);
+  }
+
   return NextResponse.json({
     ok: true,
     day: today.toISOString().slice(0, 10),
     target: DAILY_TARGET,
     searchPush,
+    embed,
+    demand,
     ...results,
   });
 }

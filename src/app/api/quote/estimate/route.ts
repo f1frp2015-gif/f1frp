@@ -22,6 +22,7 @@ import { QuoteInputSchema } from "@/lib/quote/types";
 import { estimate } from "@/lib/quote/pricing";
 import { buildPriceDisplay, marketForLocale } from "@/lib/quote/display";
 import { explainQuote } from "@/lib/quote/explain";
+import { calibrateQuote, applyBand, type QuoteCalibration } from "@/lib/quote/calibrate";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -64,7 +65,28 @@ export async function POST(req: Request) {
   const locale = resolveServerLocale(req, body.locale);
 
   // 1) 算价格 — 同步,毫秒级(引擎纯 CNY 基线)
-  const result = estimate(input);
+  let result = estimate(input);
+
+  // 1.2) 数据校准 — 用历史 quote_logs(同截面+纤维, CNY/kg 口径)校准区间带宽并
+  //      标记离群。引擎中点不动,只调 ±band 并在离群时加警告。DB 抖动不阻塞。
+  let calibration: QuoteCalibration | null = null;
+  try {
+    calibration = await calibrateQuote(input, result);
+    if (calibration.suggested_band !== result.band) {
+      result = applyBand(result, calibration.suggested_band);
+    }
+    if (calibration.outlier) {
+      result = {
+        ...result,
+        warnings: [...result.warnings, locale === "en" ? calibration.note_en : calibration.note_zh],
+      };
+    }
+  } catch (e) {
+    console.warn(
+      "[quote-estimate] calibration failed:",
+      e instanceof Error ? e.message : e,
+    );
+  }
 
   // 1.5) 对外展示口径 — 海外(getfrp.com/en)在 CNY 基线上加成 50%+ 并换算 USD,
   //      国内(f1frp.com/zh)原样 CNY。详见 display.ts。
@@ -116,7 +138,7 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ result, display, explanation, logId });
+  return NextResponse.json({ result, display, explanation, calibration, logId });
 }
 
 // 匿名 fingerprint:用 IP + UA hash(粗略,够做"同一访客重复粗测"聚合)

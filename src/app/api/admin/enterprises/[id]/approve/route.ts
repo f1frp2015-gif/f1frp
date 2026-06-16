@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { enterprises } from "@/lib/db/schema";
 import { gateAdmin } from "@/lib/admin";
+import { ingestApprovedEnterprise, type IngestResult } from "@/lib/ingest/ugc";
 
 export const runtime = "nodejs";
 
@@ -32,5 +33,19 @@ export async function POST(
     .set({ status: "verified", updatedAt: new Date() })
     .where(eq(enterprises.id, id));
 
-  return NextResponse.json({ data: { id, status: "verified" } });
+  // Close the flywheel: materialize this enterprise's products into the
+  // materials(ugc) library and live-embed them + its supplier listings into
+  // knowledge_chunks so the AI can cite them immediately. Non-blocking — a
+  // failed embed must not undo a completed approval.
+  let ingest: IngestResult | null = null;
+  try {
+    ingest = await ingestApprovedEnterprise(id);
+  } catch (e) {
+    console.warn(
+      "[approve] UGC ingest failed:",
+      e instanceof Error ? e.message : e,
+    );
+  }
+
+  return NextResponse.json({ data: { id, status: "verified", ingest } });
 }

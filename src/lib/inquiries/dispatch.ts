@@ -64,6 +64,18 @@ async function findClaimedSuppliers(supplierCats: string[]): Promise<MatchedSupp
 
   const tierRank = sql`CASE ${supplierListings.scaleTier} WHEN 'XL' THEN 4 WHEN 'L' THEN 3 WHEN 'M' THEN 2 WHEN 'S' THEN 1 ELSE 0 END`;
 
+  // Learned relevance: how often this supplier was actually reached for an RFQ
+  // in the last 90 days (status='sent' = a real supplier engagement, not a
+  // fallback). Closes the rfq_dispatches feedback loop — matching now adapts to
+  // who's genuinely active, instead of a purely static category map. Ranked
+  // below paid brand priority but above scale/views.
+  const historyScore = sql`(
+    SELECT count(*) FROM rfq_dispatches d
+    WHERE d.supplier_listing_id = ${supplierListings.id}
+      AND d.status = 'sent'
+      AND d.sent_at > now() - interval '90 days'
+  )`;
+
   const rows = await db
     .select({
       supplierId: supplierListings.id,
@@ -83,6 +95,7 @@ async function findClaimedSuppliers(supplierCats: string[]): Promise<MatchedSupp
     )
     .orderBy(
       desc(supplierListings.brandPriority),
+      desc(historyScore),
       desc(tierRank),
       desc(supplierListings.viewCount),
     )

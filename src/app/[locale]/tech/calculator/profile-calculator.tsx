@@ -2,84 +2,12 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
-
-const materials: Record<
-  string,
-  { label: string; labelEn: string; E: number; sigma: number; density: number; group: string }
-> = {
-  "frp-e17": { label: "FRP EN 13706 E17", labelEn: "FRP EN 13706 E17", E: 17, sigma: 170, density: 1.9, group: "FRP" },
-  "frp-e23": { label: "FRP EN 13706 E23", labelEn: "FRP EN 13706 E23", E: 23, sigma: 240, density: 1.9, group: "FRP" },
-  "frp-standard": { label: "FRP ASCE 标准级", labelEn: "FRP ASCE Standard", E: 17.2, sigma: 207, density: 1.8, group: "FRP" },
-  "frp-high": { label: "FRP ASCE 高性能级", labelEn: "FRP ASCE High-performance", E: 27.6, sigma: 345, density: 1.9, group: "FRP" },
-  "frp-gb-i": { label: "FRP GB/T 31539 I级", labelEn: "FRP GB/T 31539 Class I", E: 20, sigma: 200, density: 1.9, group: "FRP" },
-  "frp-gb-ii": { label: "FRP GB/T 31539 II级", labelEn: "FRP GB/T 31539 Class II", E: 15, sigma: 150, density: 1.8, group: "FRP" },
-  "steel-s235": { label: "钢材 S235 (EN 10025)", labelEn: "Steel S235 (EN 10025)", E: 210, sigma: 235, density: 7.85, group: "Metal" },
-  "steel-s355": { label: "钢材 S355 (EN 10025)", labelEn: "Steel S355 (EN 10025)", E: 210, sigma: 355, density: 7.85, group: "Metal" },
-  "steel-q235": { label: "钢材 Q235 (GB/T 700)", labelEn: "Steel Q235 (GB/T 700)", E: 206, sigma: 235, density: 7.85, group: "Metal" },
-  "steel-q345": { label: "钢材 Q345 (GB/T 1591)", labelEn: "Steel Q345 (GB/T 1591)", E: 206, sigma: 345, density: 7.85, group: "Metal" },
-  "alu-6061": { label: "铝合金 6061-T6", labelEn: "Aluminum 6061-T6", E: 69, sigma: 276, density: 2.7, group: "Metal" },
-  "alu-6063": { label: "铝合金 6063-T5", labelEn: "Aluminum 6063-T5", E: 69, sigma: 186, density: 2.7, group: "Metal" },
-};
-
-const loadTypes = [
-  { id: "udl", label: "均布荷载 (UDL)", labelEn: "Uniformly distributed load (UDL)", factor_M: 1 / 8, factor_d: 5 / 384 },
-  { id: "point-mid", label: "跨中集中荷载", labelEn: "Mid-span point load", factor_M: 1 / 4, factor_d: 1 / 48 },
-  { id: "cantilever-point", label: "悬臂梁 — 端部集中荷载", labelEn: "Cantilever — end point load", factor_M: 1, factor_d: 1 / 3 },
-  { id: "cantilever-udl", label: "悬臂梁 — 均布荷载", labelEn: "Cantilever — UDL", factor_M: 1 / 2, factor_d: 1 / 8 },
-];
-
-const profileShapes = [
-  { id: "i-beam", label: "工字型 (I-Beam)", labelEn: "I-beam" },
-  { id: "channel", label: "槽型 (Channel)", labelEn: "Channel" },
-  { id: "angle", label: "角型 (L-Profile)", labelEn: "L-profile (angle)" },
-  { id: "square-tube", label: "方管 / 矩形管", labelEn: "Square / rectangular tube" },
-  { id: "round-tube", label: "圆管", labelEn: "Round tube" },
-];
-
-function calcIx(shape: string, h: number, b: number, tw: number, tf: number): number {
-  if (shape === "i-beam" || shape === "channel") {
-    return (b * h ** 3 - (b - tw) * (h - 2 * tf) ** 3) / 12;
-  }
-  if (shape === "angle") {
-    const t = tw;
-    const yBar = (h * t * h / 2 + (b - t) * t * t / 2) / (h * t + (b - t) * t);
-    const Iv = (t * h ** 3) / 12 + h * t * (h / 2 - yBar) ** 2;
-    const Ih = ((b - t) * t ** 3) / 12 + (b - t) * t * (yBar - t / 2) ** 2;
-    return Iv + Ih;
-  }
-  if (shape === "square-tube") {
-    return (b * h ** 3 - (b - 2 * tw) * (h - 2 * tw) ** 3) / 12;
-  }
-  if (shape === "round-tube") {
-    const Ro = h / 2;
-    const Ri = Ro - tw;
-    return (Math.PI / 4) * (Ro ** 4 - Ri ** 4);
-  }
-  return 0;
-}
-
-function calcWx(Ix: number, h: number, shape?: string, b?: number, tw?: number): number {
-  if (shape === "angle" && b && tw) {
-    const t = tw;
-    const yBar = (h * t * h / 2 + (b - t) * t * t / 2) / (h * t + (b - t) * t);
-    const maxDist = Math.max(yBar, h - yBar);
-    return Ix / maxDist;
-  }
-  return Ix / (h / 2);
-}
-
-function calcArea(shape: string, h: number, b: number, tw: number, tf: number): number {
-  if (shape === "i-beam" || shape === "channel") return 2 * b * tf + (h - 2 * tf) * tw;
-  if (shape === "angle") return h * tw + (b - tw) * tw;
-  if (shape === "square-tube") return b * h - (b - 2 * tw) * (h - 2 * tw);
-  if (shape === "round-tube") {
-    const Ro = h / 2;
-    const Ri = Ro - tw;
-    return Math.PI * (Ro ** 2 - Ri ** 2);
-  }
-  return 0;
-}
+import {
+  LOAD_TYPES as loadTypes,
+  PROFILE_SHAPES as profileShapes,
+  analyzeBeam,
+  equivalence,
+} from "@/lib/data/profile-mechanics";
 
 type Mode = "beam" | "equivalence";
 
@@ -111,66 +39,66 @@ export default function ProfileCalculator() {
   const [eqTw, setEqTw] = useState(8);
   const [eqTf, setEqTf] = useState(12);
 
-  const mat = materials[matKey];
-  const lt = loadTypes.find((l) => l.id === loadType)!;
-  const Ix = calcIx(shape, dimH, dimB, dimTw, dimTf);
-  const Wx = calcWx(Ix, dimH, shape, dimB, dimTw);
-  const area = calcArea(shape, dimH, dimB, dimTw, dimTf);
+  // Beam analysis + metal→FRP equivalence are computed by the shared
+  // @/lib/data/profile-mechanics module so the AI `profile_mechanics` tool and
+  // this UI never disagree (same single source of truth as jgt571).
+  const {
+    material: mat,
+    Ix,
+    Wx,
+    isDistributed,
+    totalForce,
+    M_max,
+    sigma_max,
+    defl,
+    deflRatio,
+    weightPerM,
+    stressOk,
+    deflOk,
+  } = analyzeBeam({
+    matKey,
+    shape,
+    h: dimH,
+    b: dimB,
+    tw: dimTw,
+    tf: dimTf,
+    loadType,
+    span,
+    load,
+    deflLimit,
+  });
 
-  const isDistributed = loadType === "udl" || loadType === "cantilever-udl";
-  const totalForce = isDistributed ? load * (span / 1000) : load;
-  const M_max = isDistributed
-    ? lt.factor_M * load * (span / 1000) * (span / 1000) * 1e6
-    : lt.factor_M * load * span * 1000;
-  const sigma_max = Wx > 0 ? M_max / Wx : 0;
-  const defl = isDistributed
-    ? (lt.factor_d * load * span ** 4) / (mat.E * 1000 * Ix)
-    : (lt.factor_d * load * 1000 * span ** 3) / (mat.E * 1000 * Ix);
-  const deflRatio = span / (defl || 1);
-  // kg/m = 截面积(mm²)/1e3 × 密度(g/cm³)。此前写作 /1e6 少乘 1000，绝对重量偏小 1000 倍。
-  const weightPerM = (area / 1e3) * mat.density;
-
-  const stressOk = sigma_max <= mat.sigma;
-  const deflOk = deflRatio >= deflLimit;
-
-  const srcMat = materials[eqSourceMat];
-  const tgtMat = materials[eqTargetMat];
-  const srcIx = calcIx(eqShape, eqH, eqB, eqTw, eqTf);
-  const srcWx = calcWx(srcIx, eqH, eqShape, eqB, eqTw);
-  const srcArea = calcArea(eqShape, eqH, eqB, eqTw, eqTf);
-  const reqWx = srcWx * (srcMat.sigma / tgtMat.sigma);
-  const reqIx = srcIx * (srcMat.E / tgtMat.E);
-
-  // 几何相似缩放下：I ∝ k^4，W ∝ k^3
-  //   等刚度: k_stiff = (E_src / E_tgt)^(1/4)
-  //   等强度: k_strength = (σ_src / σ_tgt)^(1/3)
-  const stiffnessScale = Math.pow(srcMat.E / tgtMat.E, 1 / 4);
-  const strengthScale = Math.pow(srcMat.sigma / tgtMat.sigma, 1 / 3);
-
-  const stiffH = Math.round(eqH * stiffnessScale);
-  const stiffB = Math.round(eqB * stiffnessScale);
-  const stiffTw = Math.max(1, Math.round(eqTw * stiffnessScale));
-  const stiffTf = Math.max(1, Math.round(eqTf * stiffnessScale));
-
-  const strengthH = Math.round(eqH * strengthScale);
-  const strengthB = Math.round(eqB * strengthScale);
-  const strengthTw = Math.max(1, Math.round(eqTw * strengthScale));
-  const strengthTf = Math.max(1, Math.round(eqTf * strengthScale));
-
-  // 控制准则 = 用料更多的那条
-  const governingScale = Math.max(stiffnessScale, strengthScale);
-  const governingIsStiffness = stiffnessScale >= strengthScale;
-  const governingKey = governingIsStiffness ? "calculator.governingStiffness" : "calculator.governingStrength";
-
-  const stiffArea = calcArea(eqShape, stiffH, stiffB, stiffTw, stiffTf);
-  const strengthArea = calcArea(eqShape, strengthH, strengthB, strengthTw, strengthTf);
-  const stiffWeight = (stiffArea / 1e3) * tgtMat.density;
-  const strengthWeight = (strengthArea / 1e3) * tgtMat.density;
-  const tgtWeight = governingIsStiffness ? stiffWeight : strengthWeight;
-  const srcWeight = (srcArea / 1e3) * srcMat.density;
-  const weightSaving = srcWeight > 0 ? (1 - tgtWeight / srcWeight) * 100 : 0;
-
-  const isAluminumSource = eqSourceMat.startsWith("alu-");
+  const {
+    srcMat,
+    tgtMat,
+    srcIx,
+    srcWx,
+    reqWx,
+    reqIx,
+    stiffnessScale,
+    strengthScale,
+    stiffH,
+    stiffB,
+    strengthH,
+    strengthB,
+    governingScale,
+    governingIsStiffness,
+    srcWeight,
+    tgtWeight,
+    weightSaving,
+    isAluminumSource,
+  } = equivalence({
+    sourceMatKey: eqSourceMat,
+    targetMatKey: eqTargetMat,
+    shape: eqShape,
+    h: eqH,
+    b: eqB,
+    tw: eqTw,
+    tf: eqTf,
+  });
+  const governingKey = governingIsStiffness
+    ? "calculator.governingStiffness"
+    : "calculator.governingStrength";
 
   const inputCls = "w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary";
   const selectCls = "w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary";
