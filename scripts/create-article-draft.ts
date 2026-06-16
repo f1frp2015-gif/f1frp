@@ -65,7 +65,12 @@ async function main() {
   }
   const d = JSON.parse(readFileSync(path, "utf-8"));
   const title = String(d.title ?? "").trim();
-  const body = String(d.body ?? "").trim();
+  // body may be inline, or read from a separate .md file via { "bodyFile": "..." }
+  let bodyRaw: unknown = d.body;
+  if (!bodyRaw && d.bodyFile && existsSync(String(d.bodyFile))) {
+    bodyRaw = readFileSync(String(d.bodyFile), "utf-8");
+  }
+  const body = String(bodyRaw ?? "").trim();
   if (!title || body.length < 200) {
     console.error("title required and body must be >= 200 chars");
     process.exit(1);
