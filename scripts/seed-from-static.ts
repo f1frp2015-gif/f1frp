@@ -274,7 +274,7 @@ async function seed() {
   const houseAuthorId = house?.id;
 
   for (const n of newsList) {
-    const slug = slugify(n.title, `news-${n.id}`);
+    const slug = n.slug ?? slugify(n.title, `news-${n.id}`);
     const body = articleBodies[n.id] ?? n.summary;
     await db
       .insert(articles)
