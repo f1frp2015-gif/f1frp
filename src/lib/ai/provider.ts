@@ -1,12 +1,12 @@
-// AI provider 分流(2026-06-16 — 国内侧三大国产模型并接,GLM-5.2 为主)
+// AI provider 分流(2026-06-16 — 国内侧四大国产模型并接,GLM-5.2 为主)
 //
 // 按 *host* 挑 chat model:
-//   - f1frp.com (国内站)         → 国产模型(智谱 GLM-5.2 主 / 通义 Qwen 辅 / DeepSeek 兜底)
+//   - f1frp.com (国内站)         → 国产模型(智谱 GLM-5.2 主 / 通义 Qwen / MiniMax / DeepSeek 兜底)
 //   - getfrp.com (海外站) / preview → Google Gemini direct (gemini-2.5-flash)
 //
-// 国内侧的三个国产 provider 全部走各自的 OpenAI-compatible 端点(见 build* 函数),
+// 国内侧的四个国产 provider 全部走各自的 OpenAI-compatible 端点(见 build* 函数),
 // 由 pickDomesticProvider() 按"哪个 key 配了"自动择优:ZHIPU → DASHSCOPE(Qwen) →
-// DEEPSEEK。这样在 ECS 上加/换一个 key 就能切主模型,无需改代码、无需重新部署。
+// MINIMAX → DEEPSEEK。这样在 ECS 上加/换一个 key 就能切主模型,无需改代码、无需重新部署。
 // 国产 API 均在境内可直连,不经 GFW —— 海外 Google 直连仅限 getfrp.com / Vercel。
 //
 // 历史:海外侧原走 OpenRouter → google/gemini-2.5-flash,加了一层不必要的代理
@@ -16,11 +16,12 @@
 // 必需的 API key:
 //   - GOOGLE_GENERATIVE_AI_API_KEY  (getfrp.com / preview 必需,Google AI Studio 申请)
 //   - ZHIPU_API_KEY                 (f1frp.com 主模型 GLM-5.2,open.bigmodel.cn)
-//   - DASHSCOPE_API_KEY             (f1frp.com 辅模型 Qwen + 图纸/PDF 视觉 Qwen-VL,百炼)
+//   - DASHSCOPE_API_KEY             (f1frp.com Qwen + 图纸/PDF 视觉 Qwen-VL,百炼)
+//   - MINIMAX_API_KEY               (f1frp.com MiniMax,platform.minimaxi.com)
 //   - DEEPSEEK_API_KEY              (f1frp.com 兜底,platform.deepseek.com)
 //   - OPENROUTER_API_KEY            (可选 fallback,通过 CHAT_PROVIDER=openrouter 启用)
 //
-// 显式覆盖:CHAT_PROVIDER=openrouter|google|deepseek 仍然有效,无视 host
+// 显式覆盖:CHAT_PROVIDER=openrouter|google|deepseek|zhipu|qwen|minimax 仍然有效,无视 host
 // 强制走指定 provider —— 用于 cron / 后端脚本(无 host)和本地调试。
 //
 // 模型版本:GEMINI_CHAT_MODEL / DEEPSEEK_CHAT_MODEL / OPENROUTER_CHAT_MODEL 三个
@@ -34,7 +35,7 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel, EmbeddingModel } from "ai";
 
 type Profile = "global" | "domestic";
-type ChatProvider = "openrouter" | "google" | "deepseek" | "zhipu" | "qwen";
+type ChatProvider = "openrouter" | "google" | "deepseek" | "zhipu" | "qwen" | "minimax";
 
 const profile: Profile =
   process.env.AI_PROFILE === "domestic" ? "domestic" : "global";
@@ -47,6 +48,7 @@ const CHAT_PROVIDERS: ChatProvider[] = [
   "deepseek",
   "zhipu",
   "qwen",
+  "minimax",
 ];
 const explicitProvider: ChatProvider | null = CHAT_PROVIDERS.includes(
   process.env.CHAT_PROVIDER as ChatProvider,
@@ -73,11 +75,11 @@ function isOverseasHost(host?: string | null): boolean {
 }
 
 // The domestic (f1frp.com) text-chat provider set, in default priority order:
-//   智谱 GLM (primary) → 通义千问 Qwen (auxiliary) → DeepSeek (legacy fallback)
+//   智谱 GLM (primary) → 通义千问 Qwen → MiniMax → DeepSeek (legacy fallback)
 // The client model-picker lets a visitor override *within this set*; the host
 // invariant in pickProviderForHost guarantees a domestic request can never be
 // steered to Google (GFW-blocked) nor an overseas request to a 国产 API.
-const DOMESTIC_PROVIDERS: ChatProvider[] = ["zhipu", "qwen", "deepseek"];
+const DOMESTIC_PROVIDERS: ChatProvider[] = ["zhipu", "qwen", "minimax", "deepseek"];
 
 // Whether a provider's API key is present on *this* deployment. Read at call
 // time (env is stable per process) so the picker reflects what the ECS box
@@ -86,6 +88,7 @@ function isProviderConfigured(p: ChatProvider): boolean {
   const keyEnv: Record<ChatProvider, string | undefined> = {
     zhipu: process.env.ZHIPU_API_KEY,
     qwen: process.env.DASHSCOPE_API_KEY,
+    minimax: process.env.MINIMAX_API_KEY,
     deepseek: process.env.DEEPSEEK_API_KEY,
     openrouter: process.env.OPENROUTER_API_KEY,
     google: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
@@ -150,6 +153,10 @@ const CHAT_MODEL_ZHIPU = "glm-5.2";
 // 通义千问 Qwen text (auxiliary domestic), via the DashScope OpenAI-compatible
 // endpoint. Override via QWEN_CHAT_MODEL (qwen-plus / qwen-max / qwen-turbo).
 const CHAT_MODEL_QWEN = "qwen-plus";
+// MiniMax (稀宇) — domestic OpenAI-compatible (api.minimaxi.com/v1). Override
+// via MINIMAX_CHAT_MODEL (MiniMax-M3 / MiniMax-M2.5 / -highspeed variants).
+// M-series are reasoning models → thinking suppressed by minimaxFetch (below).
+const CHAT_MODEL_MINIMAX = "MiniMax-M2.5";
 
 // Vision model for the *domestic* side. deepseek-chat is text-only, so when a
 // f1frp.com request carries image/PDF attachments we switch to Alibaba's
@@ -270,6 +277,54 @@ function buildZhipu() {
   });
 }
 
+// MiniMax M-series are reasoning models too. Like 智谱, the OpenAI-compatible
+// path otherwise leaks chain-of-thought into the answer — either as
+// `reasoning_content` or as inline `<think>…</think>` in `content`. We inject
+// two body params via fetch middleware: `thinking:{type:"disabled"}` (honoured
+// by M3 → no thinking) and `reasoning_split:true` (M2.x can't disable thinking
+// but this moves it OUT of `content` into a separate field the SDK ignores) —
+// so the visible reply stays clean on both. Override with MINIMAX_THINKING=enabled.
+const minimaxFetch = async (
+  input: Parameters<typeof fetch>[0],
+  init?: Parameters<typeof fetch>[1],
+): Promise<Response> => {
+  if (
+    process.env.MINIMAX_THINKING !== "enabled" &&
+    init?.body &&
+    typeof init.body === "string"
+  ) {
+    try {
+      const body = JSON.parse(init.body);
+      if (body && typeof body === "object") {
+        if (!("thinking" in body)) body.thinking = { type: "disabled" };
+        if (!("reasoning_split" in body)) body.reasoning_split = true;
+        init = { ...init, body: JSON.stringify(body) };
+      }
+    } catch {
+      // body isn't JSON we can touch — forward unchanged
+    }
+  }
+  return fetch(input, init);
+};
+
+function buildMinimax() {
+  const apiKey = process.env.MINIMAX_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "MINIMAX_API_KEY required for chatProvider=minimax (MiniMax 稀宇). Get " +
+        "one at https://platform.minimaxi.com (国内) — the endpoint is " +
+        "OpenAI-compatible (api.minimaxi.com/v1). 海外侧用 api.minimax.io/v1 " +
+        "via MINIMAX_BASE_URL.",
+    );
+  }
+  return createOpenAICompatible({
+    name: "minimax",
+    apiKey,
+    baseURL: process.env.MINIMAX_BASE_URL ?? "https://api.minimaxi.com/v1",
+    fetch: minimaxFetch,
+  });
+}
+
 function buildOpenRouter() {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -295,6 +350,7 @@ function modelNameFor(p: ChatProvider): string {
   const m: Record<ChatProvider, string> = {
     zhipu: process.env.ZHIPU_CHAT_MODEL ?? CHAT_MODEL_ZHIPU,
     qwen: process.env.QWEN_CHAT_MODEL ?? CHAT_MODEL_QWEN,
+    minimax: process.env.MINIMAX_CHAT_MODEL ?? CHAT_MODEL_MINIMAX,
     deepseek: process.env.DEEPSEEK_CHAT_MODEL ?? CHAT_MODEL_DOMESTIC,
     openrouter: process.env.OPENROUTER_CHAT_MODEL ?? CHAT_MODEL_OPENROUTER,
     google: process.env.GEMINI_CHAT_MODEL ?? CHAT_MODEL_GLOBAL,
@@ -311,6 +367,7 @@ export function getChatModel(
   if (provider === "openrouter") return buildOpenRouter().chatModel(model);
   if (provider === "zhipu") return buildZhipu().chatModel(model);
   if (provider === "qwen") return buildDashscope().chatModel(model);
+  if (provider === "minimax") return buildMinimax().chatModel(model);
   if (provider === "deepseek") return buildDeepseek().chatModel(model);
   // Google direct. GOOGLE_AI_GATEWAY_URL proxies the domestic side past GFW;
   // GEMINI_CHAT_MODEL (via modelNameFor) swaps 2.5-pro / 2.0-flash without a deploy.
@@ -411,6 +468,7 @@ export type ChatModelOption = {
 const PROVIDER_LABELS: Record<ChatProvider, string> = {
   zhipu: "智谱 GLM",
   qwen: "通义千问",
+  minimax: "MiniMax",
   deepseek: "DeepSeek",
   google: "Google Gemini",
   openrouter: "OpenRouter",
