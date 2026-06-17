@@ -954,6 +954,17 @@
       "article": "Article"
     }
   },
+  "CertifiedDirectory": {
+    "metaTitle": "Certified supplier directory",
+    "h1": "Certified supplier directory",
+    "subtitle": "Filter platform-reviewed composites suppliers by certification, standard, category, material, process and industry.",
+    "searchPlaceholder": "Search supplier name / region…",
+    "resultCount": "{count} suppliers",
+    "noResults": "No suppliers match the filters",
+    "clearFilters": "Clear filters",
+    "showMore": "Show {count} more",
+    "verified": "Verified"
+  },
   "Dashboard": {
     "pageTitle": "Dashboard",
     "overview": "Overview",
@@ -971,6 +982,7 @@
       "messages": "Inquiries",
       "enterprise": "Company",
       "claims": "Company claims",
+      "qualifications": "Qualifications",
       "adminOverview": "Overview",
       "adminClaims": "Claim review",
       "adminQualifications": "Qualifications",
@@ -1063,6 +1075,29 @@
         "confirmReject": "Confirm reject",
         "operationFailed": "Operation failed"
       }
+    },
+    "myQual": {
+      "metaTitle": "My qualifications",
+      "h1": "Upload company qualifications",
+      "subtitle": "Upload business license / product brochure / test report / certificate. The system auto-extracts and tags them; once reviewed they appear on your supplier profile.",
+      "needClaim": "Claim your company first to link qualifications to your supplier profile.",
+      "needClaimCta": "Claim company",
+      "linkedTo": "Will be linked to: ",
+      "notLinked": "Not linked to a supplier yet (you can still upload; we'll link on review).",
+      "pickKind": "Document type",
+      "pickFile": "Choose file & upload",
+      "uploading": "Uploading & extracting…",
+      "allowedHint": "JPG / PNG / WebP / PDF",
+      "uploadError": "Upload failed, please retry",
+      "resultOk": "Uploaded & extracted, pending review",
+      "resultReview": "Uploaded, needs manual review",
+      "resultTags": "{n} tags",
+      "confidence": "confidence {n}",
+      "myDocs": "My qualification documents",
+      "noDocs": "No qualifications uploaded yet",
+      "reviewNote": "Review note: ",
+      "kindLabel": { "license": "Business license", "product": "Product brochure", "test": "Test report", "cert": "Certificate" },
+      "statusLabel": { "uploaded": "Queued", "extracting": "Extracting", "extracted": "Extracted", "needs_review": "Pending review", "approved": "Approved", "rejected": "Rejected", "expired": "Expired" }
     },
     "adminOverview": {
       "metaTitle": "Admin overview",

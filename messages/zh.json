@@ -927,6 +927,17 @@
       "article": "资讯"
     }
   },
+  "CertifiedDirectory": {
+    "metaTitle": "认证供应商目录",
+    "h1": "认证供应商目录",
+    "subtitle": "按认证、标准、品类、材料、工艺、应用行业筛选已通过平台审核的复材供应商。",
+    "searchPlaceholder": "搜索供应商名称 / 地区...",
+    "resultCount": "{count} 家供应商",
+    "noResults": "没有符合条件的供应商",
+    "clearFilters": "清除筛选",
+    "showMore": "再显示 {count} 家",
+    "verified": "已认证"
+  },
   "Dashboard": {
     "pageTitle": "控制台",
     "overview": "概览",
@@ -944,6 +955,7 @@
       "messages": "消息询盘",
       "enterprise": "企业管理",
       "claims": "企业认领",
+      "qualifications": "资质上传",
       "adminOverview": "概览",
       "adminClaims": "认领审核",
       "adminQualifications": "资质审核",
@@ -1036,6 +1048,29 @@
         "confirmReject": "确认拒绝",
         "operationFailed": "操作失败"
       }
+    },
+    "myQual": {
+      "metaTitle": "资质上传",
+      "h1": "上传企业资质",
+      "subtitle": "上传营业执照 / 产品资料 / 检测报告 / 认证证书，系统自动识别并打标，经平台审核后展示在你的供应商档案。",
+      "needClaim": "请先认领你的企业，才能把资质关联到供应商档案。",
+      "needClaimCta": "去认领企业",
+      "linkedTo": "将关联到：",
+      "notLinked": "尚未关联供应商（可先上传，审核时由平台关联）。",
+      "pickKind": "文档类型",
+      "pickFile": "选择文件并上传",
+      "uploading": "上传识别中...",
+      "allowedHint": "支持 JPG / PNG / WebP / PDF",
+      "uploadError": "上传失败，请重试",
+      "resultOk": "已上传并识别，等待平台审核",
+      "resultReview": "已上传，需人工复核",
+      "resultTags": "{n} 个标签",
+      "confidence": "置信度 {n}",
+      "myDocs": "我的资质文档",
+      "noDocs": "还没有上传任何资质",
+      "reviewNote": "审核意见：",
+      "kindLabel": { "license": "营业执照", "product": "产品资料", "test": "检测报告", "cert": "认证证书" },
+      "statusLabel": { "uploaded": "待处理", "extracting": "识别中", "extracted": "已识别", "needs_review": "待审核", "approved": "已通过", "rejected": "已拒绝", "expired": "已过期" }
     },
     "adminOverview": {
       "metaTitle": "管理总览",
