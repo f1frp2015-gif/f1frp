@@ -75,6 +75,8 @@
     },
     "pricingLabel": "行情 / PRICING",
     "pricingTitle": "行情",
+    "priceUpdated": "每周一更新 · 更新于 {date}",
+    "priceSources": "数据来源：{names} 等",
     "insightsLabel": "资讯 / INSIGHTS",
     "insightsTitle": "资讯",
     "viewAll": "查看全部",

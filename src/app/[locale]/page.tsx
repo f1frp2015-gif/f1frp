@@ -136,6 +136,12 @@ export default async function HomePage({
     latestPriceReport?.quotes && latestPriceReport.quotes.length
       ? latestPriceReport.quotes
       : priceData;
+  // 来源短名(取来源串中第一个词,去掉网址/括号说明),最多 3 个
+  const priceSourceNames = (latestPriceReport?.sources ?? [])
+    .slice(0, 3)
+    .map((s) => s.split(/[ （(]/)[0])
+    .filter(Boolean)
+    .join(" / ");
 
   return (
     <>
@@ -404,6 +410,14 @@ export default async function HomePage({
                 label={t("pricingLabel")}
                 viewAll={t("viewAll")}
               />
+              {latestPriceReport && (
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground/80">
+                  {t("priceUpdated", { date: latestPriceReport.weekOf })}
+                  {priceSourceNames && (
+                    <> · {t("priceSources", { names: priceSourceNames })}</>
+                  )}
+                </p>
+              )}
               <div className="mt-4 divide-y divide-border/70 overflow-hidden rounded-md border border-border/70">
                 {prices.slice(0, 8).map((p) => (
                   <div

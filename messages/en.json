@@ -75,6 +75,8 @@
     },
     "pricingLabel": "PRICING",
     "pricingTitle": "Market prices",
+    "priceUpdated": "Updated Mondays · {date}",
+    "priceSources": "Sources: {names}",
     "insightsLabel": "INSIGHTS",
     "insightsTitle": "Industry news",
     "viewAll": "View all",
