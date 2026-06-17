@@ -735,6 +735,54 @@ export const supplierDocumentTags = pgTable(
 );
 
 // ═══════════════════════════════════════════
+// Price reports — 复材原材料价格行情(每周一更新,人工终审发布)
+//   单条 report = 一周一期;quotes 为该期各材料报价(jsonb)。
+//   首页 + 公开行情页读「最新 published」一期;后台草稿→终审→发布。
+//   数据口径(v4):权威来源打底 + AI 整合 + 人工终审(generatedBy 记录来路)。
+// ═══════════════════════════════════════════
+
+export const priceReportStatusEnum = pgEnum("price_report_status", [
+  "draft",
+  "published",
+]);
+
+export type PriceQuote = {
+  name: string;
+  nameEn?: string;
+  category: string; // resin | fiber-yarn | fiber-mat | fiber-fabric | carbon | composite | core | ...
+  price: number;
+  unit: string; // 元/吨 | 元/kg | 元/米 | 元/㎡
+  change: number; // 周环比 %
+  region: string; // 华东 | 全国 | ...
+  source?: string; // 权威来源(站点/报价库)
+};
+
+export const priceReports = pgTable(
+  "price_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    weekOf: date("week_of").notNull(), // 该期对应的周一
+    title: varchar("title", { length: 200 }),
+    summary: text("summary"), // 行情综述 / 人工终审说明
+    quotes: jsonb("quotes").$type<PriceQuote[]>().notNull(),
+    sources: jsonb("sources").$type<string[]>(), // 引用的权威来源
+    status: priceReportStatusEnum("status").default("draft").notNull(),
+    generatedBy: varchar("generated_by", { length: 40 }), // manual | clone | skill:price-digest | 模型名
+    reviewerId: uuid("reviewer_id").references(() => users.id),
+    publishedAt: timestamp("published_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("price_reports_status_published_idx").on(
+      table.status,
+      table.publishedAt,
+    ),
+    index("price_reports_week_idx").on(table.weekOf),
+  ]
+);
+
+// ═══════════════════════════════════════════
 // Saved items — engineer workbench bookmarks across the six libraries
 // ═══════════════════════════════════════════
 

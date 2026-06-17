@@ -960,7 +960,8 @@
       "adminUsers": "用户",
       "adminClaims": "认领审核",
       "adminQualifications": "资质审核",
-      "adminEnterprises": "入驻审核"
+      "adminEnterprises": "入驻审核",
+      "adminPrices": "价格行情"
     },
     "home": {
       "welcome": "欢迎回来",
@@ -1072,6 +1073,36 @@
       "reviewNote": "审核意见：",
       "kindLabel": { "license": "营业执照", "product": "产品资料", "test": "检测报告", "cert": "认证证书" },
       "statusLabel": { "uploaded": "待处理", "extracting": "识别中", "extracted": "已识别", "needs_review": "待审核", "approved": "已通过", "rejected": "已拒绝", "expired": "已过期" }
+    },
+    "adminPrices": {
+      "metaTitle": "价格行情管理",
+      "h1": "价格行情管理",
+      "subtitle": "管理首页与公开行情页展示的复材原材料价格。每周一生成草稿（权威来源 + AI 整合），人工终审后发布；发布即成为对外展示的最新一期。",
+      "noPermission": "无权限",
+      "noPermissionSub": "该页面仅限管理员访问。如需权限，请联系站点管理员把你的邮箱加入 ADMIN_EMAILS。",
+      "newDraft": "新建本周草稿",
+      "newDraftHint": "克隆最新一期作为起点，改完真实价格再发布。",
+      "noReports": "暂无行情数据",
+      "opFailed": "操作失败",
+      "weekOf": "{date} 期",
+      "quoteCount": "{n} 条报价",
+      "status": { "draft": "草稿", "published": "已发布" },
+      "edit": "编辑",
+      "collapse": "收起",
+      "publish": "发布",
+      "unpublish": "取消发布",
+      "summary": "行情综述",
+      "summaryPlaceholder": "本周市场综述 / 终审说明...",
+      "colName": "材料",
+      "colPrice": "价格",
+      "colUnit": "单位",
+      "colChange": "周环比%",
+      "colRegion": "地区",
+      "colSource": "来源",
+      "addRow": "+ 添加材料",
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中..."
     },
     "adminUsers": {
       "metaTitle": "注册用户",

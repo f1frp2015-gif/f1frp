@@ -987,7 +987,8 @@
       "adminUsers": "Users",
       "adminClaims": "Claim review",
       "adminQualifications": "Qualifications",
-      "adminEnterprises": "Registration review"
+      "adminEnterprises": "Registration review",
+      "adminPrices": "Price index"
     },
     "home": {
       "welcome": "Welcome back",
@@ -1099,6 +1100,36 @@
       "reviewNote": "Review note: ",
       "kindLabel": { "license": "Business license", "product": "Product brochure", "test": "Test report", "cert": "Certificate" },
       "statusLabel": { "uploaded": "Queued", "extracting": "Extracting", "extracted": "Extracted", "needs_review": "Pending review", "approved": "Approved", "rejected": "Rejected", "expired": "Expired" }
+    },
+    "adminPrices": {
+      "metaTitle": "Price index management",
+      "h1": "Price index management",
+      "subtitle": "Manage the composite raw-material prices shown on the homepage and public price page. A draft is generated every Monday (authoritative sources + AI integration); publish after human final review — the published edition becomes the latest shown.",
+      "noPermission": "Access denied",
+      "noPermissionSub": "This page is admin-only. Ask the site admin to add your email to ADMIN_EMAILS.",
+      "newDraft": "New weekly draft",
+      "newDraftHint": "Clones the latest edition as a starting point; update real prices then publish.",
+      "noReports": "No price data yet",
+      "opFailed": "Operation failed",
+      "weekOf": "Week of {date}",
+      "quoteCount": "{n} quotes",
+      "status": { "draft": "Draft", "published": "Published" },
+      "edit": "Edit",
+      "collapse": "Collapse",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "summary": "Market summary",
+      "summaryPlaceholder": "This week's market summary / review note…",
+      "colName": "Material",
+      "colPrice": "Price",
+      "colUnit": "Unit",
+      "colChange": "WoW %",
+      "colRegion": "Region",
+      "colSource": "Source",
+      "addRow": "+ Add material",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving…"
     },
     "adminUsers": {
       "metaTitle": "Registered users",

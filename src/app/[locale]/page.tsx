@@ -28,6 +28,7 @@ import {
   supplierListings,
 } from "@/lib/db/schema";
 import { priceData } from "@/lib/data/materials";
+import { getLatestPublishedReport } from "@/lib/prices/queries";
 import { newsList } from "@/lib/data/news";
 import { ValueChainSection } from "@/components/value-chain-section";
 import { HomePageEnglish } from "./home-english";
@@ -128,6 +129,13 @@ export default async function HomePage({
     { value: ptCount, labelKey: "statsPatents", href: "/patents" as const },
     { value: supCount, labelKey: "statsSuppliers", href: "/suppliers" as const },
   ];
+
+  // 价格行情:最新已发布的一期(每周一更新);无则回退静态基线。
+  const latestPriceReport = await getLatestPublishedReport();
+  const prices =
+    latestPriceReport?.quotes && latestPriceReport.quotes.length
+      ? latestPriceReport.quotes
+      : priceData;
 
   return (
     <>
@@ -397,7 +405,7 @@ export default async function HomePage({
                 viewAll={t("viewAll")}
               />
               <div className="mt-4 divide-y divide-border/70 overflow-hidden rounded-md border border-border/70">
-                {priceData.slice(0, 8).map((p) => (
+                {prices.slice(0, 8).map((p) => (
                   <div
                     key={p.name}
                     className="flex h-[54px] items-center justify-between bg-card px-4 transition-colors hover:bg-muted/40"
