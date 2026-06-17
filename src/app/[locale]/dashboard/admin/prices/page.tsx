@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { gateAdmin } from "@/lib/admin";
 import { db } from "@/lib/db";
 import { priceReports } from "@/lib/db/schema";
+import { getLatestPublishedReport } from "@/lib/prices/queries";
 
 import {
   AdminPricesManager,
@@ -67,13 +68,18 @@ export default async function AdminPricesPage({
     sources: r.sources ?? [],
   }));
 
+  // 最新已发布一期 → 名称到价格的基线,供编辑器「对上期自动算环比」
+  const basePub = await getLatestPublishedReport();
+  const baseline: Record<string, number> = {};
+  for (const q of basePub?.quotes ?? []) baseline[q.name] = q.price;
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t("adminPrices.h1")}</h1>
         <p className="text-sm text-muted-foreground">{t("adminPrices.subtitle")}</p>
       </div>
-      <AdminPricesManager reports={reports} />
+      <AdminPricesManager reports={reports} baseline={baseline} />
     </div>
   );
 }

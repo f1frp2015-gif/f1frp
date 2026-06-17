@@ -33,7 +33,13 @@ export type AdminPriceReport = {
   sources: string[];
 };
 
-export function AdminPricesManager({ reports }: { reports: AdminPriceReport[] }) {
+export function AdminPricesManager({
+  reports,
+  baseline,
+}: {
+  reports: AdminPriceReport[];
+  baseline: Record<string, number>;
+}) {
   const t = useTranslations("Dashboard.adminPrices");
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -110,6 +116,25 @@ export function AdminPricesManager({ reports }: { reports: AdminPriceReport[] })
               ...d.quotes,
               { name: "", category: "resin", price: 0, unit: "元/吨", change: 0, region: "华东" },
             ],
+          }
+        : d,
+    );
+  }
+
+  // 对「最新已发布」一期同名材料的周环比%;无基线则 null
+  function autoWoW(name: string, price: number): number | null {
+    const b = baseline[name];
+    return b && b > 0 ? Math.round(((price - b) / b) * 1000) / 10 : null;
+  }
+  function applyAutoWoW() {
+    setDraft((d) =>
+      d
+        ? {
+            ...d,
+            quotes: d.quotes.map((q) => {
+              const a = autoWoW(q.name, q.price);
+              return a === null ? q : { ...q, change: a };
+            }),
           }
         : d,
     );
@@ -234,6 +259,16 @@ export function AdminPricesManager({ reports }: { reports: AdminPriceReport[] })
                               onChange={(e) => updateQuote(i, { change: Number(e.target.value) })}
                               className="h-8 w-20"
                             />
+                            {autoWoW(q.name, q.price) !== null && (
+                              <button
+                                type="button"
+                                onClick={() => updateQuote(i, { change: autoWoW(q.name, q.price)! })}
+                                className="mt-0.5 block text-[10px] text-muted-foreground hover:text-primary"
+                                title={t("applyThisRow")}
+                              >
+                                {t("vsLast")} {autoWoW(q.name, q.price)}%
+                              </button>
+                            )}
                           </td>
                           <td className="p-1">
                             <Input
@@ -261,9 +296,14 @@ export function AdminPricesManager({ reports }: { reports: AdminPriceReport[] })
                   </table>
                 </div>
                 <div className="flex items-center justify-between">
-                  <Button size="sm" variant="outline" onClick={addQuote}>
-                    {t("addRow")}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={addQuote}>
+                      {t("addRow")}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={applyAutoWoW}>
+                      {t("autoWoW")}
+                    </Button>
+                  </div>
                   <div className="flex gap-2">
                     <Button size="sm" variant="ghost" onClick={close} disabled={busy}>
                       {t("cancel")}

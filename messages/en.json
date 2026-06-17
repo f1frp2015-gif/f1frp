@@ -1129,7 +1129,10 @@
       "addRow": "+ Add material",
       "cancel": "Cancel",
       "save": "Save",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "autoWoW": "Apply WoW vs last",
+      "vsLast": "vs last",
+      "applyThisRow": "Apply this row's WoW"
     },
     "adminUsers": {
       "metaTitle": "Registered users",

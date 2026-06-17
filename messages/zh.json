@@ -1102,7 +1102,10 @@
       "addRow": "+ 添加材料",
       "cancel": "取消",
       "save": "保存",
-      "saving": "保存中..."
+      "saving": "保存中...",
+      "autoWoW": "套用对上期环比",
+      "vsLast": "对上期",
+      "applyThisRow": "点击套用本行环比"
     },
     "adminUsers": {
       "metaTitle": "注册用户",
