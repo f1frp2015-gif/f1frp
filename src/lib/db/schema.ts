@@ -4,6 +4,7 @@ import {
   text,
   timestamp,
   boolean,
+  date,
   integer,
   jsonb,
   pgEnum,
@@ -619,6 +620,117 @@ export const supplierClaims = pgTable(
     index("supplier_claims_supplier_idx").on(table.supplierListingId),
     index("supplier_claims_user_idx").on(table.userId),
     index("supplier_claims_status_idx").on(table.status),
+  ]
+);
+
+// ═══════════════════════════════════════════
+// Supplier qualifications — 资质上传 → AI 结构化 → 自动打标
+//   supplier_documents:      一份上传文件 + AI 抽取结果 + 审核态(真相源 SoT)
+//   supplier_document_tags:  带「来源/信任/有效期」的 canonical 标签实例,
+//                            驱动分面筛选与信任展示。
+// 受控词表见 src/lib/qualification/cert-taxonomy.ts;tagId 形如 "cert:iso9001"。
+// 回填逻辑见 src/lib/qualification/rollup.ts(只合并进 certifications,
+// 不触碰 getfrp 拥有的 standards_supported / capabilities)。
+// ═══════════════════════════════════════════
+
+export const supplierDocKindEnum = pgEnum("supplier_doc_kind", [
+  "license", // 营业执照
+  "product", // 产品资料
+  "test", // 检测报告
+  "cert", // 认证证书
+]); // 对齐 enterprise/doc-schema.ts DOC_KINDS
+
+export const supplierDocStatusEnum = pgEnum("supplier_doc_status", [
+  "uploaded", // 已上传,待抽取
+  "extracting", // AI 抽取中
+  "extracted", // 已抽取,自动打标完成
+  "needs_review", // 置信度低 / 有未映射项 → 待人工
+  "approved", // 人工批准(→ 触发 rollup)
+  "rejected", // 人工驳回
+  "expired", // 有效期已过(到期扫描置入)
+]);
+
+export const tagSourceEnum = pgEnum("tag_source", [
+  "ai", // AI 抽取 + 确定性映射
+  "human", // 人工后台增删
+  "rollup", // 派生/回填
+]);
+
+export const supplierDocuments = pgTable(
+  "supplier_documents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    // 可空:供应商可在「认领」前先上传(认领后再回填 supplierListingId)
+    supplierListingId: varchar("supplier_listing_id", { length: 50 }).references(
+      () => supplierListings.id,
+      { onDelete: "cascade" },
+    ),
+    enterpriseId: uuid("enterprise_id").references(() => enterprises.id),
+    uploadedByUserId: uuid("uploaded_by_user_id")
+      .references(() => users.id)
+      .notNull(),
+    kind: supplierDocKindEnum("kind").notNull(),
+    ossKey: text("oss_key").notNull(), // 沿用 OSS 直传产物(lib/oss.ts)
+    fileName: varchar("file_name", { length: 200 }),
+    contentType: varchar("content_type", { length: 80 }),
+    status: supplierDocStatusEnum("status").default("uploaded").notNull(),
+    extractedData: jsonb("extracted_data"), // doc-schema 各 kind 的 Zod 校验结果
+    extractionModel: varchar("extraction_model", { length: 40 }), // qwen-vl / gemini,审计用
+    extractionConfidence: integer("extraction_confidence"), // 0-100
+    // 从 extractedData 提升出来便于索引 / 去重 / 到期扫描
+    certNo: varchar("cert_no", { length: 120 }),
+    issuer: varchar("issuer", { length: 120 }),
+    validFrom: date("valid_from"),
+    validTo: date("valid_to"),
+    reviewerId: uuid("reviewer_id").references(() => users.id),
+    reviewNote: text("review_note"),
+    reviewedAt: timestamp("reviewed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("supplier_documents_supplier_idx").on(table.supplierListingId),
+    index("supplier_documents_enterprise_idx").on(table.enterpriseId),
+    index("supplier_documents_status_idx").on(table.status),
+    index("supplier_documents_kind_idx").on(table.kind),
+    index("supplier_documents_valid_to_idx").on(table.validTo), // 到期扫描
+    // 去重:同机构同证书号只留一份(certNo 为空的行不参与唯一约束)
+    uniqueIndex("supplier_documents_certno_uq")
+      .on(table.issuer, table.certNo)
+      .where(sql`${table.certNo} is not null`),
+  ]
+);
+
+export const supplierDocumentTags = pgTable(
+  "supplier_document_tags",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    documentId: uuid("document_id")
+      .references(() => supplierDocuments.id, { onDelete: "cascade" })
+      .notNull(),
+    // 反范式:从 document 复制,便于按供应商 + facet 直接分面聚合,免 join
+    supplierListingId: varchar("supplier_listing_id", { length: 50 }).references(
+      () => supplierListings.id,
+      { onDelete: "cascade" },
+    ),
+    tagId: varchar("tag_id", { length: 64 }).notNull(), // canonical,如 "cert:iso9001"
+    facet: varchar("facet", { length: 16 }).notNull(), // "cert" | "std" | ...
+    trust: integer("trust").default(0).notNull(), // 0..3,见 cert-taxonomy.TRUST_LABELS
+    source: tagSourceEnum("source").default("ai").notNull(),
+    certNo: varchar("cert_no", { length: 120 }), // tag 级查验 / 去重
+    validTo: date("valid_to"), // tag 级到期
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("supplier_document_tags_supplier_facet_idx").on(
+      table.supplierListingId,
+      table.facet,
+    ), // 分面查询主索引
+    index("supplier_document_tags_tag_idx").on(table.tagId),
+    uniqueIndex("supplier_document_tags_doc_tag_uq").on(
+      table.documentId,
+      table.tagId,
+    ),
   ]
 );
 
