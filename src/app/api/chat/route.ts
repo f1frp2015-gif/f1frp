@@ -21,6 +21,8 @@ import { makeProfileCalcTool } from "@/lib/ai/tools/profile-calc";
 import { makeMaterialSelectorTool } from "@/lib/ai/tools/material-selector";
 import { makeFeasibilityMatchTool } from "@/lib/ai/tools/feasibility-match";
 import { makeLandedCostTool } from "@/lib/ai/tools/landed-cost";
+import { makeComplianceFlagsTool } from "@/lib/ai/tools/compliance-flags";
+import { makeCreateSourcingBriefTool } from "@/lib/ai/tools/create-sourcing-brief";
 import { makeExportExcelTool } from "@/lib/ai/tools/export-excel";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 import {
@@ -315,12 +317,16 @@ export async function POST(req: Request) {
           material_selector: makeMaterialSelectorTool(),
           feasibility_match: makeFeasibilityMatchTool(),
           landed_cost_usd: makeLandedCostTool(),
+          compliance_flags: makeComplianceFlagsTool(),
+          create_sourcing_brief: makeCreateSourcingBriefTool(host, locale),
           export_excel: makeExportExcelTool(),
           ...(isWebSearchConfigured(host)
             ? { web_search: makeWebSearchTool(host) }
             : {}),
         };
-    const toolsConfig = tools ? { tools, stopWhen: stepCountIs(3) } : {};
+    // Cap raised 3→6: the Sourcing Desk concierge may chain feasibility_match →
+    // landed_cost_usd → compliance_flags (→ create_sourcing_brief) within a turn.
+    const toolsConfig = tools ? { tools, stopWhen: stepCountIs(6) } : {};
 
     const result = streamText({
       model,

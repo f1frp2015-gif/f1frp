@@ -1356,3 +1356,40 @@ export const quoteLogs = pgTable(
 
 export type QuoteLog = typeof quoteLogs.$inferSelect;
 export type NewQuoteLog = typeof quoteLogs.$inferInsert;
+
+// ═══════════════════════════════════════════
+// Sourcing Briefs — getfrp P0 采购台 handoff 落库(5 步终点)
+// 海外买家走完 Spec → Feasibility → Landed Cost → Compliance 后,点 "Get this
+// sourced" → 落一条结构化 brief + 通知曜一 ops 转人工 close。也是喂国内 S2 的
+// 需求情报源(买家真实在问什么)。各步结果用 jsonb snapshot 存,便于回放。
+// ═══════════════════════════════════════════
+export const sourcingBriefs = pgTable(
+  "sourcing_briefs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    host: varchar("host", { length: 100 }),
+    locale: varchar("locale", { length: 8 }).default("en").notNull(),
+    // 买家侧
+    buyerCompany: varchar("buyer_company", { length: 200 }),
+    buyerName: varchar("buyer_name", { length: 120 }),
+    buyerEmail: varchar("buyer_email", { length: 255 }),
+    buyerCountry: varchar("buyer_country", { length: 80 }),
+    // 各步 snapshot(结构化)
+    spec: jsonb("spec").$type<Record<string, unknown>>(),
+    feasibility: jsonb("feasibility").$type<Record<string, unknown>>(),
+    landedCost: jsonb("landed_cost").$type<Record<string, unknown>>(),
+    complianceFlags: jsonb("compliance_flags").$type<unknown[]>(),
+    // 转人工后由 ops 流转:new | contacted | quoted | won | lost
+    status: varchar("status", { length: 16 }).default("new").notNull(),
+    source: varchar("source", { length: 32 }).default("sourcing_desk").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("sourcing_briefs_status_idx").on(table.status),
+    index("sourcing_briefs_created_idx").on(table.createdAt),
+  ],
+);
+
+export type SourcingBrief = typeof sourcingBriefs.$inferSelect;
+export type NewSourcingBrief = typeof sourcingBriefs.$inferInsert;
