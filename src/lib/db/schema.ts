@@ -566,6 +566,18 @@ export const supplierListings = pgTable(
     scaleTier: varchar("scale_tier", { length: 10 }),
     brandPriority: integer("brand_priority").default(0).notNull(),
     viewCount: integer("view_count").default(0).notNull(),
+    // ── Sourcing Desk (getfrp P0) — structured capability + export-readiness ──
+    // capabilities: coarse product families (profile/grating/rebar/rod/tube/
+    //   panel/custom) for buyer-spec feasibility matching.
+    // standardsSupported: structured standard codes the factory documents
+    //   (e.g. ASTM D3039 / EN 13706 / GB/T 1447).
+    // exportReady: domestic-side screening flag — only true rows surface to
+    //   getfrp.com feasibility_match (the 国内筛选→海外消费 flywheel gate).
+    capabilities: jsonb("capabilities").$type<string[]>(),
+    standardsSupported: jsonb("standards_supported").$type<string[]>(),
+    moqKg: integer("moq_kg"),
+    leadTimeDays: integer("lead_time_days"),
+    exportReady: boolean("export_ready").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -575,6 +587,7 @@ export const supplierListings = pgTable(
     index("supplier_listings_name_en_idx").on(table.nameEn),
     index("supplier_listings_brand_priority_idx").on(table.brandPriority),
     index("supplier_listings_scale_tier_idx").on(table.scaleTier),
+    index("supplier_listings_export_ready_idx").on(table.exportReady),
   ]
 );
 
