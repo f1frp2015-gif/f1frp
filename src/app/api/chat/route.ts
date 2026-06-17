@@ -20,6 +20,7 @@ import { makeWindowUValueTool } from "@/lib/ai/tools/window-uvalue";
 import { makeProfileCalcTool } from "@/lib/ai/tools/profile-calc";
 import { makeMaterialSelectorTool } from "@/lib/ai/tools/material-selector";
 import { makeFeasibilityMatchTool } from "@/lib/ai/tools/feasibility-match";
+import { makeLandedCostTool } from "@/lib/ai/tools/landed-cost";
 import { makeExportExcelTool } from "@/lib/ai/tools/export-excel";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 import {
@@ -313,6 +314,7 @@ export async function POST(req: Request) {
           profile_mechanics: makeProfileCalcTool(),
           material_selector: makeMaterialSelectorTool(),
           feasibility_match: makeFeasibilityMatchTool(),
+          landed_cost_usd: makeLandedCostTool(),
           export_excel: makeExportExcelTool(),
           ...(isWebSearchConfigured(host)
             ? { web_search: makeWebSearchTool(host) }
