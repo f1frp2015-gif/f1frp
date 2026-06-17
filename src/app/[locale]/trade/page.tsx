@@ -12,6 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { priceData } from "@/lib/data/materials";
+import { getLatestPublishedReport } from "@/lib/prices/queries";
 
 export async function generateMetadata({
   params,
@@ -26,10 +27,13 @@ export async function generateMetadata({
   };
 }
 
+export const revalidate = 60;
+
 type L = { zh: string; en: string };
 const tr = (v: L, locale: string) => (locale === "en" ? v.en : v.zh);
 
-// priceData 来自 lib/data/materials.ts，name/region 是中文。EN 侧用静态映射翻译。
+// 行情价格来自 DB「最新已发布一期」(price_reports)，name/region 为中文。
+// 报价已带可选 nameEn；缺失时回退此静态映射(键须与当期 quotes 的中文名一致)。
 const PRICE_NAME_EN: Record<string, string> = {
   "196# 树脂": "#196 UPR",
   "191# 树脂": "#191 UPR",
@@ -40,13 +44,12 @@ const PRICE_NAME_EN: Record<string, string> = {
   "双马来酰亚胺 BMI": "BMI (bismaleimide)",
   "ECR 无碱粗纱": "ECR boron-free roving",
   "E 玻纤短切毡": "E-glass chopped strand mat",
-  "T300 级 3K 碳纤维": "T300-grade 3K carbon fiber",
-  "T700 级 12K 碳纤维": "T700-grade 12K carbon fiber",
-  "异酞型胶衣": "Isophthalic gelcoat",
-  "PVC 泡沫芯材 H80": "PVC foam core H80",
-  "MEKP 固化剂": "MEKP catalyst",
-  "FRP 拉挤型材": "FRP pultruded profile",
-  "玻璃钢格栅": "FRP grating",
+  "E 玻纤方格布": "E-glass woven roving",
+  "T300 碳纤维 (3K)": "T300-grade 3K carbon fiber",
+  "T700 碳纤维 (12K)": "T700-grade 12K carbon fiber",
+  "玄武岩纤维粗纱": "Basalt fiber roving",
+  "PVC 泡沫 (H80)": "PVC foam core H80",
+  "模塑格栅 (38 型)": "Molded FRP grating (38)",
 };
 
 const REGION_EN: Record<string, string> = {
@@ -163,6 +166,18 @@ export default async function TradePage({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Trade" });
 
+  // 行情价格:最新已发布一期(随每周发布自动更新);无则回退静态基线。
+  const latestPriceReport = await getLatestPublishedReport();
+  const prices =
+    latestPriceReport?.quotes && latestPriceReport.quotes.length
+      ? latestPriceReport.quotes
+      : priceData;
+  const priceSourceNames = (latestPriceReport?.sources ?? [])
+    .slice(0, 3)
+    .map((s) => s.split(/[ （(]/)[0])
+    .filter(Boolean)
+    .join(" / ");
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -184,16 +199,22 @@ export default async function TradePage({
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {priceData.map((item) => {
+            {prices.map((item) => {
               const isEn = locale === "en";
               const displayName = isEn
-                ? PRICE_NAME_EN[item.name] ?? item.name
+                ? (item as { nameEn?: string }).nameEn ??
+                  PRICE_NAME_EN[item.name] ??
+                  item.name
                 : item.name;
               const displayRegion = isEn
                 ? REGION_EN[item.region] ?? item.region
                 : item.region;
               const displayUnit = isEn
-                ? item.unit.replace("元/吨", "CNY/MT").replace("元/㎡", "CNY/m²")
+                ? item.unit
+                    .replace("元/吨", "CNY/MT")
+                    .replace("元/㎡", "CNY/m²")
+                    .replace("元/kg", "CNY/kg")
+                    .replace("元/米", "CNY/m")
                 : item.unit;
               return (
               <div
@@ -232,7 +253,15 @@ export default async function TradePage({
               );
             })}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">
+          {latestPriceReport && (
+            <p className="mt-4 text-xs text-muted-foreground">
+              {t("priceUpdated", { date: latestPriceReport.weekOf })}
+              {priceSourceNames && (
+                <> · {t("priceSources", { names: priceSourceNames })}</>
+              )}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-muted-foreground">
             {t("priceDisclaimer")}
           </p>
         </CardContent>
