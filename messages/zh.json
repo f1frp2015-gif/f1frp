@@ -957,6 +957,7 @@
       "claims": "企业认领",
       "qualifications": "资质上传",
       "adminOverview": "概览",
+      "adminUsers": "用户",
       "adminClaims": "认领审核",
       "adminQualifications": "资质审核",
       "adminEnterprises": "入驻审核"
@@ -1071,6 +1072,23 @@
       "reviewNote": "审核意见：",
       "kindLabel": { "license": "营业执照", "product": "产品资料", "test": "检测报告", "cert": "认证证书" },
       "statusLabel": { "uploaded": "待处理", "extracting": "识别中", "extracted": "已识别", "needs_review": "待审核", "approved": "已通过", "rejected": "已拒绝", "expired": "已过期" }
+    },
+    "adminUsers": {
+      "metaTitle": "注册用户",
+      "h1": "注册用户",
+      "subtitle": "平台全部注册用户，可按角色筛选下钻。",
+      "noPermission": "无权限",
+      "noPermissionSub": "该页面仅限管理员访问。如需权限，请联系站点管理员把你的邮箱加入 ADMIN_EMAILS。",
+      "tabAll": "全部 ({count})",
+      "noRecords": "暂无用户",
+      "colUser": "用户",
+      "colContact": "联系方式",
+      "colRole": "角色",
+      "colEnterprise": "关联企业",
+      "colMembership": "会员",
+      "colJoined": "注册时间",
+      "anonymous": "（未填名）",
+      "roleLabel": { "individual": "个人", "enterprise_admin": "企业管理员", "enterprise_member": "企业成员", "moderator": "版主", "admin": "管理员" }
     },
     "adminOverview": {
       "metaTitle": "管理总览",

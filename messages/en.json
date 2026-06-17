@@ -984,6 +984,7 @@
       "claims": "Company claims",
       "qualifications": "Qualifications",
       "adminOverview": "Overview",
+      "adminUsers": "Users",
       "adminClaims": "Claim review",
       "adminQualifications": "Qualifications",
       "adminEnterprises": "Registration review"
@@ -1098,6 +1099,23 @@
       "reviewNote": "Review note: ",
       "kindLabel": { "license": "Business license", "product": "Product brochure", "test": "Test report", "cert": "Certificate" },
       "statusLabel": { "uploaded": "Queued", "extracting": "Extracting", "extracted": "Extracted", "needs_review": "Pending review", "approved": "Approved", "rejected": "Rejected", "expired": "Expired" }
+    },
+    "adminUsers": {
+      "metaTitle": "Registered users",
+      "h1": "Registered users",
+      "subtitle": "All registered users on the platform; drill down by role.",
+      "noPermission": "Access denied",
+      "noPermissionSub": "This page is admin-only. Ask the site admin to add your email to ADMIN_EMAILS.",
+      "tabAll": "All ({count})",
+      "noRecords": "No users",
+      "colUser": "User",
+      "colContact": "Contact",
+      "colRole": "Role",
+      "colEnterprise": "Company",
+      "colMembership": "Membership",
+      "colJoined": "Joined",
+      "anonymous": "(no name)",
+      "roleLabel": { "individual": "Individual", "enterprise_admin": "Company admin", "enterprise_member": "Company member", "moderator": "Moderator", "admin": "Admin" }
     },
     "adminOverview": {
       "metaTitle": "Admin overview",

@@ -80,8 +80,16 @@ export default async function AdminOverviewPage({
           {t("adminOverview.sectionUsers")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label={t("adminOverview.statIndividuals")} value={individualUsers} />
-          <Stat label={t("adminOverview.statTotalUsers")} value={totalUsers} />
+          <Stat
+            label={t("adminOverview.statIndividuals")}
+            value={individualUsers}
+            href="/dashboard/admin/users?role=individual"
+          />
+          <Stat
+            label={t("adminOverview.statTotalUsers")}
+            value={totalUsers}
+            href="/dashboard/admin/users?role=all"
+          />
         </div>
       </section>
 
@@ -90,14 +98,22 @@ export default async function AdminOverviewPage({
           {t("adminOverview.sectionClaims")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label={t("adminOverview.statApprovedClaims")} value={approvedClaims} />
+          <Stat
+            label={t("adminOverview.statApprovedClaims")}
+            value={approvedClaims}
+            href="/dashboard/admin/claims?status=approved"
+          />
           <Stat
             label={t("adminOverview.statPendingClaims")}
             value={pendingClaims}
             href="/dashboard/admin/claims?status=pending"
             highlight={pendingClaims > 0}
           />
-          <Stat label={t("adminOverview.statVerifiedEnterprises")} value={verifiedEnterprises} />
+          <Stat
+            label={t("adminOverview.statVerifiedEnterprises")}
+            value={verifiedEnterprises}
+            href="/dashboard/admin/enterprises?status=verified"
+          />
         </div>
       </section>
 
@@ -112,7 +128,11 @@ export default async function AdminOverviewPage({
             href="/dashboard/admin/qualifications?status=needs_review"
             highlight={qualNeedsReview > 0}
           />
-          <Stat label={t("adminOverview.statQualTotal")} value={qualTotal} />
+          <Stat
+            label={t("adminOverview.statQualTotal")}
+            value={qualTotal}
+            href="/dashboard/admin/qualifications?status=all"
+          />
         </div>
       </section>
     </div>
