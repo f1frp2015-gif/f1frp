@@ -40,7 +40,9 @@ export default async function DashboardLayout({
   ];
 
   const adminItems = [
+    { href: "/dashboard/admin" as const, label: t("nav.adminOverview"), iconKey: "overview" },
     { href: "/dashboard/admin/claims" as const, label: t("nav.adminClaims"), iconKey: "admin-claims" },
+    { href: "/dashboard/admin/qualifications" as const, label: t("nav.adminQualifications"), iconKey: "admin-claims" },
     { href: "/dashboard/admin/enterprises" as const, label: t("nav.adminEnterprises"), iconKey: "admin-claims" },
     { href: "/dashboard/admin/articles" as const, label: "资讯草稿箱", iconKey: "post-list" },
   ];
