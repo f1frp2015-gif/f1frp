@@ -73,7 +73,7 @@ curl -sS -o /dev/null -w '%{http_code}\n' https://f1frp.com/indexnow-key   # 配
 
 **① 验证(meta)**
 1. zhanzhang.sogou.com → 用户中心 → 网站支持 → **添加网站** → `f1frp.com`
-2. 验证 **「HTML 标签验证」** → `<meta name="sogou-site-verification" content="XXXXXX" />` → 复制 content
+2. 验证 **「HTML 标签验证」** → `<meta name="sogou_site_verification" content="XXXXXX" />`(⚠️ 下划线)→ 复制 content
 3. 填 `SOGOU_SITE_VERIFICATION=XXXXXX`
 4. 回平台验证
 
