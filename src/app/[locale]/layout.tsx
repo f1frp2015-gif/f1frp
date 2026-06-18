@@ -102,29 +102,31 @@ export async function generateMetadata({
       googleBot: { index: true, follow: true },
     },
     verification: {
-      google: process.env.GOOGLE_SITE_VERIFICATION,
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     },
     // alternates intentionally NOT set here — see comment above the
     // generateMetadata return. Each page sets path-aware canonical +
     // hreflang via @/lib/seo.alternates(path).
+    // 站长平台验证 meta:build-time NEXT_PUBLIC_* → GitHub Variable(与 ICP 同机制)。
+    // 给值即设 GH Variable + 重建上线,无需 SSH。验证码本为公开 meta,无泄露风险。
     other: {
       "mobile-web-app-capable": "yes",
       "apple-mobile-web-app-capable": "yes",
       "apple-mobile-web-app-status-bar-style": "black-translucent",
-      ...(process.env.BAIDU_SITE_VERIFICATION
-        ? { "baidu-site-verification": process.env.BAIDU_SITE_VERIFICATION }
+      ...(process.env.NEXT_PUBLIC_BAIDU_SITE_VERIFICATION
+        ? { "baidu-site-verification": process.env.NEXT_PUBLIC_BAIDU_SITE_VERIFICATION }
         : {}),
-      ...(process.env.SOGOU_SITE_VERIFICATION
-        ? { "sogou-site-verification": process.env.SOGOU_SITE_VERIFICATION }
+      ...(process.env.NEXT_PUBLIC_SOGOU_SITE_VERIFICATION
+        ? { "sogou-site-verification": process.env.NEXT_PUBLIC_SOGOU_SITE_VERIFICATION }
         : {}),
-      ...(process.env.SHENMA_SITE_VERIFICATION
-        ? { "shenma-site-verification": process.env.SHENMA_SITE_VERIFICATION }
+      ...(process.env.NEXT_PUBLIC_SHENMA_SITE_VERIFICATION
+        ? { "shenma-site-verification": process.env.NEXT_PUBLIC_SHENMA_SITE_VERIFICATION }
         : {}),
-      ...(process.env.SM_SITE_VERIFICATION
-        ? { "360-site-verification": process.env.SM_SITE_VERIFICATION }
+      ...(process.env.NEXT_PUBLIC_SM_SITE_VERIFICATION
+        ? { "360-site-verification": process.env.NEXT_PUBLIC_SM_SITE_VERIFICATION }
         : {}),
-      ...(process.env.BYTEDANCE_VERIFICATION
-        ? { "bytedance-verification-code": process.env.BYTEDANCE_VERIFICATION }
+      ...(process.env.NEXT_PUBLIC_BYTEDANCE_VERIFICATION
+        ? { "bytedance-verification-code": process.env.NEXT_PUBLIC_BYTEDANCE_VERIFICATION }
         : {}),
     },
   };

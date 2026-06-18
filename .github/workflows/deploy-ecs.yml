@@ -101,6 +101,13 @@ jobs:
           NEXT_PUBLIC_DEFAULT_LOCALE: zh
           NEXT_PUBLIC_SITE_URL: https://f1frp.com
           NEXT_PUBLIC_ICP_BEIAN: ${{ vars.NEXT_PUBLIC_ICP_BEIAN }}
+          # 站长平台验证 meta(build-time inline,与 ICP 同机制;设 GitHub Variable 即生效)
+          NEXT_PUBLIC_BAIDU_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_BAIDU_SITE_VERIFICATION }}
+          NEXT_PUBLIC_SOGOU_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_SOGOU_SITE_VERIFICATION }}
+          NEXT_PUBLIC_SHENMA_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_SHENMA_SITE_VERIFICATION }}
+          NEXT_PUBLIC_SM_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_SM_SITE_VERIFICATION }}
+          NEXT_PUBLIC_BYTEDANCE_VERIFICATION: ${{ vars.NEXT_PUBLIC_BYTEDANCE_VERIFICATION }}
+          NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
           # Build-time inline so /api/healthz can report the deployed commit
           # without depending on runtime env vars on the ECS box (Next.js
           #字面替换 NEXT_PUBLIC_* during compilation, so the SHA ends up

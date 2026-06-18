@@ -1,98 +1,149 @@
-# f1frp.com 站长平台验证 + 主动推送 操作清单（P0-1）
+# f1frp.com 各站长平台 验证 meta + 推送 token + sitemap 详细步骤（P0-1）
 
-> 目的：把"建好但没开"的进索引通道打开。sitemap 分片（P0-2）已上线，但各引擎站长验证 / 主动推送 token 全未配 → cron `fanOutSearchPush` 在静默 no-op。本清单逐平台把 secret 填上。
+> 通用前提:每个平台都要先「添加网站 → 验证所有权」。验证方式统一选 **HTML 标签(meta)** —— 平台给一段 `<meta name="..." content="XXX">`,把 content 值填进对应 env,`layout.tsx` 自动输出该 meta;平台回抓页面看到 meta 即判已验证。
 >
-> 对应代码：`src/lib/ingest/search-push.ts`（推送）、`src/app/[locale]/layout.tsx`（验证 meta）、`deploy/.env.production.example`（env 清单）。
+> **两种 env 机制**:
+> - **build-time env**(`NEXT_PUBLIC_*`:ICP + 各站长验证 meta)→ GitHub **Variable**,`workflow_dispatch` 重建后生效。✅ ICP + 360 已上线。验证 env 名一律 `NEXT_PUBLIC_*` 前缀(见速查表);给值即设 GH Variable + 重建,无需 SSH。
+> - **runtime env**(推送 token + INDEXNOW_KEY)→ 写 ECS `/var/www/f1frp/.env.production.local` → `pm2 reload ecosystem.config.cjs --update-env`,**无需 rebuild**。
+>
+> ⚠️ 下文各平台「验证 meta」步骤:env 名加 `NEXT_PUBLIC_` 前缀、设为 **GitHub Variable**(非 ECS .env);「推送 token」步骤仍是 runtime ECS .env。
+>
+> **正确顺序**:① 填 env + pm2 reload(让 meta 上线)→ ② 回平台点「完成验证」(平台回抓确认)→ ③ 验证通过后才能在该平台提交 sitemap + 用推送。
 
-## 两种 env 机制（别搞混）
-
-| 机制 | 放哪 | 生效方式 | 涉及变量 |
-|---|---|---|---|
-| **runtime server env** | ECS `/var/www/f1frp/.env.production.local` | `pm2 reload ecosystem.config.cjs --update-env`，**无需 rebuild** | 站长验证 meta、推送 token、INDEXNOW_KEY |
-| **build-time env**（`NEXT_PUBLIC_*`） | GitHub **Variable**（repo Settings → Secrets and variables → Variables） | 下次 `push main` → CI 构建时 inline | `NEXT_PUBLIC_ICP_BEIAN` |
-
-> 陷阱：`NEXT_PUBLIC_ICP_BEIAN` 是 build 时 inline。CI 部署（push→main→`deploy-ecs.yml`）时只读 GitHub Variable；**仅在 ECS `.env` 里设对 CI 构建无效**。手动 `deploy.sh` 部署才读本地 `.env`。
-
-## 0. ICP 备案号（build-time / GitHub Variable）—— 最先做
-
-1. 确认备案号已下号（蜀ICP备XXXX号-1）。
-2. GitHub repo → **Settings → Secrets and variables → Variables** → New variable：
-   - Name：`NEXT_PUBLIC_ICP_BEIAN`
-   - Value：`蜀ICP备XXXXXXXX号-1`
-3. 下次 push main 后 footer 自动展示备案号（`src/components/layout/footer.tsx`）。
-
-## 1. 百度搜索资源平台 `ziyuan.baidu.com`（验证 + 推送 + sitemap，全有）
-
-- **验证**：用户中心 → 添加站点 `https://f1frp.com` → 验证方式选「HTML 标签」→ 复制 `<meta name="baidu-site-verification" content="XXXX">` 的 content → 填 `BAIDU_SITE_VERIFICATION=XXXX`
-- **主动推送**：链接提交 → 主动推送（实时）→ 复制准入密钥（16 位 token）→ 填 `BAIDU_PUSH_TOKEN=XXXX`
-- **sitemap**：链接提交 → sitemap → 提交 `https://f1frp.com/sitemap.xml`
-- 价值最大：文心一言/百度AI搜索 直接吃百度索引。
-
-## 2. 360 搜索站长 `zhanzhang.so.com`（验证 + 推送 + sitemap）
-
-- **验证**：添加站点 → 「HTML 标签」→ 复制 content → 填 `SM_SITE_VERIFICATION=XXXX`
-  （注意：渲染出的 meta 是 `360-site-verification`，但 env 变量名是 `SM_*`）
-- **主动推送**：链接提交 → 复制 token → 填 `SM_PUSH_TOKEN=XXXX`（推到 `api.haosou.com`）
-- **sitemap**：提交 `https://f1frp.com/sitemap.xml`
-- 价值：360AI 搜索吃 360 索引。
-
-## 3. 搜狗站长 `zhanzhang.sogou.com`（验证 + 推送 + sitemap）
-
-- **验证**：添加站点 → meta 标签验证 → 复制 content → 填 `SOGOU_SITE_VERIFICATION=XXXX`
-- **主动推送**：链接提交 → 复制 **user_id** 和 **token** → 填 `SOGOU_USER_ID=XXXX` + `SOGOU_PUSH_TOKEN=XXXX`（两个都要）
-- **sitemap**：提交 `https://f1frp.com/sitemap.xml`
-- 价值：腾讯元宝/混元 用 Sogou 索引。
-
-## 4. 神马（UC/夸克移动搜索）站长 `zhanzhang.sm.cn`（仅验证 + sitemap，无推送 API）
-
-- **验证**：添加站点 → meta 标签 → content → 填 `SHENMA_SITE_VERIFICATION=XXXX`
-- **sitemap**：提交 `https://f1frp.com/sitemap.xml`
-- 无独立推送 API（`search-push.ts` 里没有神马 push）；靠 sitemap + 抓取。
-- 价值：夸克/UC 移动搜索 + 通义千问 移动端。
-
-## 5. 字节/豆包（仅验证，靠 Bytespider 抓取）
-
-- **验证**（若有字节站长平台）：拿 `bytedance-verification-code` 的 content → 填 `BYTEDANCE_VERIFICATION=XXXX`
-- 无推送 API；豆包/今日头条搜索主要靠 `Bytespider` 抓取（robots.txt 已放行）。
-- 价值：豆包 / 抖音搜索。
-
-## 6. IndexNow（Bing / Yandex / Naver，一次提交多引擎）
-
-- **生成 key**：`openssl rand -hex 16` → 填 `INDEXNOW_KEY=<32位hex>`
-- **自检**：`curl https://f1frp.com/indexnow-key` 应返回该 key（`src/app/indexnow-key/route.ts` 读本 env）。现在未配 → 404，配后 → 200。
-- 可选：到 `bing.com/indexnow` 手动提交一次加速首次发现。
-- cron 每次 ingest 新 papers/patents/articles 会自动推。
-
-## 7. Google（已有 HTML 文件验证；Indexing API 是 stub）
-
-- 验证：`public/google4fd9359800160d16.html` 已在，meta 方式可选填 `GOOGLE_SITE_VERIFICATION`。
-- 主动推送：`search-push.ts` 里 `pushGoogleIndexing` 是 stub（需服务账号 JWT，未实现）——靠 sitemap + 抓取即可，海外侧 getfrp.com 更需要，国内侧优先级低。
-
----
-
-## 应用 runtime env（每填一批就可做一次）
+## 通用应用 + 自检
 
 ```bash
-# 在 ECS 上
+# 在 ECS 上(每填完一批跑一次)
 ssh root@<ECS_IP>
 cd /var/www/f1frp
-# 编辑 .env.production.local，把上面 BAIDU_*/SOGOU_*/SM_*/SHENMA_*/BYTEDANCE_*/INDEXNOW_KEY 填进去
+nano .env.production.local        # 把下面各 env 填进去
 pm2 reload ecosystem.config.cjs --update-env
 ```
-
-## 验证已生效
-
 ```bash
-# 各验证 meta 是否出现在 HTML（runtime env 填了 + pm2 reload 后即应出现）
+# 自检(填完 + reload 后)
 curl -sS https://f1frp.com/ | grep -ioE '(baidu|sogou|shenma|360|bytedance)-site-verification[^>]*content="[^"]*"'
-# ICP 是否在 footer（需 push main 触发 CI rebuild 后）
-curl -sS https://f1frp.com/ | grep -i ICP
-# indexnow-key
 curl -sS -o /dev/null -w '%{http_code}\n' https://f1frp.com/indexnow-key   # 配了 INDEXNOW_KEY 应 200
 ```
 
+---
+
+## 1. 百度搜索资源平台 `ziyuan.baidu.com`(价值最大:文心一言/百度AI 吃百度索引)
+
+登录:百度账号。
+
+**① 验证(meta)**
+1. ziyuan.baidu.com → 用户中心 → 站点管理 → **添加网站** → 输入 `f1frp.com`
+2. 验证方式选 **「HTML 标签」** → 平台显示 `<meta name="baidu-site-verification" content="XXXXXX" />` → 复制 `XXXXXX`
+3. 填 `BAIDU_SITE_VERIFICATION=XXXXXX`(ECS .env)
+4. 回平台点「完成验证」
+
+**② 推送 token**
+5. 左侧 **「普通收录 / 链接提交」→「主动推送(实时)」** → 平台显示接口调用地址:
+   `http://data.zz.baidu.com/urls?site=f1frp.com&token=YYYYYYYYYYYYYYYY`
+6. 复制 token(16 位 `YYYY...`)→ 填 `BAIDU_PUSH_TOKEN=YYYYYYYYYYYYYYYY`
+
+**③ sitemap**
+7. 「普通收录 / 链接提交」→ **「sitemap」** → 提交 `https://f1frp.com/sitemap.xml`
+
+> 代码对照:`src/lib/ingest/baidu-push.ts` 用 `BAIDU_PUSH_TOKEN` 推到 `data.zz.baidu.com/urls`。
+
+## 2. 360 搜索站长 `zhanzhang.so.com`(360AI 搜索)
+
+登录:360 账号。
+
+**① 验证(meta)**
+1. zhanzhang.so.com → 我的网站 → **添加网站** → `f1frp.com`
+2. 验证方式 **「HTML 标签验证」** → `<meta name="360-site-verification" content="XXXXXX" />` → 复制 content
+3. 填 `SM_SITE_VERIFICATION=XXXXXX`(⚠️ meta 名是 `360-site-verification`,但 env 变量名是 `SM_*`)
+4. 回平台点验证
+
+**② 推送 token**
+5. 「数据提交 / 链接提交」→ **「主动推送」** → 显示接口:
+   `https://api.haosou.com/LinkSubmit/push?site=f1frp.com&token=YYYYYYYY`
+6. 复制 token → 填 `SM_PUSH_TOKEN=YYYYYYYY`
+
+**③ sitemap**
+7. 「数据提交 / sitemap」→ 提交 `https://f1frp.com/sitemap.xml`
+
+> 代码对照:`search-push.ts` 的 `push360` 用 `SM_PUSH_TOKEN` 推到 `api.haosou.com/LinkSubmit/push`。
+
+## 3. 搜狗站长 `zhanzhang.sogou.com`(腾讯元宝/混元 用 Sogou 索引)
+
+登录:搜狗 / QQ / 微信账号。
+
+**① 验证(meta)**
+1. zhanzhang.sogou.com → 用户中心 → 网站支持 → **添加网站** → `f1frp.com`
+2. 验证 **「HTML 标签验证」** → `<meta name="sogou-site-verification" content="XXXXXX" />` → 复制 content
+3. 填 `SOGOU_SITE_VERIFICATION=XXXXXX`
+4. 回平台验证
+
+**② 推送 token(两个值都要,缺一不可)**
+5. 「链接提交 / URL 提交」→ 主动推送接口显示:
+   `https://fankui.zhanzhang.sogou.com/linkSubmit/push?site=f1frp.com&user_id=UUUU&token=TTTT`
+6. 复制 `user_id`(UUUU)→ 填 `SOGOU_USER_ID=UUUU`;复制 `token`(TTTT)→ 填 `SOGOU_PUSH_TOKEN=TTTT`
+
+**③ sitemap**
+7. 「网站支持 / sitemap」→ 提交 `https://f1frp.com/sitemap.xml`
+
+> 代码对照:`search-push.ts` 的 `pushSogou` 同时要 `SOGOU_PUSH_TOKEN` + `SOGOU_USER_ID`。
+
+## 4. 神马(UC/夸克)站长 `zhanzhang.sm.cn`(夸克/通义 移动端)
+
+登录:UC / 淘宝 / 支付宝账号(神马属阿里)。
+
+**① 验证(meta)**
+1. zhanzhang.sm.cn → **添加网站** → `f1frp.com`
+2. 验证 **「HTML 标签」** → `<meta name="shenma-site-verification" content="XXXXXX" />` → 复制 content
+3. 填 `SHENMA_SITE_VERIFICATION=XXXXXX`
+4. 回平台验证
+
+**② 推送 token**:神马**无公开主动推送 API**(代码里也没神马 push),靠 sitemap + 抓取。
+
+**③ sitemap**
+5. 「sitemap 提交」→ 提交 `https://f1frp.com/sitemap.xml`
+
+## 5. 字节/豆包(靠 Bytespider 抓取;优先级最低)
+
+- 若有字节站长平台(如头条搜索站长):添加网站 → 验证「HTML 标签」→ `<meta name="bytedance-verification-code" content="XXXXXX" />` → 填 `BYTEDANCE_VERIFICATION=XXXXXX`
+- **无推送 API**;豆包/今日头条/抖音搜索靠 `Bytespider` 抓取(robots.txt 已放行)。
+- 这步可跳过——Bytespider 已能抓,验证 meta 仅锦上添花。
+
+## 6. IndexNow(Bing / Yandex / Naver,一次推多引擎)
+
+不是平台 UI,是协议:
+1. 本地生成 key:`openssl rand -hex 16` → 得 32 位 hex 串
+2. 填 `INDEXNOW_KEY=<32位hex>`(ECS .env + pm2 reload)
+3. 自检:`curl https://f1frp.com/indexnow-key` → 应返回该 hex 串(`src/app/indexnow-key/route.ts` 读 env 返回明文)
+4. cron 每次 ingest 新 papers/patents/articles 会自动把 URL 推到 IndexNow(Bing/Yandex 即收)
+- 可选加速:Bing Webmaster Tools(`bing.com/webmaster`)→ 添加 f1frp.com → 验证 → 提交 sitemap + IndexNow key 一次性手推。
+
+## 7. Google Search Console(海外/补充,国内侧优先级低)
+
+- 已用 HTML 文件验证(`public/google4fd9359800160d16.html`)。
+- GSC → **Sitemaps** → 提交 `https://f1frp.com/sitemap.xml`(在 f1frp.com 资源下)。
+- 无需 push(`search-push.ts` 里 Google Indexing API 是 stub,靠 sitemap + 抓取)。
+
+---
+
+## env 速查表
+
+| env 变量 | 来自平台 | 类型 |
+|---|---|---|
+| `NEXT_PUBLIC_ICP_BEIAN` | beian.miit.gov.cn | build-time ✅ |
+| `NEXT_PUBLIC_BAIDU_SITE_VERIFICATION` | 百度 meta content | build-time |
+| `NEXT_PUBLIC_SM_SITE_VERIFICATION` | 360 meta content(meta 名 360-site-verification) | build-time ✅ |
+| `NEXT_PUBLIC_SOGOU_SITE_VERIFICATION` | 搜狗 meta content | build-time |
+| `NEXT_PUBLIC_SHENMA_SITE_VERIFICATION` | 神马 meta content | build-time |
+| `NEXT_PUBLIC_BYTEDANCE_VERIFICATION` | 字节 meta content(可选) | build-time |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Google meta(已有 HTML 文件验证) | build-time |
+| `BAIDU_PUSH_TOKEN` | 百度 主动推送 接口 token | runtime |
+| `SM_PUSH_TOKEN` | 360 链接提交 token | runtime |
+| `SOGOU_USER_ID` / `SOGOU_PUSH_TOKEN` | 搜狗 push URL user_id + token | runtime |
+| `INDEXNOW_KEY` | `openssl rand -hex 16` 自生成 | runtime |
+
 ## 之后
 
-- cron（systemd timer）每天 ingest 新内容时会自动把新 URL 推到已配 token 的引擎（百度/搜狗/360/IndexNow）。
-- 各站长平台「索引量 / 抓取诊断」可看收录进度。
-- 月度做一次「引用测试」：拿目标问句问 文心/豆包/Kimi/智谱/秘塔/夸克/360AI/天工，看是否引用 f1frp.com（见记忆 `project_f1frp_geo` 的测量闭环）。
+- cron(systemd timer)每天 ingest 新内容时自动把新 URL 推到已配 token 的引擎(百度/搜狗/360/IndexNow)。
+- 各站长平台「索引量 / 抓取诊断」看收录进度。
+- 月度「引用测试」:拿目标问句问 文心/豆包/Kimi/智谱/秘塔/夸克/360AI/天工,看是否引用 f1frp.com。
+- 公安备案(得号后):另加 env + footer 渲染(链 beian.mps.gov.cn)。
