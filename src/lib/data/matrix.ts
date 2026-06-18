@@ -11,6 +11,8 @@ export type Fiber = {
   nameEn: string;
   mono: string;
   grades: string;
+  /** English grade families for getfrp.com; falls back to `grades` (ASCII). */
+  gradesEn?: string;
   /** Keywords used to ILIKE-match the fiber in title/abstract. */
   keywords: string[];
 };
@@ -56,6 +58,7 @@ export const FIBERS: Fiber[] = [
     nameEn: "Basalt Fiber",
     mono: "BASALT",
     grades: "BF 耐温 700 °C",
+    gradesEn: "BF (service temp 700 °C)",
     keywords: ["玄武岩", "basalt", "BFRP"],
   },
   {
@@ -64,6 +67,7 @@ export const FIBERS: Fiber[] = [
     nameEn: "Aramid Fiber",
     mono: "ARAMID",
     grades: "Kevlar · Twaron · 对位/间位",
+    gradesEn: "Kevlar · Twaron · para / meta",
     keywords: ["芳纶", "aramid", "Kevlar", "Twaron", "对位芳纶", "间位芳纶"],
   },
   {
@@ -72,6 +76,7 @@ export const FIBERS: Fiber[] = [
     nameEn: "Bio-based Fiber",
     mono: "BIO",
     grades: "亚麻 · 大麻 · 竹 · 苎麻",
+    gradesEn: "Flax · Hemp · Bamboo · Ramie",
     keywords: ["生物基", "bio-based", "亚麻", "大麻", "竹纤维", "flax", "hemp", "bamboo", "jute"],
   },
 ];
@@ -277,3 +282,23 @@ export function parseCombo(combo: string): { fiberSlug: string; resinSlug: strin
   }
   return null;
 }
+
+/**
+ * Every canonical fiber × resin combo slug (5 × 11 = 55). The process axis is a
+ * filter (?process=), not a path segment, so the indexable URL space is the
+ * 2D fiber×resin grid — used for both /matrix/[combo] SSG and the sitemap.
+ */
+export function allComboSlugs(): string[] {
+  return FIBERS.flatMap((f) => RESINS.map((r) => `${f.slug}-${r.slug}`));
+}
+
+/** Industrial feasibility of a pair: 2 = mainstream, 1 = niche, 0 = rare. */
+export function comboFeasibility(fiberSlug: string, resinSlug: string): 0 | 1 | 2 {
+  return FEASIBILITY[fiberSlug]?.[resinSlug] ?? 0;
+}
+
+/**
+ * Last editorial review of the feasibility matrix. Surfaced on combo pages as
+ * a freshness signal (Baidu favours dated, maintained content). Bump on edit.
+ */
+export const MATRIX_REVIEWED = "2026-06";

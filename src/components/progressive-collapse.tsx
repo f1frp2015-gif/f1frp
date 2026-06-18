@@ -8,6 +8,7 @@
 // 通过 DOM 操作直接 hide/show 子元素，对各库的 filter/render 逻辑零侵入。
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -16,16 +17,14 @@ interface Props {
   pageSize?: number;
   /** 包裹元素的 className（grid / flex 等布局类） */
   className?: string;
-  /** 按钮文案前缀，默认 "展开剩余" */
-  buttonLabel?: string;
 }
 
 export function ProgressiveCollapse({
   children,
   pageSize = 50,
   className,
-  buttonLabel = "展开剩余",
 }: Props) {
+  const isEn = useLocale() === "en";
   const ref = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(pageSize);
   const [total, setTotal] = useState(0);
@@ -60,7 +59,7 @@ export function ProgressiveCollapse({
             variant="outline"
             onClick={() => setShown((s) => Math.min(total, s + pageSize))}
           >
-            {buttonLabel} {remaining} 条
+            {isEn ? `Show ${remaining} more` : `展开剩余 ${remaining} 条`}
           </Button>
         </div>
       )}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { and, desc, eq, ne, or } from "drizzle-orm";
+import { and, desc, eq, ne, or, isNotNull } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
@@ -16,7 +16,7 @@ import { paperCategories } from "@/lib/data/papers";
 import { SaveButton } from "@/components/save-button";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
-import { alternates } from "@/lib/seo";
+import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 600;
@@ -60,6 +60,7 @@ export async function generateMetadata({
     title: titleText,
     description: descText,
     alternates: alternates(`/papers/${slug}`),
+    openGraph: og(`/papers/${slug}`, { title: titleText, description: descText }),
     ...(thinContent ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -112,12 +113,21 @@ export default async function PaperDetailPage({
           id: papersTable.id,
           slug: papersTable.slug,
           title: papersTable.title,
+          titleEn: papersTable.titleEn,
           year: papersTable.year,
           journal: papersTable.journal,
+          journalEn: papersTable.journalEn,
         })
         .from(papersTable)
         .where(
-          and(eq(papersTable.category, p.category), ne(papersTable.id, p.id))
+          and(
+            eq(papersTable.category, p.category),
+            ne(papersTable.id, p.id),
+            // getfrp.com (en) must not surface Chinese-only related papers
+            ...(isEn
+              ? [isNotNull(papersTable.titleEn), ne(papersTable.titleEn, "")]
+              : []),
+          )
         )
         .orderBy(desc(papersTable.citationCount), desc(papersTable.year))
         .limit(6)
@@ -305,9 +315,11 @@ export default async function PaperDetailPage({
                     href={target as never}
                     className="block rounded-md border bg-muted/30 p-3 text-sm transition-colors hover:border-primary/40 hover:bg-muted/60"
                   >
-                    <div className="line-clamp-2 font-medium">{r.title}</div>
+                    <div className="line-clamp-2 font-medium">
+                      {isEn ? r.titleEn ?? r.title : r.title}
+                    </div>
                     <div className="mt-1 text-xs text-muted-foreground">
-                      {r.journal ?? ""}
+                      {(isEn ? r.journalEn : r.journal) ?? ""}
                       {r.year ? ` · ${r.year}` : ""}
                     </div>
                   </Link>

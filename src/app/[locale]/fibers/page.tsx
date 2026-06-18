@@ -55,7 +55,12 @@ export default async function FibersHubPage({
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {FIBERS.map((f) => {
           const name = isEn ? f.nameEn : f.name;
-          const altName = isEn ? f.name : f.nameEn;
+          // getfrp.com (en): never show the Chinese name as a subtitle.
+          const altName = isEn ? null : f.nameEn;
+          const grades = isEn ? f.gradesEn ?? f.grades : f.grades;
+          const keywords = isEn
+            ? f.keywords.filter((k) => !/[一-鿿]/.test(k))
+            : f.keywords;
           return (
             <Link
               key={f.slug}
@@ -78,11 +83,11 @@ export default async function FibersHubPage({
                   {isEn ? "Grade families" : "牌号体系"}:
                 </span>{" "}
                 <span className="font-medium text-foreground/90">
-                  {f.grades}
+                  {grades}
                 </span>
               </p>
               <div className="mt-4 flex flex-wrap gap-1.5">
-                {f.keywords.slice(0, 4).map((k) => (
+                {keywords.slice(0, 4).map((k) => (
                   <Badge
                     key={k}
                     variant="outline"

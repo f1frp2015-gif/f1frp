@@ -7,7 +7,7 @@ import { JsonLd } from "@/components/json-ld";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { TestimonialsBlock } from "@/components/testimonials-block";
-import { alternates } from "@/lib/seo";
+import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 import {
   findSourcingTopic,
@@ -40,6 +40,10 @@ export async function generateMetadata({
     title: t.metaTitle,
     description: t.metaDescription,
     alternates: alternates(`/sourcing/${t.slug}`),
+    openGraph: og(`/sourcing/${t.slug}`, {
+      title: t.metaTitle,
+      description: t.metaDescription,
+    }),
   };
 }
 

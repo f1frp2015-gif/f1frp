@@ -270,11 +270,14 @@ export function StandardsClient({
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <div className="flex flex-wrap gap-0.5">
-                        {std.process.slice(0, 2).map((p) => (
-                          <Badge key={p} variant="outline" className="px-1 py-0 text-[9px]">
-                            {processTagOptions.find((pt) => pt.id === p)?.name ?? p}
-                          </Badge>
-                        ))}
+                        {std.process.slice(0, 2).map((p) => {
+                          const pt = processTagOptions.find((x) => x.id === p);
+                          return (
+                            <Badge key={p} variant="outline" className="px-1 py-0 text-[9px]">
+                              {pt ? optLabel(pt) : p}
+                            </Badge>
+                          );
+                        })}
                         {std.process.length > 2 && (
                           <Badge variant="outline" className="px-1 py-0 text-[9px]">
                             +{std.process.length - 2}
