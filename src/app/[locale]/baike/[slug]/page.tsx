@@ -91,6 +91,27 @@ export default async function BaikeTopicPage({
     })),
   };
 
+  // HowTo(可选):仅当话题带 steps 时发射,步骤与下方可见编号列表一一对应。
+  // 不编造步骤 —— 无 steps 的话题不发 HowTo(避免 schema-内容不匹配被判垃圾)。
+  const howtoSchema =
+    t.steps && t.steps.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "HowTo",
+          "@id": `${url}#howto`,
+          name: t.question,
+          description: t.metaDescription,
+          inLanguage: "zh-CN",
+          step: t.steps.map((s, i) => ({
+            "@type": "HowToStep",
+            position: i + 1,
+            name: s.name,
+            text: s.text,
+            url: `${url}#step-${i + 1}`,
+          })),
+        }
+      : null;
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
       <BreadcrumbJsonLd
@@ -101,6 +122,7 @@ export default async function BaikeTopicPage({
       />
       <JsonLd data={articleSchema} />
       <JsonLd data={faqSchema} />
+      {howtoSchema && <JsonLd data={howtoSchema} />}
 
       {/* ── 面包屑 ── */}
       <nav className="mb-6 text-xs text-muted-foreground">
@@ -172,6 +194,32 @@ export default async function BaikeTopicPage({
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {/* ── 工艺步骤(可选,与 HowTo schema 一一对应) ── */}
+      {t.steps && t.steps.length > 0 && (
+        <section className="mb-12">
+          <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            工艺步骤
+          </div>
+          <ol className="space-y-4">
+            {t.steps.map((s, i) => (
+              <li key={i} id={`step-${i + 1}`} className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                  {i + 1}
+                </span>
+                <div>
+                  <div className="text-[15px] font-semibold leading-snug">
+                    {s.name}
+                  </div>
+                  <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
+                    {s.text}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
 

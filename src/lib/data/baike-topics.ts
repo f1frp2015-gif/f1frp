@@ -16,6 +16,7 @@
 export type BaikeIntent = "选材" | "工艺" | "性能" | "标准" | "应用";
 
 export type BaikeFaq = { question: string; answer: string };
+export type BaikeStep = { name: string; text: string };
 export type BaikeLink = { label: string; href: string };
 export type BaikeComparison = {
   caption: string;
@@ -45,6 +46,9 @@ export type BaikeTopic = {
   /** 指向知识库的证据链接(Tier 1 / 枢纽)。 */
   evidence: BaikeLink[];
   faqs: BaikeFaq[];
+  /** 工艺步骤(可选)—— 有则页面渲染编号步骤列表 + 发射 HowTo schema。
+   *  步骤须与页面可见内容一致(不编造);留空则不发 HowTo。 */
+  steps?: BaikeStep[];
   /** 相关问题 —— 同类 baike 兄弟页 + 枢纽,织内链图。 */
   related: BaikeLink[];
   /** 最近编辑复核日期(时效信号)。 */

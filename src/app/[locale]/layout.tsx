@@ -184,10 +184,12 @@ export default async function LocaleLayout({
                   addressCountry: "CN",
                   addressRegion: "Chongqing",
                 },
-                // sameAs intentionally empty until LinkedIn / industry-body
-                // profiles are wired up — empty array signals to Google we
-                // recognize the slot rather than that we've never thought of it.
-                sameAs: [],
+                // sameAs: real, verifiable profiles about the org. Only entries
+                // that actually resolve are emitted — dead/bogus links read as
+                // schema spam and hurt. Add stronger commercial-authority profiles
+                // here as they're created (each must point to a live page about
+                // this org): 知乎机构号 / 百度百科词条 / 1688 店铺 / LinkedIn.
+                sameAs: ["https://github.com/f1frp2015-gif"],
                 // Single contact: technical service hotline. Same on both
                 // deploys. Buyers who want a human go through /rfq first.
                 contactPoint: {
