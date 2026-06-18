@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { articles } from "@/lib/db/schema";
 import { gateAdmin } from "@/lib/admin";
+import { fanOutSearchPush } from "@/lib/ingest/search-push";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,18 @@ export async function POST(
     .where(eq(articles.id, id))
     .returning({ id: articles.id, slug: articles.slug });
   if (!row) return NextResponse.json({ error: "文章不存在" }, { status: 404 });
+
+  // 发布即推送到 百度/搜狗/360/IndexNow,新稿当天即可被收录与 AI 引用,
+  // 不必等每日 ingest cron。取消发布不推送。响应后异步执行,失败静默。
+  if (!unpublish && row.slug) {
+    after(async () => {
+      try {
+        await fanOutSearchPush([`https://f1frp.com/articles/${row.slug}`]);
+      } catch {
+        // best-effort; 各引擎在 search-push 内部已各自吞错
+      }
+    });
+  }
 
   return NextResponse.json({
     ok: true,

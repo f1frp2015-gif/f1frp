@@ -13,6 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { priceData } from "@/lib/data/materials";
 import { getLatestPublishedReport } from "@/lib/prices/queries";
+import { JsonLd } from "@/components/json-ld";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export async function generateMetadata({
   params,
@@ -178,8 +180,52 @@ export default async function TradePage({
     .filter(Boolean)
     .join(" / ");
 
+  // Dataset 结构化数据:让 秘塔/天工/智谱 等可机读引用「每周价格行情」,
+  // 把权威来源写进 citation(共引信号)。仅在有真实已发布一期时输出。
+  const isEnLocale = locale === "en";
+  const priceDataset =
+    latestPriceReport && prices.length
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Dataset",
+          name: isEnLocale
+            ? "China composites raw-material price index"
+            : "复材原材料价格行情(玻纤 / 树脂 / 碳纤 / 拉挤成品)",
+          description: isEnLocale
+            ? "Weekly China price index for fiberglass, resin, carbon fiber and FRP products, with week-over-week change and cited authoritative sources."
+            : "复材站每周更新的玻璃纤维 / 树脂 / 碳纤维 / 拉挤成品价格行情,含周环比与可核实权威来源。",
+          inLanguage: isEnLocale ? "en" : "zh-CN",
+          url: `${CURRENT_SITE_URL}/trade`,
+          isAccessibleForFree: true,
+          datePublished: latestPriceReport.publishedAt?.toISOString(),
+          dateModified: (
+            latestPriceReport.updatedAt ?? latestPriceReport.publishedAt
+          )?.toISOString(),
+          temporalCoverage: latestPriceReport.weekOf,
+          creator: {
+            "@type": "Organization",
+            name: isEnLocale ? "getfrp" : "复材站",
+            url: CURRENT_SITE_URL,
+          },
+          ...(latestPriceReport.sources?.length
+            ? { citation: latestPriceReport.sources }
+            : {}),
+          variableMeasured: prices.map((q) => ({
+            "@type": "PropertyValue",
+            name: isEnLocale
+              ? (q as { nameEn?: string }).nameEn ??
+                PRICE_NAME_EN[q.name] ??
+                q.name
+              : q.name,
+            value: q.price,
+            unitText: q.unit,
+          })),
+        }
+      : null;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      {priceDataset && <JsonLd data={priceDataset} />}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">{t("h1")}</h1>

@@ -1,12 +1,13 @@
 // POST /api/admin/prices/[id]/publish — 终审发布 / 取消发布。
 // body { publish: boolean }。发布即成为首页+公开行情页展示的「最新一期」。
 
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { gateAdmin } from "@/lib/admin";
 import { db } from "@/lib/db";
 import { priceReports } from "@/lib/db/schema";
+import { fanOutSearchPush } from "@/lib/ingest/search-push";
 
 export async function POST(
   req: Request,
@@ -33,6 +34,21 @@ export async function POST(
     .returning({ id: priceReports.id });
   if (!updated) {
     return NextResponse.json({ error: "行情不存在" }, { status: 404 });
+  }
+
+  // 终审发布即推送行情页 /trade 与首页(均展示「最新一期」)到
+  // 百度/搜狗/360/IndexNow。响应后异步执行,失败静默。
+  if (publish) {
+    after(async () => {
+      try {
+        await fanOutSearchPush([
+          "https://f1frp.com/trade",
+          "https://f1frp.com/",
+        ]);
+      } catch {
+        // best-effort; 各引擎在 search-push 内部已各自吞错
+      }
+    });
   }
 
   return NextResponse.json({
