@@ -44,8 +44,10 @@ async function fetchPapers(limit = 40) {
       title: papersTable.title,
       titleEn: papersTable.titleEn,
       journal: papersTable.journal,
+      journalEn: papersTable.journalEn,
       year: papersTable.year,
       category: papersTable.category,
+      categoryEn: papersTable.categoryEn,
       language: papersTable.language,
       hasCommentary: sql<boolean>`${papersTable.commentary} IS NOT NULL`,
     })
@@ -72,7 +74,9 @@ async function fetchPatents(limit = 40) {
       publicationNo: patentsTable.publicationNo,
       filingDate: patentsTable.filingDate,
       applicant: patentsTable.applicant,
+      applicantEn: patentsTable.applicantEn,
       category: patentsTable.category,
+      categoryEn: patentsTable.categoryEn,
       status: patentsTable.status,
     })
     .from(patentsTable)
@@ -104,7 +108,17 @@ export default async function HpRtmPage({
   setRequestLocale(locale);
   const t = await getTranslations("HpRtm");
 
-  const [papers, patents] = await Promise.all([fetchPapers(40), fetchPatents(40)]);
+  const [papersAll, patentsAll] = await Promise.all([fetchPapers(40), fetchPatents(40)]);
+
+  // getfrp.com (en): drop records lacking an English title so the page never
+  // renders Chinese-only papers/patents.
+  const isEn = locale === "en";
+  const papers = isEn
+    ? papersAll.filter((p) => p.titleEn && p.titleEn.trim())
+    : papersAll;
+  const patents = isEn
+    ? patentsAll.filter((p) => p.titleEn && p.titleEn.trim())
+    : patentsAll;
 
   const inLanguage = locale === "en" ? "en" : "zh-CN";
   const url = `https://f1frp.com/${locale === "zh" ? "" : `${locale}/`}hp-rtm`;
@@ -200,9 +214,9 @@ export default async function HpRtmPage({
                 className="block rounded-md border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-muted/30"
               >
                 <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-                  {p.category && (
+                  {(isEn ? p.categoryEn : p.category) && (
                     <Badge variant="outline" className="text-[10px]">
-                      {p.category}
+                      {isEn ? p.categoryEn : p.category}
                     </Badge>
                   )}
                   {p.year && (
@@ -224,9 +238,9 @@ export default async function HpRtmPage({
                 <div className="text-sm font-medium leading-snug line-clamp-2">
                   {locale === "en" && p.titleEn ? p.titleEn : p.title}
                 </div>
-                {p.journal && (
+                {(isEn ? p.journalEn : p.journal) && (
                   <div className="mt-1.5 text-xs text-muted-foreground line-clamp-1">
-                    {p.journal}
+                    {isEn ? p.journalEn : p.journal}
                   </div>
                 )}
               </Link>
@@ -275,9 +289,9 @@ export default async function HpRtmPage({
                       {t("badgeGranted")}
                     </Badge>
                   )}
-                  {p.category && (
+                  {(isEn ? p.categoryEn : p.category) && (
                     <Badge variant="outline" className="text-[10px]">
-                      {p.category}
+                      {isEn ? p.categoryEn : p.category}
                     </Badge>
                   )}
                   {p.publicationNo && (
@@ -289,9 +303,9 @@ export default async function HpRtmPage({
                 <div className="text-sm font-medium leading-snug line-clamp-2">
                   {locale === "en" && p.titleEn ? p.titleEn : p.title}
                 </div>
-                {p.applicant && (
+                {(isEn ? p.applicantEn : p.applicant) && (
                   <div className="mt-1.5 text-xs text-muted-foreground line-clamp-1">
-                    {p.applicant}
+                    {isEn ? p.applicantEn : p.applicant}
                   </div>
                 )}
               </Link>

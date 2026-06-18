@@ -31,6 +31,8 @@ const tr = (v: L, locale: string) => (locale === "en" ? v.en : v.zh);
 
 // priceData 来自 lib/data/materials.ts，name/region 是中文。EN 侧用静态映射翻译。
 const PRICE_NAME_EN: Record<string, string> = {
+  // Keys MUST match priceData[].name in lib/data/materials.ts exactly, or the
+  // getfrp.com (en) price board falls back to the Chinese name.
   "196# 树脂": "#196 UPR",
   "191# 树脂": "#191 UPR",
   "乙烯基酯树脂": "Vinyl ester resin",
@@ -40,13 +42,12 @@ const PRICE_NAME_EN: Record<string, string> = {
   "双马来酰亚胺 BMI": "BMI (bismaleimide)",
   "ECR 无碱粗纱": "ECR boron-free roving",
   "E 玻纤短切毡": "E-glass chopped strand mat",
-  "T300 级 3K 碳纤维": "T300-grade 3K carbon fiber",
-  "T700 级 12K 碳纤维": "T700-grade 12K carbon fiber",
-  "异酞型胶衣": "Isophthalic gelcoat",
-  "PVC 泡沫芯材 H80": "PVC foam core H80",
-  "MEKP 固化剂": "MEKP catalyst",
-  "FRP 拉挤型材": "FRP pultruded profile",
-  "玻璃钢格栅": "FRP grating",
+  "E 玻纤方格布": "E-glass woven roving",
+  "T300 碳纤维 (3K)": "T300 carbon fiber (3K)",
+  "T700 碳纤维 (12K)": "T700 carbon fiber (12K)",
+  "玄武岩纤维粗纱": "Basalt fiber roving",
+  "PVC 泡沫 (H80)": "PVC foam (H80)",
+  "模塑格栅 (38 型)": "Molded grating (type 38)",
 };
 
 const REGION_EN: Record<string, string> = {
@@ -193,7 +194,11 @@ export default async function TradePage({
                 ? REGION_EN[item.region] ?? item.region
                 : item.region;
               const displayUnit = isEn
-                ? item.unit.replace("元/吨", "CNY/MT").replace("元/㎡", "CNY/m²")
+                ? item.unit
+                    .replace("元/吨", "CNY/MT")
+                    .replace("元/㎡", "CNY/m²")
+                    .replace("元/米", "CNY/m")
+                    .replace("元/kg", "CNY/kg")
                 : item.unit;
               return (
               <div

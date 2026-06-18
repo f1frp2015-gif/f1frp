@@ -107,45 +107,64 @@ async function loadRelatedFormulas(material: typeof materials.$inferSelect) {
     .select({
       id: formulasTable.id,
       name: formulasTable.name,
+      nameEn: formulasTable.nameEn,
       process: formulasTable.process,
+      processEn: formulasTable.processEn,
       application: formulasTable.application,
+      applicationEn: formulasTable.applicationEn,
       resinSystem: formulasTable.resinSystem,
+      resinSystemEn: formulasTable.resinSystemEn,
       reinforcement: formulasTable.reinforcement,
+      reinforcementEn: formulasTable.reinforcementEn,
       auxiliaries: formulasTable.auxiliaries,
+      auxiliariesEn: formulasTable.auxiliariesEn,
     })
     .from(formulasTable);
   type Ing = { name: string; role?: string };
   const hits: Array<{
     id: string;
     name: string;
+    nameEn: string | null;
     process: string | null;
+    processEn: string | null;
     application: string | null;
+    applicationEn: string | null;
     section: SectionKey;
     role?: string;
+    roleEn?: string;
   }> = [];
   for (const f of rows) {
-    const buckets: Array<[Ing[] | null, SectionKey]> = [
-      [(f.resinSystem as Ing[] | null) ?? null, "resin"],
-      [(f.reinforcement as Ing[] | null) ?? null, "reinforcement"],
-      [(f.auxiliaries as Ing[] | null) ?? null, "auxiliary"],
+    // En ingredient arrays are positionally parallel to the zh ones, so the
+    // matched index lets us recover the English role label for getfrp.com.
+    const buckets: Array<[Ing[] | null, Ing[] | null, SectionKey]> = [
+      [(f.resinSystem as Ing[] | null) ?? null, (f.resinSystemEn as Ing[] | null) ?? null, "resin"],
+      [(f.reinforcement as Ing[] | null) ?? null, (f.reinforcementEn as Ing[] | null) ?? null, "reinforcement"],
+      [(f.auxiliaries as Ing[] | null) ?? null, (f.auxiliariesEn as Ing[] | null) ?? null, "auxiliary"],
     ];
-    for (const [list, section] of buckets) {
+    let matched = false;
+    for (const [list, listEn, section] of buckets) {
       if (!list) continue;
-      for (const ing of list) {
+      for (let idx = 0; idx < list.length; idx++) {
+        const ing = list[idx];
         if (!ing?.name) continue;
         if (matchIngredient(ing.name, index)) {
           hits.push({
             id: f.id,
             name: f.name,
+            nameEn: f.nameEn,
             process: f.process,
+            processEn: f.processEn,
             application: f.application,
+            applicationEn: f.applicationEn,
             section,
             role: ing.role,
+            roleEn: listEn?.[idx]?.role,
           });
+          matched = true;
           break;
         }
       }
-      if (hits[hits.length - 1]?.id === f.id) break;
+      if (matched) break;
     }
   }
   return hits.slice(0, 8);
@@ -218,6 +237,16 @@ export default async function MaterialDetailPage({
     loadRelatedFormulas(mRaw),
   ]);
 
+  // getfrp.com (en): drop related rows whose English fields are empty so we
+  // never render Chinese names/titles in the related-content cards.
+  const suppliersView = isEn
+    ? suppliers.filter((s) => s.nameEn && s.nameEn.trim())
+    : suppliers;
+  const dlsView = isEn ? dls.filter((d) => d.titleEn && d.titleEn.trim()) : dls;
+  const relatedFormulasView = isEn
+    ? relatedFormulas.filter((f) => f.nameEn && f.nameEn.trim())
+    : relatedFormulas;
+
   const props = (m.properties ?? {}) as Record<string, string>;
   const applications = (m.applications ?? []) as string[];
   const propEntries = Object.entries(props).filter(([, v]) => v);
@@ -240,8 +269,11 @@ export default async function MaterialDetailPage({
     brand: m.brand
       ? { "@type": "Brand", name: m.brand }
       : undefined,
-    manufacturer: suppliers[0]?.name
-      ? { "@type": "Organization", name: suppliers[0].name }
+    manufacturer: (isEn ? suppliersView[0]?.nameEn : suppliersView[0]?.name)
+      ? {
+          "@type": "Organization",
+          name: isEn ? suppliersView[0]?.nameEn : suppliersView[0]?.name,
+        }
       : undefined,
     additionalProperty: propEntries.map(([key, value]) => ({
       "@type": "PropertyValue",
@@ -383,36 +415,42 @@ export default async function MaterialDetailPage({
             </Card>
           )}
 
-          {relatedFormulas.length > 0 && (
+          {relatedFormulasView.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">{t("relatedFormulas")}</CardTitle>
                 <CardDescription>
-                  {t("relatedFormulasSub", { count: relatedFormulas.length })}
+                  {t("relatedFormulasSub", { count: relatedFormulasView.length })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                {relatedFormulas.map((f) => (
-                  <Link
-                    key={f.id}
-                    href={`/formulas#${f.id}` as "/formulas"}
-                    className="block rounded-md border bg-muted/30 p-3 text-sm transition-colors hover:border-primary/40 hover:bg-muted/60"
-                  >
-                    <div className="font-medium">{f.name}</div>
-                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                      {f.process && (
-                        <Badge variant="outline" className="text-[10px]">
-                          {f.process}
+                {relatedFormulasView.map((f) => {
+                  const fName = isEn ? f.nameEn ?? f.name : f.name;
+                  const fProcess = isEn ? f.processEn : f.process;
+                  const fApplication = isEn ? f.applicationEn : f.application;
+                  const fRole = isEn ? f.roleEn : f.role;
+                  return (
+                    <Link
+                      key={f.id}
+                      href={`/formulas#${f.id}` as "/formulas"}
+                      className="block rounded-md border bg-muted/30 p-3 text-sm transition-colors hover:border-primary/40 hover:bg-muted/60"
+                    >
+                      <div className="font-medium">{fName}</div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                        {fProcess && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {fProcess}
+                          </Badge>
+                        )}
+                        <Badge variant="secondary" className="text-[10px]">
+                          {ts(f.section)}
+                          {fRole ? `${isEn ? ": " : "："}${fRole}` : ""}
                         </Badge>
-                      )}
-                      <Badge variant="secondary" className="text-[10px]">
-                        {ts(f.section)}
-                        {f.role ? `：${f.role}` : ""}
-                      </Badge>
-                      {f.application && <span>· {f.application}</span>}
-                    </div>
-                  </Link>
-                ))}
+                        {fApplication && <span>· {fApplication}</span>}
+                      </div>
+                    </Link>
+                  );
+                })}
                 <Link
                   href="/formulas"
                   className={buttonVariants({ size: "sm", variant: "outline" }) + " w-full"}
@@ -433,18 +471,18 @@ export default async function MaterialDetailPage({
               <CardDescription>{t("downloadsSub")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              {dls.length === 0 ? (
+              {dlsView.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   {t("noDownloads")}
                 </p>
               ) : (
-                dls.map((d) => (
+                dlsView.map((d) => (
                   <a
                     key={d.id}
                     href={`/api/downloads/${d.id}`}
                     className="flex items-center justify-between rounded-md border px-3 py-2 text-sm hover:bg-muted"
                   >
-                    <span className="truncate">{d.title}</span>
+                    <span className="truncate">{isEn ? d.titleEn ?? d.title : d.title}</span>
                     <Badge
                       variant="outline"
                       className="ml-2 shrink-0 text-[10px] uppercase"
@@ -465,19 +503,19 @@ export default async function MaterialDetailPage({
               <CardDescription>{t("verifiedSuppliers")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {suppliers.length === 0 ? (
+              {suppliersView.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   {t("noSuppliers")}
                 </p>
               ) : (
-                suppliers.map((s) => (
+                suppliersView.map((s) => (
                   <Link
                     key={s.id}
                     href={`/suppliers#${s.id}` as "/suppliers"}
                     className="block rounded-md border px-3 py-2 text-sm hover:bg-muted"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="font-medium">{s.name}</div>
+                      <div className="font-medium">{isEn ? s.nameEn ?? s.name : s.name}</div>
                       {s.verified && (
                         <Badge
                           variant="outline"
@@ -488,7 +526,7 @@ export default async function MaterialDetailPage({
                       )}
                     </div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
-                      {s.location}
+                      {(isEn ? s.locationEn : s.location) ?? ""}
                     </div>
                   </Link>
                 ))

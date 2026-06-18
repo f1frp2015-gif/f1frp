@@ -132,10 +132,10 @@ function IngredientTable({
           <TableBody>
             {items.map((item, i) => {
               const matId = materialMap[item.name];
-              const dispName = isEn && item.nameEn ? item.nameEn : item.name;
-              const dispRole = isEn && item.roleEn ? item.roleEn : item.role;
-              const dispAmount = isEn && item.amountEn ? item.amountEn : item.amount;
-              const dispNote = isEn ? item.noteEn ?? item.note : item.note;
+              const dispName = isEn ? item.nameEn ?? "" : item.name;
+              const dispRole = isEn ? item.roleEn ?? "" : item.role;
+              const dispAmount = isEn ? item.amountEn ?? "" : item.amount;
+              const dispNote = isEn ? item.noteEn ?? "" : item.note;
               return (
                 <TableRow key={i}>
                   <TableCell className="font-medium">
@@ -181,12 +181,12 @@ function FormulaDetail({
   const t = useTranslations("Formulas");
   const locale = useLocale();
   const isEn = locale === "en";
-  const tips = isEn && formula.tipsEn?.length ? formula.tipsEn : formula.tips;
-  const safetyNotes = isEn && formula.safetyNotesEn?.length ? formula.safetyNotesEn : formula.safetyNotes;
+  const tips = isEn ? formula.tipsEn ?? [] : formula.tips;
+  const safetyNotes = isEn ? formula.safetyNotesEn ?? [] : formula.safetyNotes;
   return (
     <div className="space-y-5 pb-2">
       <p className="text-sm leading-relaxed text-muted-foreground">
-        {isEn && formula.descriptionEn ? formula.descriptionEn : formula.description}
+        {isEn ? formula.descriptionEn ?? "" : formula.description}
       </p>
 
       <IngredientTable title={t("sectionResin")} num={1} items={formula.resinSystem} amountHead={t("colAmount")} materialMap={materialMap} />
@@ -203,8 +203,8 @@ function FormulaDetail({
             <div className="space-y-1.5">
               {formula.processing.map((p, i) => (
                 <div key={i} className="flex items-start justify-between gap-2 rounded-md bg-muted/50 px-3 py-2">
-                  <span className="text-xs text-muted-foreground">{isEn && p.nameEn ? p.nameEn : p.name}</span>
-                  <span className="shrink-0 text-right text-xs font-medium">{isEn && p.valueEn ? p.valueEn : p.value}</span>
+                  <span className="text-xs text-muted-foreground">{isEn ? p.nameEn ?? "" : p.name}</span>
+                  <span className="shrink-0 text-right text-xs font-medium">{isEn ? p.valueEn ?? "" : p.value}</span>
                 </div>
               ))}
             </div>
@@ -220,9 +220,9 @@ function FormulaDetail({
             <div className="space-y-1.5">
               {formula.properties.map((p, i) => (
                 <div key={i} className="flex items-start justify-between gap-2 rounded-md bg-muted/50 px-3 py-2">
-                  <span className="text-xs text-muted-foreground">{isEn && p.nameEn ? p.nameEn : p.name}</span>
+                  <span className="text-xs text-muted-foreground">{isEn ? p.nameEn ?? "" : p.name}</span>
                   <div className="shrink-0 text-right">
-                    <span className="text-xs font-medium">{isEn && p.valueEn ? p.valueEn : p.value}</span>
+                    <span className="text-xs font-medium">{isEn ? p.valueEn ?? "" : p.value}</span>
                     {p.standard && <span className="ml-1 text-[10px] text-muted-foreground">({p.standard})</span>}
                   </div>
                 </div>
@@ -284,6 +284,12 @@ export function FormulasClient({
   const t = useTranslations("Formulas");
   const locale = useLocale();
   const isEn = locale === "en";
+  // getfrp.com (en): only surface formulas that have an English name, so the
+  // list / groups / stats never render Chinese. Untranslated rows are hidden
+  // until backfilled (translate-all-zh.ts).
+  const displayFormulas = isEn
+    ? formulas.filter((f) => f.nameEn && f.nameEn.trim())
+    : formulas;
   const [search, setSearch] = useState("");
   const [activeProcess, setActiveProcess] = useState("all");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -313,7 +319,7 @@ export function FormulasClient({
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return formulas.filter((f) => {
+    return displayFormulas.filter((f) => {
       const matchSearch =
         !q ||
         f.name.toLowerCase().includes(q) ||
@@ -328,19 +334,19 @@ export function FormulasClient({
       const matchCategory = activeCategory === "all" || f.category === activeCategory;
       return matchSearch && matchProcess && matchCategory;
     });
-  }, [formulas, search, activeProcess, activeCategory]);
+  }, [displayFormulas, search, activeProcess, activeCategory]);
 
   const groupedByProcess = useMemo(() => {
     return filtered.reduce<Record<string, SerializedFormula[]>>((acc, f) => {
-      const proc = isEn && f.processEn ? f.processEn : f.process;
+      const proc = isEn ? f.processEn ?? "" : f.process;
       const key = proc || (isEn ? "Ungrouped" : "未分组");
       (acc[key] ||= []).push(f);
       return acc;
     }, {});
   }, [filtered, isEn]);
 
-  const beginners = formulas.filter((f) => f.difficulty === "入门").length;
-  const advanced = formulas.filter((f) => f.difficulty === "高级").length;
+  const beginners = displayFormulas.filter((f) => f.difficulty === "入门").length;
+  const advanced = displayFormulas.filter((f) => f.difficulty === "高级").length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -350,7 +356,7 @@ export function FormulasClient({
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{formulas.length}</div><div className="text-xs text-muted-foreground">{t("statTotal")}</div></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{displayFormulas.length}</div><div className="text-xs text-muted-foreground">{t("statTotal")}</div></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{processFilters.length - 1}</div><div className="text-xs text-muted-foreground">{t("statProcesses")}</div></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{beginners}</div><div className="text-xs text-muted-foreground">{t("statBeginner")}</div></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><div className="text-2xl font-bold">{advanced}</div><div className="text-xs text-muted-foreground">{t("statAdvanced")}</div></CardContent></Card>
@@ -421,16 +427,17 @@ export function FormulasClient({
               >
                 <AccordionTrigger className="py-4">
                   <div className="flex flex-1 flex-col items-start gap-1.5 pr-4 text-left sm:flex-row sm:items-center sm:gap-3">
-                    <span className="font-semibold">{isEn && f.nameEn ? f.nameEn : f.name}</span>
+                    <span className="font-semibold">{isEn ? f.nameEn ?? "" : f.name}</span>
                     <div className="flex flex-wrap gap-1.5">
                       <DifficultyBadge level={f.difficulty} />
-                      {(isEn && f.applicationEn ? f.applicationEn : f.application) && (
-                        <Badge variant="outline" className="text-[10px]">
-                          {(isEn && f.applicationEn ? f.applicationEn : f.application).split(
-                            isEn ? "," : "、",
-                          )[0]}
-                        </Badge>
-                      )}
+                      {(() => {
+                        const app = isEn ? f.applicationEn ?? "" : f.application;
+                        return app ? (
+                          <Badge variant="outline" className="text-[10px]">
+                            {app.split(isEn ? "," : "、")[0]}
+                          </Badge>
+                        ) : null;
+                      })()}
                     </div>
                   </div>
                 </AccordionTrigger>

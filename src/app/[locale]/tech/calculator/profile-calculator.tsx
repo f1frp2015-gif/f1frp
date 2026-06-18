@@ -418,8 +418,8 @@ export default function ProfileCalculator() {
                 <thead>
                   <tr className="border-b-2">
                     <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("calculator.colProp")}</th>
-                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">{srcMat.label}</th>
-                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-primary">{tgtMat.label}</th>
+                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">{lab(srcMat)}</th>
+                    <th className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-primary">{lab(tgtMat)}</th>
                   </tr>
                 </thead>
                 <tbody>

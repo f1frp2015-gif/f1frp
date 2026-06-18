@@ -51,10 +51,15 @@ export default async function DownloadsPage({
 
   const typeLabels = t.raw("types") as Record<string, string>;
 
-  const rows = await db
+  const allRows = await db
     .select()
     .from(downloads)
     .orderBy(desc(downloads.createdAt));
+  // getfrp.com (en): only list downloads that have an English title, so we
+  // never render a Chinese title/description.
+  const rows = isEn
+    ? allRows.filter((d) => d.titleEn && d.titleEn.trim())
+    : allRows;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -93,14 +98,14 @@ export default async function DownloadsPage({
             <Card key={d.id}>
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base">{(isEn ? d.titleEn ?? d.title : d.title)}</CardTitle>
+                  <CardTitle className="text-base">{isEn ? d.titleEn : d.title}</CardTitle>
                   <Badge variant="outline" className="shrink-0 text-[10px] uppercase">
                     {typeLabels[d.type] ?? d.type}
                   </Badge>
                 </div>
-                {(isEn ? d.descriptionEn ?? d.description : d.description) && (
+                {(isEn ? d.descriptionEn : d.description) && (
                   <CardDescription className="line-clamp-2">
-                    {(isEn ? d.descriptionEn ?? d.description : d.description)}
+                    {isEn ? d.descriptionEn : d.description}
                   </CardDescription>
                 )}
               </CardHeader>

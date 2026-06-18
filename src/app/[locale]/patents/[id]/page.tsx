@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { and, desc, eq, ne, or } from "drizzle-orm";
+import { and, desc, eq, ne, or, isNotNull } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
@@ -109,12 +109,21 @@ export default async function PatentDetailPage({
           id: patentsTable.id,
           slug: patentsTable.slug,
           title: patentsTable.title,
+          titleEn: patentsTable.titleEn,
           country: patentsTable.country,
+          countryEn: patentsTable.countryEn,
           filingDate: patentsTable.filingDate,
         })
         .from(patentsTable)
         .where(
-          and(eq(patentsTable.category, p.category), ne(patentsTable.id, p.id))
+          and(
+            eq(patentsTable.category, p.category),
+            ne(patentsTable.id, p.id),
+            // getfrp.com (en) must not surface Chinese-only related patents
+            ...(isEn
+              ? [isNotNull(patentsTable.titleEn), ne(patentsTable.titleEn, "")]
+              : []),
+          )
         )
         .orderBy(desc(patentsTable.filingDate))
         .limit(6)
@@ -301,9 +310,11 @@ export default async function PatentDetailPage({
                   href={`/patents/${encodeURIComponent(r.slug ?? r.id)}` as never}
                   className="rounded-md border bg-muted/30 p-3 text-sm transition-colors hover:border-primary/40 hover:bg-muted/60"
                 >
-                  <div className="line-clamp-2 font-medium">{r.title}</div>
+                  <div className="line-clamp-2 font-medium">
+                    {isEn ? r.titleEn ?? r.title : r.title}
+                  </div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {r.country ?? ""}
+                    {(isEn ? r.countryEn : r.country) ?? ""}
                     {r.filingDate ? ` · ${r.filingDate}` : ""}
                   </div>
                 </Link>

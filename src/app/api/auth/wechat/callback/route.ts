@@ -40,64 +40,72 @@ export async function GET(req: NextRequest) {
     return fail("error");
   }
 
-  // find-or-create:优先 unionid(跨应用唯一),否则退回 openid
-  let uid: string | undefined;
-  if (unionId) {
-    const [byUnion] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.wechatUnionId, unionId))
-      .limit(1);
-    uid = byUnion?.id;
-  }
-  if (!uid) {
-    const [byOpen] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.wechatOpenId, openId))
-      .limit(1);
-    uid = byOpen?.id;
-  }
-
-  if (uid) {
-    await db
-      .update(users)
-      .set({
-        wechatOpenId: openId,
-        wechatUnionId: unionId ?? null,
-        name: nickname ?? undefined,
-        avatarUrl: avatar ?? undefined,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, uid));
-  } else {
-    const [created] = await db
-      .insert(users)
-      .values({
-        wechatOpenId: openId,
-        wechatUnionId: unionId ?? null,
-        name: nickname ?? null,
-        avatarUrl: avatar ?? null,
-        role: "individual",
-      })
-      .onConflictDoNothing()
-      .returning({ id: users.id });
-    uid = created?.id;
-    if (!uid && unionId) {
-      const [again] = await db
+  // find-or-create + 签发会话整段包 try/catch:DB 异常(如生产库未跑
+  // 2026-06-06-self-built-auth 迁移、缺 wechat_union_id 列)或会话签名失败
+  // (AUTH_SESSION_SECRET 未配置)时,优雅退回登录页,而非抛未捕获异常变 500。
+  try {
+    // 优先 unionid(跨应用唯一),否则退回 openid
+    let uid: string | undefined;
+    if (unionId) {
+      const [byUnion] = await db
         .select({ id: users.id })
         .from(users)
         .where(eq(users.wechatUnionId, unionId))
         .limit(1);
-      uid = again?.id;
+      uid = byUnion?.id;
     }
+    if (!uid) {
+      const [byOpen] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.wechatOpenId, openId))
+        .limit(1);
+      uid = byOpen?.id;
+    }
+
+    if (uid) {
+      await db
+        .update(users)
+        .set({
+          wechatOpenId: openId,
+          wechatUnionId: unionId ?? null,
+          name: nickname ?? undefined,
+          avatarUrl: avatar ?? undefined,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, uid));
+    } else {
+      const [created] = await db
+        .insert(users)
+        .values({
+          wechatOpenId: openId,
+          wechatUnionId: unionId ?? null,
+          name: nickname ?? null,
+          avatarUrl: avatar ?? null,
+          role: "individual",
+        })
+        .onConflictDoNothing()
+        .returning({ id: users.id });
+      uid = created?.id;
+      if (!uid && unionId) {
+        const [again] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.wechatUnionId, unionId))
+          .limit(1);
+        uid = again?.id;
+      }
+    }
+
+    if (!uid) return fail("error");
+
+    const res = NextResponse.redirect(`${origin}${redirectAfter}`);
+    await issueSession(res, uid);
+    res.cookies.delete("wx_state");
+    res.cookies.delete("wx_redirect");
+    return res;
+  } catch (e) {
+    console.error("[wechat/callback] post-auth failed:", e instanceof Error ? e.message : e);
+    return fail("error");
   }
-
-  if (!uid) return fail("error");
-
-  const res = NextResponse.redirect(`${origin}${redirectAfter}`);
-  await issueSession(res, uid);
-  res.cookies.delete("wx_state");
-  res.cookies.delete("wx_redirect");
-  return res;
 }

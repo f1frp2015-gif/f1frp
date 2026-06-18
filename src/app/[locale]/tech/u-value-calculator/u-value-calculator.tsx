@@ -313,7 +313,7 @@ export default function UValueCalculator() {
             <tbody>
               {frameSystems.map((f) => (
                 <tr key={f.id} className={`border-b ${f.id.startsWith("frp") ? "bg-primary/5" : ""}`}>
-                  <td className="py-2 pr-5">{f.label}</td>
+                  <td className="py-2 pr-5">{lab(f)}</td>
                   <td className="py-2 pr-5 font-medium">{f.Uf}</td>
                   <td className="py-2 pr-5 text-muted-foreground">{f.depth}</td>
                   <td className="py-2 pr-5 text-muted-foreground">{f.faceWidth}</td>
