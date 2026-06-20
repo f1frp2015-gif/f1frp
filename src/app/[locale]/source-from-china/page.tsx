@@ -712,6 +712,11 @@ export default async function SourceFromChinaPage({
               title: "GB ⇄ ASTM ⇄ ISO ⇄ EN test method crosswalk",
               sub: "30+ FRP test methods mapped side-by-side",
             },
+            {
+              slug: "china-frp-import-tariffs",
+              title: "China FRP import tariffs & anti-dumping",
+              sub: "MFN duty, EU GFF AD 34–69%, Section 301, CBAM — scoped honestly",
+            },
           ].map((it) => (
             <Link
               key={it.slug}

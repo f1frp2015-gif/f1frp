@@ -399,6 +399,102 @@ export const sourcingTopics: SourcingTopic[] = [
       { label: "Process wiki & calculators", href: "/tech" },
     ],
   },
+  {
+    slug: "china-frp-import-tariffs",
+    pillar: "compliance",
+    title:
+      "China FRP import tariffs, anti-dumping & Section 301 — what actually applies",
+    intro:
+      "A plain-English map of the duties that hit Chinese FRP/GFRP on import into the US, EU and Canada — MFN tariffs, anti-dumping/countervailing (AD/CVD), Section 301 and CBAM — and, just as important, which ones do NOT apply to ordinary pultruded profiles.",
+    deck:
+      "The biggest landed-cost surprise on a first Chinese FRP import is a trade-remedy duty nobody priced in. But the headline numbers — EU anti-dumping of 34–69%, US Section 301 of 25% — are scoped to specific products (glass-fibre fabric, fiberglass door panels), not to every FRP part. This page separates the duty that always applies (the MFN tariff) from the conditional ones (AD/CVD, Section 301) that depend on HS classification and country of origin, and names the authoritative measures so you can verify each one yourself before you commit.",
+    metaTitle: "China FRP import tariffs & anti-dumping duty — US / EU / Canada",
+    metaDescription:
+      "Do anti-dumping or Section 301 duties apply to Chinese FRP? MFN tariffs by HS code (3916 / 3925 / 7019), EU glass-fibre AD 34–69%, US door-panel AD/CVD, the 2026-11-10 Section 301 cliff, and CBAM — scoped honestly for pultruded profiles, with sources.",
+    stats: [
+      { label: "MFN import duty, FRP profiles", value: "≈ 5–6.5% of CIF" },
+      { label: "EU anti-dumping, glass-fibre fabric", value: "34–69%" },
+      { label: "US Section 301 exclusion expiry", value: "2026-11-10" },
+      { label: "Markets mapped", value: "US · EU · Canada" },
+    ],
+    takeaways: [
+      "The MFN duty that always applies by HS chapter (3916 profiles, 3925 grating/panel, 7019 glass fibre)",
+      "Why EU anti-dumping (34–69%) hits glass-fibre FABRIC, not pultruded profiles — and when a profile can still get caught",
+      "What the 2026-11-10 Section 301 exclusion expiry means for US-bound FRP",
+      "Where CBAM, Buy America and ICC-ES quietly block or tax an order before tariffs even apply",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy:
+      "Cross-checked against EUR-Lex, the US Federal Register and USTR notices. Trade-remedy figures are ceilings, not quotes — verify HS classification and country of origin per shipment.",
+    reviewedDate: "2026-06",
+    sections: [
+      {
+        heading: "The duty that always applies: MFN import tariff by HS code",
+        body: [
+          "Every FRP import pays the most-favoured-nation (MFN) import duty for its HS chapter, independent of any anti-dumping case. For Chinese FRP the three chapters that matter are 3916 (pultruded profiles, rod, tube — the bulk of structural FRP), 3925 (gratings and building panels) and 7019 (glass fibre and its fabrics/rovings).",
+          "Indicative MFN rates as a share of CIF value: United States roughly 4.9–6.5% (3916 ≈ 6.5%, 3925 ≈ 5.3%, 7019 ≈ 4.9%); European Union roughly 6.0–6.5% across the three chapters; Canada roughly 0–6.5%, with 7019 glass fibre often entering duty-free. Treat these as order-of-magnitude: the exact line rate depends on the 8–10 digit subheading, which is only fixed once the spec is locked.",
+          "China currently rebates 13% export VAT on these HS chapters. That rebate is already priced into a normal FOB quote — it is not an extra discount to negotiate.",
+        ],
+      },
+      {
+        heading: "Anti-dumping & countervailing (AD/CVD): scoped, not blanket",
+        body: [
+          "This is where the alarming numbers live, and where most buyers misread the risk. The active EU measure — re-imposed and extended by Regulation (EU) 2026/1203 — is an anti-dumping duty of 34–69% on Chinese woven/stitched glass-fibre fabrics (GFF), an INPUT material under HS 7019. A 2026 anti-circumvention ruling extends that same China rate to GFF routed through Morocco and Türkiye, so a naive 'China+1' transhipment does not escape it.",
+          "Crucially, this duty is on the glass-fibre fabric itself — not on a finished pultruded profile, grating or rod. A pultruded I-beam (HS 3916) is generally outside the GFF scope. It can still be caught if it is classified into a covered subheading or is treated as essentially un-pultruded fabric, which is exactly why HS classification and origin must be confirmed per shipment rather than assumed.",
+          "In the United States, an AD/CVD order on Chinese fiberglass door panels was finalized on 2026-06-15 (Federal Register) — again a specific finished product (HS 3925/3926), not profiles or grating. A separate EU countervailing measure on continuous-filament glass-fibre products (GFR, distinct from GFF fabric) is in sunset review, so its future rate is undecided; we treat it as an uncertainty flag, not a number.",
+          "Our rule, and the one we would urge any buyer to adopt: never assume a single hard AD/CVD rate for a pultruded profile. Report the ceiling of any measure that could apply, name the measure, and verify the HS classification and country of origin before committing. The figures above are indicative ceilings, not a quote.",
+        ],
+      },
+      {
+        heading: "US Section 301: the 2026-11-10 cliff",
+        body: [
+          "Section 301 is the China-specific US tariff layer that sits on top of MFN. After the November 2025 US–China understanding, USTR extended 178 product exclusions to 2026-11-10 (Federal Register, 2025-12-01). While an exclusion is in force, the affected HS lines avoid the extra 301 duty; once it lapses, some FRP-relevant lines (within 3916 / 3925 / 7019) could revert to an added duty of up to 25%.",
+          "Practically: if you are sourcing US-bound FRP for delivery near or after November 2026, build the scenario where Section 301 returns into your landed-cost model, and confirm your specific HTS line's exclusion status close to shipment rather than at the quote stage.",
+        ],
+      },
+      {
+        heading: "Before tariffs: the compliance walls that block or tax an order",
+        body: [
+          "CBAM (EU): any EU import triggers Carbon Border Adjustment reporting. FRP/GFRP is mostly glass and resin, so embedded carbon is low versus steel or aluminium, but the importer must still file — we supply the embedded-carbon documentation on shipment.",
+          "Buy America (US): on federally funded or public-infrastructure scope, Chinese-origin FRP is generally excluded under the Build America, Buy America Act (BABA). We flag this honestly and serve private/commercial scope instead, rather than risk a non-compliant order.",
+          "Fire rating: building and transit-interior uses usually require a fire class (US ASTM E84 Class A flame-spread; EU EN 13501-1 Euroclass). Fire-retardant resin systems exist but must be specified up front.",
+          "ICC-ES (US structural): code approval for load-bearing FRP often needs an ICC-ES Evaluation Report (ESR), which most Chinese pultruders do not hold — a design-by-test or alternative-means path may be required.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Are there anti-dumping duties on FRP imported from China?",
+        answer:
+          "Yes, but they are scoped to specific products, not all FRP. The EU levies 34–69% anti-dumping on Chinese woven/stitched glass-fibre FABRIC (HS 7019), extended to Morocco and Türkiye transhipment by Regulation (EU) 2026/1203. The US finalized AD/CVD on Chinese fiberglass DOOR PANELS on 2026-06-15. Ordinary pultruded profiles, rod and grating (HS 3916/3925) are usually outside these orders — but classification is case-by-case, so the HS code and origin must be verified per shipment.",
+      },
+      {
+        question: "What is the import duty on FRP grating or profiles from China?",
+        answer:
+          "The MFN (baseline) duty is roughly 5–6.5% of CIF value into the US or EU, and 0–6.5% into Canada, depending on HS chapter (3916 profiles, 3925 grating/panel, 7019 glass fibre). That is the duty that always applies; anti-dumping, countervailing and US Section 301 are conditional layers on top that depend on the exact product and origin.",
+      },
+      {
+        question: "Does US Section 301 apply to Chinese FRP profiles?",
+        answer:
+          "It can. Section 301 exclusions covering many FRP-relevant HS lines were extended to 2026-11-10. While an exclusion holds, the line avoids the extra 301 duty; after it lapses, some lines could revert to up to 25% on top of MFN. Confirm your specific HTS line's exclusion status close to shipment, especially for delivery near or after November 2026.",
+      },
+      {
+        question: "Does CBAM apply to FRP composites?",
+        answer:
+          "EU CBAM reporting applies to the import, but FRP/GFRP carries low embedded carbon — it is mostly glass and resin, not energy-intensive metal — so the carbon liability is small relative to steel or aluminium. The obligation is mainly documentary: the importer files, and we provide the embedded-carbon paperwork on shipment.",
+      },
+      {
+        question: "Can I use Chinese FRP on a US federal infrastructure project?",
+        answer:
+          "Generally no. Federally funded and public-infrastructure scope falls under Build America, Buy America (BABA), which excludes Chinese-origin material. We flag this up front and serve private/commercial scope instead — surfacing the constraint early beats discovering it at customs.",
+      },
+    ],
+    related: [
+      { label: "CBAM for Chinese FRP — buyer's compliance guide", href: "/sourcing/cbam-frp-china" },
+      { label: "Source FRP from China — directory & playbook", href: "/source-from-china" },
+      { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
+    ],
+  },
 ];
 
 export const sourcingTopicSlugs = sourcingTopics.map((t) => t.slug);
