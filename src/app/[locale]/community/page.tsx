@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { MessageCircle } from "lucide-react";
 import { JsonLd } from "@/components/json-ld";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -24,6 +25,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: alternates("/community"),
   };
 }
 

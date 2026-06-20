@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import UValueCalculator from "./u-value-calculator";
 import UValueCalculatorIntl from "./u-value-calculator-intl";
@@ -12,7 +13,11 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "Tech" });
   // getfrp.com(en)用国际标准版(uvalueIntl);f1frp.com(zh)用 JG/T 571 版(uvalue)
   const k = locale === "en" ? "uvalueIntl" : "uvalue";
-  return { title: t(`${k}.metaTitle`), description: t(`${k}.metaDescription`) };
+  return {
+    title: t(`${k}.metaTitle`),
+    description: t(`${k}.metaDescription`),
+    alternates: alternates("/tech/u-value-calculator"),
+  };
 }
 
 export default async function UValueCalculatorPage({

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { setRequestLocale } from "next-intl/server";
 
 export const revalidate = 86400;
@@ -15,6 +16,7 @@ export async function generateMetadata({
       locale === "en"
         ? "Terms governing your use of getfrp / f1frp."
         : "复材站使用条款。",
+    alternates: alternates("/terms"),
   };
 }
 

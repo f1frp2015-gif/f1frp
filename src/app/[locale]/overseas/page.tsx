@@ -4,6 +4,7 @@ import { sql, isNotNull } from "drizzle-orm";
 import { setRequestLocale } from "next-intl/server";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { ACTIVE_LOCALE } from "@/lib/sites";
+import { alternates } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/lib/db";
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
   title: "出海方案 — 全链路出海代理 | 复材站",
   description:
     "复材站作为出口实体接管整个出海流程 — 英文站、SEO、AI 询盘、商务谈判、报关、CBAM、退税全部由我们做,工厂只负责按图生产、按时交付。仅按成交订单 GMV 收费,不收年费、不签长约。想自己接询盘 → 见工厂 AI 助手 SaaS 工具。",
+  alternates: alternates("/overseas", { zhOnly: true }),
 };
 
 async function countOne(

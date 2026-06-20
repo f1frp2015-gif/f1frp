@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { setRequestLocale } from "next-intl/server";
 import { RfqForm } from "./rfq-form";
 
@@ -6,6 +7,7 @@ export const metadata: Metadata = {
   title: "Submit RFQ — China Composites Sourcing",
   description:
     "Tell us what you need to source from China — fibers, resins, equipment, molds, or finished composite parts. Our team responds within 24 hours.",
+  alternates: alternates("/rfq"),
 };
 
 export default async function RfqPage({

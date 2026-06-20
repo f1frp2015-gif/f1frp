@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import {
   Database,
   Network,
@@ -41,7 +42,11 @@ export async function generateMetadata({
     locale,
     namespace: "Platform.Stack.Data",
   });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: alternates("/platform/stack/data"),
+  };
 }
 
 export default async function DataPage({

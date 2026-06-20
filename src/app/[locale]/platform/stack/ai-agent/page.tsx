@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import {
   Bot,
   Quote,
@@ -39,7 +40,11 @@ export async function generateMetadata({
     locale,
     namespace: "Platform.Stack.AiAgent",
   });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: alternates("/platform/stack/ai-agent"),
+  };
 }
 
 export default async function AiAgentPage({

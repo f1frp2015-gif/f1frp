@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { setRequestLocale } from "next-intl/server";
 
 export const revalidate = 86400;
@@ -15,6 +16,7 @@ export async function generateMetadata({
       locale === "en"
         ? "How getfrp / f1frp collects, uses, and protects personal data — GDPR, CCPA and PIPL aligned."
         : "复材站如何收集、使用与保护您的个人数据。",
+    alternates: alternates("/privacy"),
   };
 }
 

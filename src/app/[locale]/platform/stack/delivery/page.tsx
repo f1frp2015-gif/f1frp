@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import {
   Workflow,
   Target,
@@ -44,7 +45,11 @@ export async function generateMetadata({
     locale,
     namespace: "Platform.Stack.Delivery",
   });
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: alternates("/platform/stack/delivery"),
+  };
 }
 
 export default async function DeliveryPage({

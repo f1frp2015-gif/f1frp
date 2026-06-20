@@ -12,8 +12,8 @@
 //   pnpm tsx scripts/seo-check.ts           # warn-only, exit 0
 //   pnpm tsx scripts/seo-check.ts --strict  # exit 1 on violations
 
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readFileSync, readdirSync } from "node:fs";
+import { resolve, join, relative } from "node:path";
 
 type Severity = "error" | "warn";
 
@@ -95,6 +95,66 @@ function checkKeyword(
   };
 }
 
+// Structural guard. The en.json length/keyword checks above can't see whether a
+// page actually emits a canonical + cross-domain hreflang — that lives in
+// page.tsx via @/lib/seo.alternates(), not in en.json. A page that sets
+// title/description but never calls alternates() inherits the layout default:
+// NO canonical, NO hreflang, and the homepage's og:title. This is the exact
+// regression that shipped on /formulas /trade /tech /matrix /ai /platform /rfq
+// (+ ~15 more) and was fixed 2026-06-20. This check fails the strict build if it
+// ever comes back.
+const APP_DIR = "src/app/[locale]";
+
+// Routes that legitimately ship no canonical/hreflang: auth-gated (noindex) or
+// pure redirects with no metadata.
+const ALT_EXEMPT: RegExp[] = [
+  /(^|\/)dashboard(\/|$)/,
+  /(^|\/)sign-in(\/|$)/,
+  /(^|\/)sign-up(\/|$)/,
+  /(^|\/)pricing(\/|$)/, // permanentRedirect, no metadata
+];
+
+function walkPageFiles(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walkPageFiles(p));
+    else if (entry.name === "page.tsx") out.push(p);
+  }
+  return out;
+}
+
+function checkAlternatesCoverage(): Violation[] {
+  const out: Violation[] = [];
+  const root = resolve(APP_DIR);
+  let files: string[];
+  try {
+    files = walkPageFiles(root);
+  } catch {
+    // App dir not found (e.g. invoked outside repo root) — skip silently rather
+    // than crash the build on an environment quirk.
+    return out;
+  }
+  for (const file of files) {
+    const rel = relative(root, file);
+    if (ALT_EXEMPT.some((re) => re.test(rel))) continue;
+    const src = readFileSync(file, "utf8");
+    const setsMeta = /generateMetadata|export const metadata/.test(src);
+    if (!setsMeta) continue;
+    if (!/alternates\(/.test(src)) {
+      const route = "/" + rel.replace(/\/?page\.tsx$/, "");
+      out.push({
+        page: route === "/" ? "/" : route.replace(/\/$/, ""),
+        field: "alternates",
+        severity: "error",
+        message:
+          "sets metadata but never calls alternates() — ships no canonical/hreflang (inherits layout default)",
+      });
+    }
+  }
+  return out;
+}
+
 function main() {
   const strict = process.argv.includes("--strict");
   const en = JSON.parse(
@@ -157,6 +217,9 @@ function main() {
       if (kw) violations.push(kw);
     }
   }
+
+  // Structural canonical/hreflang coverage across all page.tsx routes.
+  violations.push(...checkAlternatesCoverage());
 
   const errors = violations.filter((v) => v.severity === "error");
   const warns = violations.filter((v) => v.severity === "warn");

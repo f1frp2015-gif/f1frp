@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { and, gte, inArray, isNotNull } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -17,7 +18,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "CertifiedDirectory" });
-  return { title: t("metaTitle"), description: t("subtitle") };
+  return {
+    title: t("metaTitle"),
+    description: t("subtitle"),
+    alternates: alternates("/suppliers/certified"),
+  };
 }
 
 export const dynamic = "force-dynamic";

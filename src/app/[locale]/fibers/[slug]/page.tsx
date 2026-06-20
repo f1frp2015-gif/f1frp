@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { ilike, or, sql, desc } from "drizzle-orm";
 import {
@@ -50,6 +51,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle", { name }),
     description: t("metaDescription", { name }),
+    alternates: alternates(`/fibers/${slug}`),
   };
 }
 

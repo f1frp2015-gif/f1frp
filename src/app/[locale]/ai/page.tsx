@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { listAvailableChatModels } from "@/lib/ai/provider";
 import { AiAssistantClient } from "./ai-client";
@@ -13,6 +14,7 @@ export async function generateMetadata({
   return {
     title: t("pageTitle"),
     description: t("pageDescription"),
+    alternates: alternates("/ai"),
   };
 }
 

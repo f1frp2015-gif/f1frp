@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { alternates } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import ProfileCalculator from "./profile-calculator";
 
@@ -9,7 +10,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Tech" });
-  return { title: t("calculator.metaTitle"), description: t("calculator.metaDescription") };
+  return {
+    title: t("calculator.metaTitle"),
+    description: t("calculator.metaDescription"),
+    alternates: alternates("/tech/calculator"),
+  };
 }
 
 export default async function CalculatorPage({
