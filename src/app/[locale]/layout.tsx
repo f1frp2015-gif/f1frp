@@ -60,8 +60,8 @@ export async function generateMetadata({
   // which told Google that /about, /materials/{id}, /papers/{id} etc.
   // were all duplicates of the homepage — devastating for indexing.
   // Each page now sets its own canonical + hreflang via @/lib/seo
-  // (path-aware). The layout still owns og:url for the homepage; we
-  // explicitly use siteUrl for that one place.
+  // (path-aware). og:title / og:url / og:description are likewise NO LONGER
+  // set as layout defaults — see the openGraph block below for why.
   const title = `${brand} — ${tagline}`;
 
   return {
@@ -83,18 +83,25 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       locale: locale === "zh" ? "zh_CN" : "en_US",
-      url: siteUrl,
       siteName: brand,
-      title,
-      description,
+      // og:title / og:url / og:description are intentionally NOT set as layout
+      // defaults. In this Next build a child `openGraph` REPLACES the parent
+      // (it does not merge), and metadata.title does NOT propagate into
+      // og:title — so ANY page that doesn't call @/lib/seo.og() would inherit
+      // the HOMEPAGE's og:title + og:url, mislabelling every page as the
+      // homepage (the same class of bug as the old all-pages-canonical=root).
+      // Omitting them lets such pages fall back to their own <title> + <meta
+      // description> + canonical URL. Pages wanting a richer card set it
+      // explicitly via og(path, { title, description }).
       // og:image populated by src/app/[locale]/opengraph-image.tsx
       // (1200×630 dynamically generated — beats the old 512×512 logo
       // for social/SERP card CTR).
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      // twitter:title / :description omitted for the same reason as og:* above
+      // — they fall back to <title> + description (or to og:* where a page
+      // sets them). Avoids stamping the homepage title on every card.
     },
     robots: {
       index: true,
