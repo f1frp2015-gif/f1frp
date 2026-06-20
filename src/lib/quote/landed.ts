@@ -23,7 +23,7 @@ import {
   LEAD_TIME_DAYS,
   type TariffRegion,
 } from "@/lib/data/tariff";
-import { lookupTradeRemedy } from "@/lib/data/trade-remedy";
+import { lookupTradeRemedy, type TradeRemedyMeasure } from "@/lib/data/trade-remedy";
 
 export type LandedInput = {
   productCategory: ProductCategory;
@@ -65,7 +65,10 @@ export type LandedResult = {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const round0 = (n: number) => Math.round(n);
 
-export function computeLanded(input: LandedInput): LandedResult {
+export function computeLanded(
+  input: LandedInput,
+  opts?: { remedyMeasures?: TradeRemedyMeasure[] },
+): LandedResult {
   const cat = input.productCategory;
   const region = normalizeRegion(input.destinationCountry);
   const hs = hsForCategory(cat);
@@ -98,7 +101,7 @@ export function computeLanded(input: LandedInput): LandedResult {
 
   // 7) 贸易救济敞口(AD/CVD/301):指示性上限,low 端 = base DDP(可能不在 scope),
   //    high 端 = base + 敞口上限。是否真适用取决于逐单 HS 归类 + 原产地(见 trade-remedy.ts)。
-  const remedy = lookupTradeRemedy({ hs, destination: region, category: cat });
+  const remedy = lookupTradeRemedy({ hs, destination: region, category: cat, measures: opts?.remedyMeasures });
   let ddpWithRemedyR: UsdRange | undefined;
   if (remedy.measures.length) {
     const adHigh = remedy.exposureMaxPct / 100; // exposureMin 恒为 0

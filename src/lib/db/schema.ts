@@ -1553,3 +1553,46 @@ export const sourcingBriefs = pgTable(
 
 export type SourcingBrief = typeof sourcingBriefs.$inferSelect;
 export type NewSourcingBrief = typeof sourcingBriefs.$inferInsert;
+
+// ═══════════════════════════════════════════
+// D3/v2 · 贸易救济(AD/CVD)情报 — 人工终审的可更新版
+//   静态种子在 src/lib/data/trade-remedy.ts 作 fallback;本表 published 行覆盖之。
+//   维护:f1frp-trade-remedy-digest 技能写 draft → 人工 publish(scripts/publish-trade-remedy.ts)。
+// ═══════════════════════════════════════════
+export const tradeRemedyReviewStatusEnum = pgEnum("trade_remedy_review_status", ["draft", "published"]);
+
+export const tradeRemedyMeasures = pgTable(
+  "trade_remedy_measures",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    measureId: varchar("measure_id", { length: 80 }).notNull(), // 稳定键,如 eu-cn-glassfiber-fabric-ad
+    destination: varchar("destination", { length: 8 }).notNull(), // US | EU | CA | OTHER
+    origin: varchar("origin", { length: 40 }).notNull(),
+    productScope: varchar("product_scope", { length: 200 }).notNull(),
+    scopeEn: varchar("scope_en", { length: 200 }),
+    hsCodes: jsonb("hs_codes").$type<string[]>().notNull(),
+    appliesTo: jsonb("applies_to").$type<string[]>().notNull(),
+    kind: varchar("kind", { length: 20 }).notNull(),
+    rateMaxBp: integer("rate_max_bp").default(0).notNull(), // 从价税上限,基点(2540 = 25.4%);0=复审/待定
+    basis: varchar("basis", { length: 80 }),
+    measureStatus: varchar("measure_status", { length: 20 }).notNull(), // in_force | preliminary | sunset_review | expiring | expired
+    effectiveFrom: date("effective_from"),
+    expiresOn: date("expires_on"),
+    sunsetReview: date("sunset_review"),
+    source: jsonb("source").$type<{ name: string; url?: string; retrievedOn: string }>(),
+    caveat: text("caveat"),
+    reviewStatus: tradeRemedyReviewStatusEnum("review_status").default("draft").notNull(),
+    generatedBy: varchar("generated_by", { length: 40 }), // manual | seed | skill:trade-remedy-digest | 模型名
+    reviewerId: uuid("reviewer_id").references(() => users.id),
+    publishedAt: timestamp("published_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("trade_remedy_review_dest_idx").on(table.reviewStatus, table.destination),
+    index("trade_remedy_measure_id_idx").on(table.measureId),
+  ],
+);
+
+export type TradeRemedyMeasureRow = typeof tradeRemedyMeasures.$inferSelect;
+export type NewTradeRemedyMeasureRow = typeof tradeRemedyMeasures.$inferInsert;

@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { PRODUCT_CATEGORIES, type ProductCategory } from "@/lib/sourcing/spec";
 import { computeLanded } from "@/lib/quote/landed";
+import { loadPublishedRemedies } from "@/lib/data/trade-remedy-db";
 
 // Sourcing Desk · step 3 — "Indicative Landed Cost (USD)".
 // Given a buyer's spec + destination, returns USD FOB / CIF / DDP RANGES via the
@@ -34,7 +35,9 @@ export function makeLandedCostTool() {
         .describe("Precise ex-works 含税 ¥/kg if already known (e.g. from the quote engine). Omit to use a category reference (confidence drops to 'low')."),
     }),
     execute: async (input) => {
-      const r = computeLanded(input);
+      // v2:注入"可更新版"已发布措施(DB);空/失败 → computeLanded 内部回退静态种子。
+      const remedyMeasures = await loadPublishedRemedies();
+      const r = computeLanded(input, { remedyMeasures });
       return {
         hs: r.hs,
         region: r.region,

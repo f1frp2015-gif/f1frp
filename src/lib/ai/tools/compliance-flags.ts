@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { PRODUCT_CATEGORIES, type ProductCategory } from "@/lib/sourcing/spec";
 import { evaluateCompliance } from "@/lib/data/compliance-rules";
+import { loadPublishedRemedies } from "@/lib/data/trade-remedy-db";
 
 // Sourcing Desk · step 4 — "Compliance Flags".
 // Given destination + application, returns regulatory red flags for sourcing
@@ -31,7 +32,8 @@ export function makeComplianceFlagsTool() {
         .describe("FRP product family (optional context)."),
     }),
     execute: async (input) => {
-      const flags = evaluateCompliance(input);
+      const remedyMeasures = await loadPublishedRemedies();
+      const flags = evaluateCompliance(input, { remedyMeasures });
       const blocks = flags.filter((f) => f.severity === "block");
       return {
         destinationCountry: input.destinationCountry ?? null,

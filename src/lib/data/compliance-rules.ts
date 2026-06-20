@@ -7,7 +7,7 @@
 
 import type { ProductCategory } from "@/lib/sourcing/spec";
 import { normalizeRegion } from "@/lib/data/tariff";
-import { lookupTradeRemedy } from "@/lib/data/trade-remedy";
+import { lookupTradeRemedy, type TradeRemedyMeasure } from "@/lib/data/trade-remedy";
 
 export type FlagSeverity = "block" | "doc-needed" | "check";
 
@@ -29,7 +29,10 @@ const STRUCTURAL_RE = /structural|load.?bearing|beam|column|deck|bridge|承重|�
 
 // Evaluate the deterministic rule table against destination + application.
 // Order: hard blocks first, then doc-needed, then checks.
-export function evaluateCompliance(input: ComplianceInput): ComplianceFlag[] {
+export function evaluateCompliance(
+  input: ComplianceInput,
+  opts?: { remedyMeasures?: TradeRemedyMeasure[] },
+): ComplianceFlag[] {
   const region = normalizeRegion(input.destinationCountry);
   const app = input.application ?? "";
   const flags: ComplianceFlag[] = [];
@@ -76,7 +79,7 @@ export function evaluateCompliance(input: ComplianceInput): ComplianceFlag[] {
 
   // Trade remedy (AD/CVD / Section 301) — 玻纤反倾销/反补贴是中国 FRP 落地成本头号不确定性。
   // 只报"潜在敞口 + 逐单核 HS"，绝不断言硬税率(见 trade-remedy.ts)。
-  const remedy = lookupTradeRemedy({ destination: region, category: input.productCategory });
+  const remedy = lookupTradeRemedy({ destination: region, category: input.productCategory, measures: opts?.remedyMeasures });
   if (remedy.measures.length) {
     flags.push({
       type: "trade_remedy",

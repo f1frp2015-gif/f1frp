@@ -140,10 +140,13 @@ export function lookupTradeRemedy(args: {
   destination: TariffRegion;
   origin?: string;
   category?: ProductCategory;
+  /** 可注入"可更新版"措施(来自 DB published);为空 → 回退静态种子 TRADE_REMEDIES。 */
+  measures?: TradeRemedyMeasure[];
 }): RemedyExposure {
   const { destination, category } = args;
   const hs = args.hs ?? (category ? hsForCategory(category) : undefined);
-  const measures = TRADE_REMEDIES.filter((m) => {
+  const pool = args.measures && args.measures.length ? args.measures : TRADE_REMEDIES;
+  const measures = pool.filter((m) => {
     if (m.destination !== destination) return false;
     if (m.status === "expired") return false;
     const byCat = category ? m.appliesTo.includes(category) : false;
