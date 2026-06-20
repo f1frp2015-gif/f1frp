@@ -14,7 +14,7 @@ export function makeComplianceFlagsTool() {
     description:
       "Surface regulatory / compliance red flags for sourcing a Chinese FRP product to a given country + end-use. " +
       "Call this once you know the destination and the application — e.g. 'is this OK for a US federal bridge?', 'any issues importing FRP grating to the EU?', '出口到美国/欧盟有什么合规问题'. " +
-      "Returns a list of flags, each {type, severity (block / doc-needed / check), message}: buy_america (US federally-funded → Chinese FRP excluded → BLOCK), cbam (EU import → carbon docs needed), fire (building/transit → fire rating ASTM E84 / EN 13501), icc_es (US structural building → ICC-ES ESR often missing). " +
+      "Returns a list of flags, each {type, severity (block / doc-needed / check), message}: buy_america (US federally-funded → Chinese FRP excluded → BLOCK), cbam (EU import → carbon docs needed), fire (building/transit → fire rating ASTM E84 / EN 13501), icc_es (US structural building → ICC-ES ESR often missing), trade_remedy (玻纤 AD/CVD / Section 301 潜在敞口 → 逐单核 HS 归类，pass the message verbatim, never assert a hard duty rate). " +
       "Report EVERY flag honestly — especially blocks; do NOT downplay a 'block'. If there are no flags, say the obvious regulatory hard-walls look clear but final compliance is confirmed by the F1 Composite (曜一) team. ALWAYS pass through `caveat`.",
     inputSchema: z.object({
       destinationCountry: z

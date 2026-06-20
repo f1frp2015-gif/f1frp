@@ -7,11 +7,12 @@
 
 import type { ProductCategory } from "@/lib/sourcing/spec";
 import { normalizeRegion } from "@/lib/data/tariff";
+import { lookupTradeRemedy } from "@/lib/data/trade-remedy";
 
 export type FlagSeverity = "block" | "doc-needed" | "check";
 
 export type ComplianceFlag = {
-  type: "buy_america" | "cbam" | "fire" | "icc_es";
+  type: "buy_america" | "cbam" | "fire" | "icc_es" | "trade_remedy";
   severity: FlagSeverity;
   message: string;
 };
@@ -70,6 +71,17 @@ export function evaluateCompliance(input: ComplianceInput): ComplianceFlag[] {
       severity: "check",
       message:
         "US structural/building use: code approval may require an ICC-ES Evaluation Report (ESR). Most Chinese pultruders lack an ESR — we flag this honestly; design-by-test or an alternative-means path may be needed.",
+    });
+  }
+
+  // Trade remedy (AD/CVD / Section 301) — 玻纤反倾销/反补贴是中国 FRP 落地成本头号不确定性。
+  // 只报"潜在敞口 + 逐单核 HS"，绝不断言硬税率(见 trade-remedy.ts)。
+  const remedy = lookupTradeRemedy({ destination: region, category: input.productCategory });
+  if (remedy.measures.length) {
+    flags.push({
+      type: "trade_remedy",
+      severity: remedy.exposureMaxPct > 0 ? "doc-needed" : "check",
+      message: remedy.warning,
     });
   }
 

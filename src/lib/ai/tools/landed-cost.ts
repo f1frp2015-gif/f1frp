@@ -17,7 +17,7 @@ export function makeLandedCostTool() {
       "Call this after feasibility_match, when the buyer wants a price ballpark — e.g. 'how much would that cost landed in the US?', 'ballpark DDP price?', '到岸价大概多少'. " +
       "Returns fobUsdPerKg / cifUsdPerKg / ddpUsdPerKg ranges (and totals when quantityKg is known), lead time, the cost-ladder basis, and a confidence level. " +
       "Pass exWorksCnyPerKg ONLY if a precise ex-works ¥/kg is already known (e.g. from a prior quote); otherwise omit it and the tool uses a category reference (lower confidence). " +
-      "ALWAYS present it as a RANGE and ALWAYS pass through `caveat` verbatim — it is indicative, excludes anti-dumping / Section 301 / origin surcharges, and is not a binding quote. For feasibility/suppliers use feasibility_match; for regulatory blockers use the compliance tool.",
+      "ALWAYS present it as a RANGE and ALWAYS pass through `caveat` verbatim. When `remedyWarning` is present, ALSO surface `ddpWithRemedyUsdPerKg` (the AD/CVD / Section-301 exposure CEILING) and pass `remedyWarning` verbatim — whether it applies and the exact rate depend on per-order HS classification + origin, so NEVER assert a hard duty rate yourself. It is indicative, not a binding quote. For feasibility/suppliers use feasibility_match; for regulatory blockers use compliance_flags.",
     inputSchema: z.object({
       productCategory: z
         .enum([...PRODUCT_CATEGORIES] as [ProductCategory, ...ProductCategory[]])
@@ -45,12 +45,22 @@ export function makeLandedCostTool() {
         fobUsdTotal: r.fobUsdTotal,
         cifUsdTotal: r.cifUsdTotal,
         ddpUsdTotal: r.ddpUsdTotal,
+        ddpWithRemedyUsdPerKg: r.ddpWithRemedyUsdPerKg ?? null,
+        ddpWithRemedyUsdTotal: r.ddpWithRemedyUsdTotal ?? null,
+        adCvdPct: r.adCvdPct ?? null,
+        remedyMeasures: r.remedyMeasures ?? null,
+        remedyUncertain: r.remedyUncertain ?? null,
+        remedyWarning: r.remedyWarning ?? null,
         leadTimeDays: r.leadTimeDays,
         confidence: r.confidence,
         summary:
           `${input.productCategory} → ${r.region}: DDP ≈ $${r.ddpUsdPerKg.low}–${r.ddpUsdPerKg.high}/kg` +
           (r.ddpUsdTotal ? ` (total ≈ $${r.ddpUsdTotal.low}–${r.ddpUsdTotal.high})` : "") +
-          `; FOB $${r.fobUsdPerKg.low}–${r.fobUsdPerKg.high}/kg, CIF $${r.cifUsdPerKg.low}–${r.cifUsdPerKg.high}/kg; lead ~${r.leadTimeDays}d. ${r.basis}`,
+          `; FOB $${r.fobUsdPerKg.low}–${r.fobUsdPerKg.high}/kg, CIF $${r.cifUsdPerKg.low}–${r.cifUsdPerKg.high}/kg; lead ~${r.leadTimeDays}d.` +
+          (r.ddpWithRemedyUsdPerKg
+            ? ` ⚠️ 含贸易救济敞口上限 DDP 可达 $${r.ddpWithRemedyUsdPerKg.low}–${r.ddpWithRemedyUsdPerKg.high}/kg。${r.remedyWarning ?? ""}`
+            : "") +
+          ` ${r.basis}`,
         basis: r.basis,
         caveat: r.caveat,
       };

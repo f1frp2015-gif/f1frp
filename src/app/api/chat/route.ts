@@ -24,6 +24,7 @@ import { makeLandedCostTool } from "@/lib/ai/tools/landed-cost";
 import { makeComplianceFlagsTool } from "@/lib/ai/tools/compliance-flags";
 import { makeCreateSourcingBriefTool } from "@/lib/ai/tools/create-sourcing-brief";
 import { makeExportExcelTool } from "@/lib/ai/tools/export-excel";
+import { applyRedlines } from "@/lib/ai/guards/redlines";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
 import {
   consumeAnonChatCredit,
@@ -334,6 +335,20 @@ export async function POST(req: Request) {
       messages: await convertToModelMessages(chatMessages),
       maxOutputTokens: 2000,
       ...toolsConfig,
+      // G2 · 红线质检(回合结束 lint,不阻断流;高危违规写日志,供后续转人工/观测)。
+      onFinish: (event) => {
+        try {
+          const toolNames = (event.steps ?? []).flatMap((s) =>
+            (s.toolCalls ?? []).map((tc) => (tc as { toolName: string }).toolName),
+          );
+          const guard = applyRedlines({ host, finalText: event.text ?? "", toolNames });
+          if (!guard.passed) {
+            console.warn("[redlines]", JSON.stringify({ host, violations: guard.violations }));
+          }
+        } catch (err) {
+          console.error("[redlines] guard error:", err);
+        }
+      },
     });
 
     const streamResponse = result.toUIMessageStreamResponse({

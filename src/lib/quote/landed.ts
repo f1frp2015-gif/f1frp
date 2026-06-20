@@ -23,6 +23,7 @@ import {
   LEAD_TIME_DAYS,
   type TariffRegion,
 } from "@/lib/data/tariff";
+import { lookupTradeRemedy } from "@/lib/data/trade-remedy";
 
 export type LandedInput = {
   productCategory: ProductCategory;
@@ -48,6 +49,17 @@ export type LandedResult = {
   confidence: "low" | "medium";
   basis: string;
   caveat: string;
+  // D3 · 贸易救济(AD/CVD/301)敞口 —— 指示性上限,scope 取决于逐单 HS 归类。
+  /** 敞口区间 %（low 恒为 0：不确定是否在 scope；high = 上限）。仅有匹配措施时给出。 */
+  adCvdPct?: { low: number; high: number };
+  /** 含贸易救济上限的 DDP 区间（low = base DDP，high = base + 敞口上限）。 */
+  ddpWithRemedyUsdPerKg?: UsdRange;
+  ddpWithRemedyUsdTotal?: UsdRange | null;
+  /** 权威措施名（供模型引用、防臆造）。 */
+  remedyMeasures?: string[];
+  remedyUncertain?: boolean;
+  /** 人读预警，含"逐单核 HS 与原产地"。务必逐字透传给买家。 */
+  remedyWarning?: string;
 };
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -84,6 +96,16 @@ export function computeLanded(input: LandedInput): LandedResult {
   const ddpR = range(ddp);
   const qty = input.quantityKg && input.quantityKg > 0 ? input.quantityKg : null;
 
+  // 7) 贸易救济敞口(AD/CVD/301):指示性上限,low 端 = base DDP(可能不在 scope),
+  //    high 端 = base + 敞口上限。是否真适用取决于逐单 HS 归类 + 原产地(见 trade-remedy.ts)。
+  const remedy = lookupTradeRemedy({ hs, destination: region, category: cat });
+  let ddpWithRemedyR: UsdRange | undefined;
+  if (remedy.measures.length) {
+    const adHigh = remedy.exposureMaxPct / 100; // exposureMin 恒为 0
+    const ddpRemHigh = cif * (1 + duty + adHigh) + CLEARANCE_USD_PER_KG;
+    ddpWithRemedyR = { low: ddpR.low, high: round2(ddpRemHigh * (1 + band)) };
+  }
+
   return {
     hs,
     region,
@@ -94,6 +116,12 @@ export function computeLanded(input: LandedInput): LandedResult {
     fobUsdTotal: qty ? total(fobR, qty) : null,
     cifUsdTotal: qty ? total(cifR, qty) : null,
     ddpUsdTotal: qty ? total(ddpR, qty) : null,
+    adCvdPct: remedy.measures.length ? { low: remedy.exposureMinPct, high: remedy.exposureMaxPct } : undefined,
+    ddpWithRemedyUsdPerKg: ddpWithRemedyR,
+    ddpWithRemedyUsdTotal: ddpWithRemedyR && qty ? total(ddpWithRemedyR, qty) : null,
+    remedyMeasures: remedy.measures.length ? remedy.authoritativeNames : undefined,
+    remedyUncertain: remedy.measures.length ? remedy.hasUncertain : undefined,
+    remedyWarning: remedy.warning || undefined,
     leadTimeDays: LEAD_TIME_DAYS[cat] ?? 35,
     confidence,
     basis:
@@ -101,6 +129,6 @@ export function computeLanded(input: LandedInput): LandedResult {
       ` → 退税 ${round0(rebate * 100)}% 抵 VAT → 曜一加价 ${round0(OVERSEAS_MARKUP * 100)}% → 汇率 ¥${USD_CNY_RATE}/$ → +港杂(FOB)` +
       ` → +海运$${freight}/kg+保险(CIF) → +关税 ${round0(duty * 100)}%(HS ${hs} · ${region})+清关 = DDP。区间 ±${round0(band * 100)}%。`,
     caveat:
-      "Indicative landed-cost RANGE, not a quote. HS/duty/freight/ex-works are P0 reference values — excludes anti-dumping/CVD, US Section 301 China surcharges, origin add-ons, US inland delivery, and any certification premium. Exact USD PI is issued by the F1 Composite (曜一) team after spec lock + HS confirmation.",
+      "Indicative landed-cost RANGE, not a quote. HS/duty/freight/ex-works are P0 reference values. Where trade-remedy measures may apply, an INDICATIVE AD/CVD / Section-301 exposure CEILING is included (see ddpWithRemedyUsdPerKg + remedyWarning) — but whether it actually applies, and the exact rate, depend on per-order HS classification + country of origin. Still excludes origin add-ons, US inland delivery, and any certification premium. Exact USD PI + final duty are confirmed by the F1 Composite (曜一) team after spec lock + HS confirmation.",
   };
 }
