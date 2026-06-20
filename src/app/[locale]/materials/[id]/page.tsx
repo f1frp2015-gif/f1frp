@@ -29,6 +29,7 @@ import {
 } from "@/lib/db/schema";
 import { buildMaterialIndex, matchIngredient } from "@/lib/material-matcher";
 import { JsonLd } from "@/components/json-ld";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { InquiryButton } from "./inquiry-button";
 import { SaveButton } from "@/components/save-button";
 import { AskAiButton } from "@/components/ask-ai-button";
@@ -289,6 +290,16 @@ export default async function MaterialDetailPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <JsonLd data={productJsonLd} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: isEn ? "Home" : "首页", url: `${CURRENT_SITE_URL}/` },
+          { name: t("breadcrumb"), url: `${CURRENT_SITE_URL}/materials` },
+          {
+            name: isEn ? mRaw.nameEn ?? mRaw.name : mRaw.name,
+            url: canonicalUrl,
+          },
+        ]}
+      />
       <nav className="mb-4 text-sm text-muted-foreground">
         <Link href="/materials" className="hover:text-foreground">
           {t("breadcrumb")}

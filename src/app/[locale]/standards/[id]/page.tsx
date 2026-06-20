@@ -11,6 +11,8 @@ import {
 import { StandardDetailClient } from "./standard-detail-client";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { alternates, og } from "@/lib/seo";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 3600;
 
@@ -130,6 +132,13 @@ export default async function StandardDetailPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <BreadcrumbJsonLd
+        items={[
+          { name: locale === "en" ? "Home" : "首页", url: `${CURRENT_SITE_URL}/` },
+          { name: t("detail.breadcrumb"), url: `${CURRENT_SITE_URL}/standards` },
+          { name: std.code, url: `${CURRENT_SITE_URL}/standards/${std.id}` },
+        ]}
+      />
       <div className="mb-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
         <div>
           <Link href="/standards" className="hover:text-primary hover:underline">

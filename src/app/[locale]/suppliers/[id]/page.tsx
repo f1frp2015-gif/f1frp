@@ -22,6 +22,7 @@ import { supplierListings } from "@/lib/db/schema";
 import { supplierCategories, provincesEn } from "@/lib/data/suppliers";
 import { chinaFrpProvinces } from "@/lib/data/china-standards-crosswalk";
 import { JsonLd } from "@/components/json-ld";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { alternates, og } from "@/lib/seo";
@@ -314,6 +315,13 @@ export default async function SupplierDetailPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       <JsonLd data={orgJsonLd} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: locale === "en" ? "Home" : "首页", url: `${CURRENT_SITE_URL}/` },
+          { name: "Suppliers", url: `${CURRENT_SITE_URL}/suppliers` },
+          { name: row.nameEn, url: `${CURRENT_SITE_URL}/suppliers/${row.id}` },
+        ]}
+      />
 
       <PageBreadcrumbs
         trail={[
