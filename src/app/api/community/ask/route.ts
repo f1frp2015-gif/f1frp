@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { generateText, stepCountIs } from "ai";
 import { getSessionUid } from "@/lib/auth/current-user";
 import {
-  getChatModelForRequest,
+  withChatFallbackForRequest,
   isChatConfiguredForRequest,
 } from "@/lib/ai/provider";
 import { SYSTEM_PROMPT } from "@/lib/ai/knowledge";
@@ -107,16 +107,21 @@ export async function POST(req: Request) {
 
   let answer = "";
   try {
-    const { text } = await generateText({
-      model: getChatModelForRequest(req),
-      system: systemForAsk,
-      prompt,
-      maxOutputTokens: 800,
-      ...toolsConfig,
-    });
-    answer = text.trim();
+    // Within-side provider fallback: a primary-provider error retries the next
+    // same-side provider (国产↔国产 / Gemini↔OpenRouter) — never crossing the
+    // GFW/brand boundary — before returning a 502.
+    const { result } = await withChatFallbackForRequest(req, (model) =>
+      generateText({
+        model,
+        system: systemForAsk,
+        prompt,
+        maxOutputTokens: 800,
+        ...toolsConfig,
+      }),
+    );
+    answer = result.text.trim();
   } catch (e) {
-    console.error("[community/ask] generateText failed:", e);
+    console.error("[community/ask] generateText failed (all providers):", e);
     return NextResponse.json({ error: "AI generation failed" }, { status: 502 });
   }
 

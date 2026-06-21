@@ -1,7 +1,7 @@
 import { generateText } from "ai";
 import { z } from "zod";
 import {
-  getChatModelForRequest,
+  withChatFallbackForRequest,
   isChatConfiguredForRequest,
 } from "@/lib/ai/provider";
 import { resolveServerLocale } from "@/lib/i18n/server-locale";
@@ -69,13 +69,18 @@ Output ONLY a JSON object on a single line, no prose, no code fences:
     : `用户问：\n${body.question}\n\n助手回答：\n${body.answer}\n\n现在返回 JSON。`;
 
   try {
-    const result = await generateText({
-      model: getChatModelForRequest(req),
-      system,
-      prompt: userBlock,
-      temperature: 0.5,
-      maxOutputTokens: 400,
-    });
+    // Within-side provider fallback: a primary-provider error retries the next
+    // same-side provider (never crossing the GFW/brand boundary) before we
+    // degrade to an empty follow-up list.
+    const { result } = await withChatFallbackForRequest(req, (model) =>
+      generateText({
+        model,
+        system,
+        prompt: userBlock,
+        temperature: 0.5,
+        maxOutputTokens: 400,
+      }),
+    );
     const parsed = parseJsonObject(result.text);
     if (!parsed) return Response.json({ questions: [] });
     const validated = FollowupsSchema.safeParse(parsed);

@@ -4,7 +4,7 @@
 // 失败时返回 null,前端走静态 fallback 文案。
 
 import { generateText } from "ai";
-import { getChatModelForRequest } from "@/lib/ai/provider";
+import { withChatFallbackForRequest } from "@/lib/ai/provider";
 import type { QuoteInput, QuoteResult } from "./types";
 import type { PriceDisplay } from "./display";
 
@@ -15,8 +15,6 @@ export async function explainQuote(
   req: Request,
   locale: "zh" | "en",
 ): Promise<string | null> {
-  const model = getChatModelForRequest(req);
-
   // 构造紧凑的 breakdown 文本,不让模型重新算。金额按 display 币种显示
   // (海外 USD = CNY × factor);占比 pct 与币种无关(加成均匀缩放,占比不变)。
   const breakdownLine = result.breakdown
@@ -41,19 +39,23 @@ export async function explainQuote(
       : `型材描述:${profileDesc}\n单米价格区间:${unitRange} / 米\n成本分项:${breakdownLine}\n订单总长:${result.total_meters.toFixed(0)} 米\n单米重量:${result.weight_kg_per_m.toFixed(2)} kg/m`;
 
   try {
-    const { text } = await generateText({
-      model,
-      system,
-      prompt,
-      temperature: 0.4,
-      maxOutputTokens: 500,
-    });
-    const cleaned = text.trim();
+    // Within-side provider fallback (国产 ↔ 国产 domestic / Gemini ↔ OpenRouter
+    // overseas) — never crosses the GFW/brand boundary.
+    const { result } = await withChatFallbackForRequest(req, (model) =>
+      generateText({
+        model,
+        system,
+        prompt,
+        temperature: 0.4,
+        maxOutputTokens: 500,
+      }),
+    );
+    const cleaned = result.text.trim();
     if (cleaned.length < 30) return null;
     return cleaned;
   } catch (e) {
     console.warn(
-      "[quote-explain] failed:",
+      "[quote-explain] failed (all providers):",
       e instanceof Error ? e.message : e,
     );
     return null;

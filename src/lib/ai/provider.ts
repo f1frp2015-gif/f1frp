@@ -306,15 +306,11 @@ export function getChatModel(
   host?: string | null,
   requested?: ChatProvider | null,
 ): LanguageModel {
-  const provider = pickProviderForHost(host, requested);
-  const model = modelNameFor(provider);
-  if (provider === "openrouter") return buildOpenRouter().chatModel(model);
-  if (provider === "zhipu") return buildZhipu().chatModel(model);
-  if (provider === "qwen") return buildDashscope().chatModel(model);
-  if (provider === "deepseek") return buildDeepseek().chatModel(model);
-  // Google direct. GOOGLE_AI_GATEWAY_URL proxies the domestic side past GFW;
-  // GEMINI_CHAT_MODEL (via modelNameFor) swaps 2.5-pro / 2.0-flash without a deploy.
-  return buildGoogle(process.env.GOOGLE_AI_GATEWAY_URL)(model);
+  // Single-shot (back-compat): resolve one provider for the host and build it.
+  // buildChatModelFor is shared with getChatModelChain so model resolution
+  // (env overrides, zhipu thinking-off, GOOGLE_AI_GATEWAY_URL past GFW) is
+  // byte-identical between the single-shot and the fallback-chain paths.
+  return buildChatModelFor(pickProviderForHost(host, requested));
 }
 
 export function getChatModelForRequest(
@@ -324,6 +320,129 @@ export function getChatModelForRequest(
   const host =
     req.headers.get("x-forwarded-host") || req.headers.get("host");
   return getChatModel(host, requested);
+}
+
+// ── Runtime provider fallback (non-streaming use) ────────────────────────────
+//
+// ★★ GFW + BRAND INVARIANT (DO NOT BREAK) ★★
+// A fallback chain is *strictly within the same side* as the primary provider:
+//   - Domestic (f1frp.com)   → only providers from DOMESTIC_PROVIDERS
+//     (["zhipu","qwen","deepseek"], 国产 only). NEVER google, NEVER openrouter
+//     (openrouter relays to Gemini = overseas + GFW-blocked).
+//   - Overseas (getfrp.com)  → only ["google", "openrouter"]. NEVER any 国产.
+//
+// This is guaranteed *statically* by partitioning on host: chatProviderChain
+// branches on isDomesticHost / isOverseasHost and, in each branch, draws ONLY
+// from that side's hard-coded provider set — it never merges the two pools.
+// The single-provider getChatModel/pickProviderForHost contract is unchanged;
+// these are additive helpers. See provider.fallback.test.ts for the assertion.
+
+// The two side-local provider universes. Ordering = priority. These are the
+// ONLY arrays chatProviderChain may draw from, which is what keeps the
+// GFW/brand invariant a *static* property (a domestic chain literally cannot
+// name google/openrouter, an overseas chain cannot name a 国产 provider).
+const OVERSEAS_PROVIDERS: ChatProvider[] = ["google", "openrouter"];
+
+// Ordered, within-side, configured-only chat provider chain for `host`.
+// Primary first (the current pickProviderForHost result), then the remaining
+// same-side configured providers in their priority order. De-duplicated.
+//
+// Non-prod hosts (localhost / preview / cron with no host) don't have a hard
+// side, so we follow pickProviderForHost's resolution for the primary and then
+// extend with whichever pool the primary belongs to — still never crossing
+// sides, because google/openrouter and the 国产 set are disjoint pools.
+export function chatProviderChain(
+  host?: string | null,
+  requested?: ChatProvider | null,
+): ChatProvider[] {
+  const primary = pickProviderForHost(host, requested);
+
+  // Pick the side-local pool the primary belongs to. Domestic hosts and
+  // domestic-primary always use DOMESTIC_PROVIDERS; overseas the OVERSEAS pool.
+  // Because the two pools are disjoint, the resulting chain can never mix sides.
+  const pool: ChatProvider[] = DOMESTIC_PROVIDERS.includes(primary)
+    ? DOMESTIC_PROVIDERS
+    : OVERSEAS_PROVIDERS;
+
+  // Primary first (even if its key check is deferred to build time), then the
+  // remaining *configured* same-side providers, in pool priority order.
+  const chain: ChatProvider[] = [primary];
+  for (const p of pool) {
+    if (p !== primary && isProviderConfigured(p)) chain.push(p);
+  }
+  return chain;
+}
+
+export type ChatModelInChain = { provider: ChatProvider; model: LanguageModel };
+
+// Build a concrete LanguageModel for each provider in the chain. Reuses the
+// same build* fns + modelNameFor as getChatModel, so model resolution (env
+// overrides, zhipu thinking-off fetch, gateway baseURL) is identical.
+export function getChatModelChain(
+  host?: string | null,
+  requested?: ChatProvider | null,
+): ChatModelInChain[] {
+  return chatProviderChain(host, requested).map((provider) => ({
+    provider,
+    model: buildChatModelFor(provider),
+  }));
+}
+
+// Single source of truth for "provider → LanguageModel", extracted so both
+// getChatModel and getChatModelChain stay in lock-step.
+function buildChatModelFor(provider: ChatProvider): LanguageModel {
+  const model = modelNameFor(provider);
+  if (provider === "openrouter") return buildOpenRouter().chatModel(model);
+  if (provider === "zhipu") return buildZhipu().chatModel(model);
+  if (provider === "qwen") return buildDashscope().chatModel(model);
+  if (provider === "deepseek") return buildDeepseek().chatModel(model);
+  // Google direct (+ optional domestic gateway baseURL past GFW).
+  return buildGoogle(process.env.GOOGLE_AI_GATEWAY_URL)(model);
+}
+
+// Try each provider in `chain` in order. On throw, warn and fall through to the
+// next; if every provider fails, re-throw the LAST error. NON-STREAMING ONLY
+// (generateText / generateObject) — streaming can't be retried mid-flight
+// (see the chat route comment). The chain is already within-side, so a
+// fallback can never cross the GFW/brand boundary.
+export async function withChatFallback<T>(
+  chain: ChatModelInChain[],
+  fn: (model: LanguageModel, provider: ChatProvider) => Promise<T>,
+): Promise<{ result: T; provider: ChatProvider }> {
+  if (chain.length === 0) {
+    throw new Error("withChatFallback: empty provider chain");
+  }
+  let lastErr: unknown;
+  for (let i = 0; i < chain.length; i++) {
+    const { provider, model } = chain[i];
+    try {
+      const result = await fn(model, provider);
+      return { result, provider };
+    } catch (err) {
+      lastErr = err;
+      const next = chain[i + 1]?.provider;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (next) {
+        console.warn(
+          `[ai] provider ${provider} failed, falling back to ${next}: ${msg}`,
+        );
+      } else {
+        console.warn(`[ai] provider ${provider} failed (last in chain): ${msg}`);
+      }
+    }
+  }
+  throw lastErr;
+}
+
+// Convenience: build the chain for a Request and run it with fallback.
+export async function withChatFallbackForRequest<T>(
+  req: Request,
+  fn: (model: LanguageModel, provider: ChatProvider) => Promise<T>,
+  requested?: ChatProvider | null,
+): Promise<{ result: T; provider: ChatProvider }> {
+  const host =
+    req.headers.get("x-forwarded-host") || req.headers.get("host");
+  return withChatFallback(getChatModelChain(host, requested), fn);
 }
 
 export type VisionResolution = {

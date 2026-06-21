@@ -10,7 +10,7 @@
 // structured-output 不稳,plain-text JSON 解析跨 provider 最可靠。
 
 import { generateText } from "ai";
-import { getChatModelForRequest } from "@/lib/ai/provider";
+import { withChatFallbackForRequest } from "@/lib/ai/provider";
 import { ExtractResultSchema, type ExtractResult } from "./types";
 
 const SYSTEM_ZH = `你是 f1frp.com 拉挤型材 AI 粗测报价助手的"输入解析器"。
@@ -119,21 +119,23 @@ export async function extractQuoteInput(
   req: Request,
   locale: "zh" | "en",
 ): Promise<ExtractResult> {
-  const model = getChatModelForRequest(req);
-
   let text = "";
   try {
-    const result = await generateText({
-      model,
-      system: locale === "en" ? SYSTEM_EN : SYSTEM_ZH,
-      prompt: userText,
-      temperature: 0.2,
-      maxOutputTokens: 800,
-    });
+    // Within-side provider fallback: if the primary 国产/Gemini provider errors
+    // (auth/quota/connect), retry the next same-side provider before giving up.
+    const { result } = await withChatFallbackForRequest(req, (model) =>
+      generateText({
+        model,
+        system: locale === "en" ? SYSTEM_EN : SYSTEM_ZH,
+        prompt: userText,
+        temperature: 0.2,
+        maxOutputTokens: 800,
+      }),
+    );
     text = result.text;
   } catch (e) {
     console.warn(
-      "[quote-extract] generateText failed:",
+      "[quote-extract] generateText failed (all providers):",
       e instanceof Error ? e.message : e,
     );
     return FAILURE_FALLBACK;

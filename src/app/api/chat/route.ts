@@ -329,12 +329,36 @@ export async function POST(req: Request) {
     // landed_cost_usd → compliance_flags (→ create_sourcing_brief) within a turn.
     const toolsConfig = tools ? { tools, stopWhen: stepCountIs(6) } : {};
 
+    // NO mid-stream provider failover here (deliberate). The non-streaming
+    // call sites (quote extract/explain, followups, community/ask) use
+    // withChatFallback to retry the next *same-side* provider on error, but
+    // streaming cannot do that safely: per the AI SDK docs, `streamText`
+    // "immediately starts streaming … errors become part of the stream and
+    // are NOT thrown" (node_modules/ai/docs/03-ai-sdk-core/05-generating-text.mdx).
+    // So a connect/auth/quota failure only surfaces AFTER the HTTP response has
+    // begun streaming to the client — there is no clean pre-stream signal to
+    // restart on the next provider without first buffering the whole stream
+    // (which defeats streaming). Faking it would risk a half-emitted answer or
+    // a broken SSE connection, so the chat route stays on the host-resolved
+    // primary. `isChatConfiguredForRequest` (checked earlier) + the per-host
+    // key guard in getChatModel keep the build-time skip of unconfigured
+    // providers intact, and `model` here is still strictly within-side
+    // (getChatModelForRequest → pickProviderForHost can never cross the GFW/
+    // brand boundary). onError below logs stream errors for observability.
     const result = streamText({
       model,
       system: systemParts.join("\n\n"),
       messages: await convertToModelMessages(chatMessages),
       maxOutputTokens: 2000,
       ...toolsConfig,
+      // Stream errors are part of the stream (not thrown) — log them so the one
+      // path without provider fallback (see comment above) is observable.
+      onError: ({ error }) => {
+        console.warn(
+          "[chat] stream error (no mid-stream failover):",
+          error instanceof Error ? error.message : error,
+        );
+      },
       // G2 · 红线质检(回合结束 lint,不阻断流;高危违规写日志,供后续转人工/观测)。
       onFinish: (event) => {
         try {
