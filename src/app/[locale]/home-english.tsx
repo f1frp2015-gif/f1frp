@@ -105,7 +105,7 @@ async function loadFeatured() {
 const EXAMPLE_PROMPTS = [
   "Find a verified Chinese supplier for FRP gratings with CE marking, MOQ 200 m².",
   "Compare GFRP vs CFRP for a 3 m marine spar — strength, weight, cost, suppliers.",
-  "What CBAM data should I request from a Chinese FRP profile manufacturer?",
+  "Map my BOM to Chinese FRP suppliers — resin, fiber, profiles, lead times.",
   "Which GB standard maps to ASTM D3039 for tensile properties?",
   "Recommend a vinyl ester resin for 30% HCl service at 60 °C.",
   "ISO 9001 + EN 13706 certified pultrusion suppliers in Jiangsu, ranked by scale.",
@@ -158,10 +158,10 @@ export async function HomePageEnglish() {
               "@type": "WebPage",
               "@id": "https://getfrp.com/#webpage",
               url: "https://getfrp.com/",
-              name: "Source FRP from China — verified suppliers, mapped standards | getfrp",
+              name: "China's FRP supply chain, AI-native and export-ready | getfrp",
               inLanguage: "en",
               description:
-                "FRP sourcing from China done right: 200+ verified Chinese FRP suppliers, GB ⇄ ASTM ⇄ EN standards mapped, CBAM-ready paperwork. Ask in English; our China desk handles the RFQ.",
+                "China's entire FRP supply chain in one AI-native workspace: 200+ on-the-ground-audited factories, raw materials to finished pultrusions, GB ⇄ ASTM ⇄ EN standards mapped. Ask in English; our China desk runs the RFQ and ships.",
               primaryImageOfPage: { "@id": "https://getfrp.com/og-icon.png" },
               about: [
                 { "@type": "Thing", name: "FRP sourcing" },
@@ -179,7 +179,7 @@ export async function HomePageEnglish() {
                 "GFRP / CFRP / BFRP sourcing from China",
               ],
               serviceType:
-                "FRP / GFRP / CFRP / BFRP supplier sourcing, GB ⇄ ASTM ⇄ EN standards crosswalk, CBAM documentation, and RFQ handling for overseas buyers",
+                "End-to-end FRP / GFRP / CFRP / BFRP supply-chain sourcing from China — verified factories, GB ⇄ ASTM ⇄ EN standards crosswalk, and RFQ-to-delivery handling for overseas buyers",
               areaServed: [
                 "US",
                 "DE",
@@ -288,23 +288,25 @@ export async function HomePageEnglish() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
               <Sparkles size={11} />
-              FRP FROM CHINA · FOR OVERSEAS ENGINEERS
+              AI-NATIVE · CHINA&apos;S FRP SUPPLY CHAIN, EXPORTED
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-5xl lg:text-[56px]">
-              Source FRP from China —
+              China&apos;s entire FRP supply chain.
               <br />
               <span className="text-muted-foreground">
-                without the cold-call grind.
+                Queried by AI. Exported by us.
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
-              FRP sourcing from China is hard for one reason: you can&apos;t
-              audit a Chinese factory from 8,000 miles away. We&apos;ve
-              already done it — <strong className="font-semibold text-foreground">200+ Chinese
-              FRP plants we&apos;ve audited on the ground since 2022</strong>,
-              GB ⇄ ASTM ⇄ EN standards mapped, CBAM-ready paperwork. Ask in
-              English; our China desk handles the RFQ when you&apos;re ready
-              to talk to a factory.
+              From resin and fiber to finished pultrusions, most of the
+              world&apos;s FRP is made in China — but the supply chain is
+              opaque, Chinese-only, and impossible to audit from overseas.
+              We&apos;ve turned it into one AI-native workspace:{" "}
+              <strong className="font-semibold text-foreground">200+ factories
+              audited on the ground since 2022</strong>, GB ⇄ ASTM ⇄ EN
+              standards mapped, materials and processes indexed. Ask in plain
+              English; our China desk runs the RFQ and ships when you&apos;re
+              ready.
             </p>
           </div>
 
@@ -348,7 +350,7 @@ export async function HomePageEnglish() {
               HOW IT WORKS
             </div>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              From question to PO, with verified facts at every step.
+              From raw material to delivered PO — verified at every step.
             </h2>
           </div>
 
@@ -358,7 +360,7 @@ export async function HomePageEnglish() {
                 Icon: Bot,
                 step: "01",
                 title: "Ask anything",
-                body: "Specs, suppliers, GB-vs-ASTM mappings, CBAM questions. Answers come back in your unit system with links to the source row in our database, so you can verify before forwarding.",
+                body: "Specs, materials, suppliers, GB-vs-ASTM mappings, lead times. Answers come back in your unit system with links to the source row in our database, so you can verify before forwarding.",
               },
               {
                 Icon: Building2,
@@ -369,7 +371,7 @@ export async function HomePageEnglish() {
               {
                 Icon: MessagesSquare,
                 step: "03",
-                title: "Hand off to a human for the RFQ",
+                title: "We run the order to delivery",
                 body: "Once you've picked candidates, our China desk takes over: chasing samples, translating spec sheets, walking the floor for QA, and routing the payment. Most overseas RFQs fail at one of those four steps; that's where we earn our keep.",
               },
             ].map((s) => {

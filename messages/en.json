@@ -1,8 +1,8 @@
 {
   "Site": {
     "name": "getfrp",
-    "tagline": "Source FRP from China — verified suppliers",
-    "description": "FRP sourcing from China: 200+ verified Chinese FRP suppliers, GB ⇄ ASTM ⇄ EN standards mapped, CBAM paperwork ready. Ask in English; our China desk handles the RFQ."
+    "tagline": "China's FRP supply chain, AI-native export",
+    "description": "AI-native FRP sourcing across China's supply chain: 200+ audited factories, raw materials to finished pultrusions, GB ⇄ ASTM ⇄ EN standards mapped, RFQ to delivery."
   },
   "Nav": {
     "materials": "Materials",
@@ -138,7 +138,7 @@
     }
   },
   "Footer": {
-    "tagline": "FRP sourcing from China — verified factories, mapped standards, RFQ handled.",
+    "tagline": "China's FRP supply chain in one AI-native workspace — verified factories, mapped standards, RFQ to delivery.",
     "product": "Product",
     "resources": "Resources",
     "about": "About",
@@ -154,8 +154,8 @@
     "deskHoursValue": "Mon-Fri · 09:00-18:00 CST (UTC+8) · email replies within 24h US/EU business time",
     "bookCallLabel": "Book a 15-min sourcing call",
     "bookCallHref": "/book",
-    "trustStripLabel": "Compliance & affiliations",
-    "complianceItems": "Business license verified · ISO 9001 audit · CBAM-ready · GDPR-aware · MTC per shipment"
+    "trustStripLabel": "Compliance",
+    "complianceItems": "Business license verified · ISO 9001 audited factories · MTC per shipment"
   },
   "LanguageSwitcher": {
     "label": "Language",
