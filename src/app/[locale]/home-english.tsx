@@ -95,7 +95,7 @@ async function loadFeatured() {
 // Information architecture:
 //   1. Chat input dominates the hero (Perplexity-style, single focal point)
 //   2. Six example prompts inline as starting points
-//   3. Tiny trust strip ("verified · standards mapped · CBAM-ready")
+//   3. Tiny trust strip ("plants audited · standards mapped · materials indexed")
 //   4. Three-step "how it works": Ask → AI cites verified data → Human if needed
 //   5. Below-fold: small browse links + Doris escalation
 //

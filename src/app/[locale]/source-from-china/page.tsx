@@ -249,7 +249,7 @@ export default async function SourceFromChinaPage({
       <PlatformHero
         eyebrow="FOR OVERSEAS BUYERS"
         title="Source FRP from China, by category, ranked by scale"
-        description="Skip the cold-call grind. Each supplier below has been independently audited. They're sorted by manufacturing scale and tagged with the certifications your end-market actually screens for."
+        description="The whole China FRP supply base, mapped. Each supplier below has been independently audited, sorted by manufacturing scale, and tagged with the certifications your end-market actually screens for."
       />
 
       {/* TL;DR — scan UX. Western B2B buyers triage in 5-8 seconds; surface
