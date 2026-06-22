@@ -81,6 +81,7 @@ type StaticRoute = {
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
   priority: number;
   zhOnly?: boolean;
+  enOnly?: boolean;
 };
 
 const staticRoutes: StaticRoute[] = [
@@ -103,6 +104,8 @@ const staticRoutes: StaticRoute[] = [
   { path: "/overseas", changeFrequency: "weekly", priority: 0.9, zhOnly: true },
   { path: "/source-from-china", changeFrequency: "weekly", priority: 0.8 },
   { path: "/factories", changeFrequency: "weekly", priority: 0.7, zhOnly: true },
+  { path: "/data/china-frp-trade-remedies", changeFrequency: "weekly", priority: 0.8, enOnly: true },
+  { path: "/tools/buy-america-frp-checker", changeFrequency: "monthly", priority: 0.7, enOnly: true },
 ];
 
 const toEntry = (
@@ -122,7 +125,11 @@ const toEntry = (
 
 function coreEntries(now: Date): MetadataRoute.Sitemap {
   const staticEntries = staticRoutes
-    .filter((r) => !(r.zhOnly && ACTIVE_LOCALE === "en"))
+    .filter(
+      (r) =>
+        !(r.zhOnly && ACTIVE_LOCALE === "en") &&
+        !(r.enOnly && ACTIVE_LOCALE === "zh"),
+    )
     .map((r) => ({
       url: urlFor(r.path),
       lastModified: now,

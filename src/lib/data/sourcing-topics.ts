@@ -486,6 +486,7 @@ export const sourcingTopics: SourcingTopic[] = [
       },
     ],
     related: [
+      { label: "China FRP trade-remedy tracker (AD/CVD/301 table)", href: "/data/china-frp-trade-remedies" },
       { label: "CBAM for Chinese FRP — buyer's compliance guide", href: "/sourcing/cbam-frp-china" },
       { label: "Source FRP from China — directory & playbook", href: "/source-from-china" },
       { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
@@ -731,6 +732,7 @@ export const sourcingTopics: SourcingTopic[] = [
       },
     ],
     related: [
+      { label: "Buy America (BABA) checker — can you use imported FRP?", href: "/tools/buy-america-frp-checker" },
       { label: "China FRP import tariffs, AD/CVD & Section 301", href: "/sourcing/china-frp-import-tariffs" },
       { label: "CBAM & FRP — what actually applies", href: "/sourcing/cbam-frp-china" },
       { label: "Source FRP from China — directory & playbook", href: "/source-from-china" },
