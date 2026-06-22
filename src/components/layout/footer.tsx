@@ -135,45 +135,48 @@ export function Footer() {
           </FooterSection>
         </div>
 
-        {/* English-only compliance strip */}
-        {isEn && (
-          <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/60 pt-5 text-[11px] text-muted-foreground">
-            <ShieldCheck size={12} className="text-foreground/60" />
-            <span className="font-mono uppercase tracking-[0.12em] text-muted-foreground/80">
-              {t("trustStripLabel")}
-            </span>
-            <span aria-hidden className="text-muted-foreground/40">
-              ·
-            </span>
-            <span>{t("complianceItems")}</span>
-          </div>
-        )}
+        {/* Single merged footer base: one divider. EN compliance line sits
+            above the copyright + legal row (was two stacked bordered bands;
+            signature retired — empty in both locales). */}
+        <div className="mt-10 border-t border-border/80 pt-6">
+          {isEn && (
+            <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+              <ShieldCheck size={12} className="text-foreground/60" />
+              <span className="font-mono uppercase tracking-[0.12em] text-muted-foreground/80">
+                {t("trustStripLabel")}
+              </span>
+              <span aria-hidden className="text-muted-foreground/40">
+                ·
+              </span>
+              <span>{t("complianceItems")}</span>
+            </div>
+          )}
 
-        {/* 版权 + 法务(关于/隐私/条款 仅此一处,避免重复) */}
-        <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-border/80 pt-6 text-[11px] text-muted-foreground sm:flex-row sm:items-center">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-            <span>{t("copyright", { year: new Date().getFullYear() })}</span>
-            {process.env.NEXT_PUBLIC_ICP_BEIAN && (
-              <a
-                href="https://beian.miit.gov.cn/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors hover:text-foreground"
-              >
-                {process.env.NEXT_PUBLIC_ICP_BEIAN}
-              </a>
-            )}
-            <Link href="/about" className="transition-colors hover:text-foreground">
-              {t("about")}
-            </Link>
-            <Link href="/privacy" className="transition-colors hover:text-foreground">
-              {t("privacy")}
-            </Link>
-            <Link href="/terms" className="transition-colors hover:text-foreground">
-              {t("terms")}
-            </Link>
+          <div className="flex flex-col items-start justify-between gap-3 text-[11px] text-muted-foreground sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <span>{t("copyright", { year: new Date().getFullYear() })}</span>
+              {process.env.NEXT_PUBLIC_ICP_BEIAN && (
+                <a
+                  href="https://beian.miit.gov.cn/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-foreground"
+                >
+                  {process.env.NEXT_PUBLIC_ICP_BEIAN}
+                </a>
+              )}
+              <Link href="/about" className="transition-colors hover:text-foreground">
+                {t("about")}
+              </Link>
+              <Link href="/privacy" className="transition-colors hover:text-foreground">
+                {t("privacy")}
+              </Link>
+              <Link href="/terms" className="transition-colors hover:text-foreground">
+                {t("terms")}
+              </Link>
+            </div>
+            {t("signature") && <div className="font-mono">{t("signature")}</div>}
           </div>
-          {t("signature") && <div className="font-mono">{t("signature")}</div>}
         </div>
       </div>
     </footer>
