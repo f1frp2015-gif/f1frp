@@ -16,7 +16,9 @@ type EmbedProviderOptions = Parameters<typeof embed>[0]["providerOptions"];
 const providerOptions: EmbedProviderOptions =
   activeEmbeddingProvider === "dashscope"
     ? { dashscope: { dimensions: EMBED_DIMS } }
-    : { google: { outputDimensionality: EMBED_DIMS } };
+    : activeEmbeddingProvider === "zhipu"
+      ? { zhipu: { dimensions: EMBED_DIMS } }
+      : { google: { outputDimensionality: EMBED_DIMS } };
 
 export async function embedText(text: string): Promise<number[]> {
   const { embedding } = await embed({
@@ -28,8 +30,11 @@ export async function embedText(text: string): Promise<number[]> {
 }
 
 export async function embedBatch(texts: string[]): Promise<number[][]> {
-  // Google TEI: keep batch modest — gemini-embedding-001 allows 100/req.
-  const CHUNK = 50;
+  // Per-request batch ceiling differs by provider: DashScope text-embedding-v3
+  // hard-rejects >10 inputs ("batch size ... should not be larger than 10");
+  // Google gemini-embedding-001 handles ~100 (we use 50).
+  const CHUNK =
+    activeEmbeddingProvider === "dashscope" ? 10 : activeEmbeddingProvider === "zhipu" ? 16 : 50;
   const out: number[][] = [];
   for (let i = 0; i < texts.length; i += CHUNK) {
     const slice = texts.slice(i, i + CHUNK);

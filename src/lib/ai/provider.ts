@@ -169,10 +169,15 @@ const CHAT_MODEL_DOMESTIC_VISION = "qwen-vl-max";
 // otherwise RAG retrieval will return semantically garbage matches.
 const EMBED_MODEL_GOOGLE = "gemini-embedding-001";
 const EMBED_MODEL_DASHSCOPE = "text-embedding-v3";
+const EMBED_MODEL_ZHIPU = "embedding-3"; // 智谱 BigModel — 768d via `dimensions`, in-CN, no gateway
 export const EMBED_DIMS = 768;
-type EmbeddingProvider = "google" | "dashscope";
+type EmbeddingProvider = "google" | "dashscope" | "zhipu";
 const embeddingProvider: EmbeddingProvider =
-  process.env.EMBEDDING_PROVIDER === "dashscope" ? "dashscope" : "google";
+  process.env.EMBEDDING_PROVIDER === "dashscope"
+    ? "dashscope"
+    : process.env.EMBEDDING_PROVIDER === "zhipu"
+      ? "zhipu"
+      : "google";
 export const activeEmbeddingProvider = embeddingProvider;
 
 function buildGoogle(baseURL?: string) {
@@ -241,7 +246,14 @@ const zhipuFetch = async (
   ) {
     try {
       const body = JSON.parse(init.body);
-      if (body && typeof body === "object" && !("thinking" in body)) {
+      // Only touch chat-completion requests (have `messages`); never embeddings
+      // (`input`) — injecting `thinking` into an embeddings body breaks it.
+      if (
+        body &&
+        typeof body === "object" &&
+        Array.isArray(body.messages) &&
+        !("thinking" in body)
+      ) {
         body.thinking = { type: "disabled" };
         init = { ...init, body: JSON.stringify(body) };
       }
@@ -493,6 +505,14 @@ export function getEmbeddingModel(): EmbeddingModel {
   // knowledge_chunks.embedding vector(768) schema — no migration required.
   if (embeddingProvider === "dashscope") {
     return buildDashscope().textEmbeddingModel(EMBED_MODEL_DASHSCOPE);
+  }
+
+  // 智谱 branch — embedding-3, 768d via `dimensions`. open.bigmodel.cn is
+  // reachable from both the ECS (in-CN, no GFW) and overseas, and rides the
+  // same funded GLM account, so it dodges Google's free-tier cap and the
+  // DashScope account-standing wall.
+  if (embeddingProvider === "zhipu") {
+    return buildZhipu().textEmbeddingModel(EMBED_MODEL_ZHIPU);
   }
 
   // Google branch (default) — historical behaviour. Domestic side STILL
