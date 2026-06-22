@@ -62,7 +62,9 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next|_vercel|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|txt|xml)).*)",
+    // indexnow-key 是无扩展名的顶层 route(在 [locale] 之外),必须排除,否则
+    // next-intl 会把它改写进一个不存在的 locale 路径 → 404,IndexNow 校验失败。
+    "/((?!_next|_vercel|indexnow-key|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|txt|xml)).*)",
     "/(api|trpc)(.*)",
   ],
 };
