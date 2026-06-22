@@ -240,9 +240,12 @@ export async function generateMetadata({
   const tier = row.scaleTier ? TIER_LABEL[row.scaleTier]?.label ?? "" : "";
   const certs = (row.certificationsEn ?? []).slice(0, 2).join(", ");
 
+  // Inject the scale tier so suppliers sharing a category + province don't
+  // ship near-duplicate titles (the suffix was identical across them before).
+  const tierPrefix = tier ? `${tier}-tier ` : "";
   const title = province
-    ? `${row.nameEn} — Chinese FRP ${cat.toLowerCase()} in ${province}`
-    : `${row.nameEn} — Chinese FRP ${cat.toLowerCase()}`;
+    ? `${row.nameEn} — ${tierPrefix}Chinese FRP ${cat.toLowerCase()} in ${province}`
+    : `${row.nameEn} — ${tierPrefix}Chinese FRP ${cat.toLowerCase()}`;
 
   const descParts = [
     `${row.nameEn} is a verified Chinese FRP ${cat.toLowerCase()}`,

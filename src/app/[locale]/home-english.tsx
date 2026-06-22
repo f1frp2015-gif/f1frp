@@ -215,7 +215,7 @@ export async function HomePageEnglish() {
                     "@type": "Offer",
                     itemOffered: {
                       "@type": "Service",
-                      name: "CBAM carbon-data collection from suppliers",
+                      name: "AD/CVD, Section 301 & HS-code duty-exposure analysis",
                     },
                   },
                   {
@@ -266,10 +266,10 @@ export async function HomePageEnglish() {
                 },
                 {
                   "@type": "Question",
-                  name: "What CBAM data do I need from a Chinese FRP supplier?",
+                  name: "Does FRP imported from China fall under EU CBAM?",
                   acceptedAnswer: {
                     "@type": "Answer",
-                    text: "For EU CBAM compliance, request: verified business license + USCC, Material Test Certificate per batch (composition, fiber/resin ratio), energy mix declaration covering the production site, and embedded carbon (kgCO₂ per kg product) calculated against the EU Commission's CBAM Default Values or installation-specific data. getfrp's sourcing desk pre-generates the CBAM document pack on first shipment so the importer's CBAM Registry entry is ready before customs.",
+                    text: "Not under the current scope. CBAM's definitive period from 2026 covers six high-carbon goods — iron and steel, aluminium, cement, fertilisers, electricity and hydrogen; fibre-reinforced polymers (GFRP / CFRP / BFRP) are not included, and the EU has only signalled possibly extending CBAM to polymers later this decade. What actually changes your FRP landed cost from China today is trade remedy, not CBAM: EU anti-dumping and countervailing duties on glass fibre (fabrics and rovings), and US Section 301 plus AD/CVD on certain fiberglass products. getfrp prices these into the landed-cost estimate and flags HS-code exposure per shipment, while tracking any future CBAM extension to composites.",
                   },
                 },
               ],

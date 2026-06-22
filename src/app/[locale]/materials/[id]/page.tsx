@@ -186,18 +186,47 @@ export async function generateMetadata({
   const isEn = locale === "en";
   if (!m || (isEn && !(m.nameEn && m.nameEn.trim())))
     return { title: t("notFound"), robots: { index: false, follow: false } };
-  const name = isEn ? m.nameEn ?? "" : m.name;
-  const description = isEn
-    ? m.descriptionEn ?? t("metaDescription", { name })
-    : m.description ?? t("metaDescription", { name });
+  const baseName = isEn ? m.nameEn ?? "" : m.name;
+  // Differentiate near-duplicate titles across material variants by folding in
+  // the brand / sub-category when they aren't already part of the name.
+  const descriptor = [
+    isEn ? m.brandEn : m.brand,
+    isEn ? m.subCategoryEn : m.subCategory,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const name =
+    descriptor && !baseName.includes(descriptor)
+      ? `${baseName} · ${descriptor}`
+      : baseName;
+
+  // Body signals: drive both the fallback description and a thin-content
+  // noindex. A page that is just a name with no English body is a near-dup —
+  // keep it out of the EN index so it doesn't drag site quality / crawl budget.
+  const apps = (isEn ? m.applicationsEn : m.applications) ?? [];
+  const props = (isEn ? m.propertiesEn : m.properties) ?? null;
+  const rawDesc = ((isEn ? m.descriptionEn : m.description) ?? "").trim();
+  const hasBody =
+    rawDesc !== "" ||
+    (Array.isArray(apps) && apps.length > 0) ||
+    (props != null && Object.keys(props as Record<string, unknown>).length > 0);
+
+  const description =
+    rawDesc ||
+    (Array.isArray(apps) && apps.length > 0
+      ? `${t("metaDescription", { name: baseName })} Applications: ${apps
+          .slice(0, 4)
+          .join(", ")}.`
+      : t("metaDescription", { name: baseName }));
+
+  const title = t("metaTitle", { name });
   return {
-    title: t("metaTitle", { name }),
+    title,
     description,
+    ...(isEn && !hasBody ? { robots: { index: false, follow: true } } : {}),
     alternates: alternates(`/materials/${m.id}`),
-    openGraph: og(`/materials/${m.id}`, {
-      title: t("metaTitle", { name }),
-      description,
-    }),
+    openGraph: og(`/materials/${m.id}`, { title, description }),
   };
 }
 

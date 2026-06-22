@@ -216,10 +216,10 @@ export default async function SourceFromChinaPage({
             },
             {
               "@type": "Question",
-              name: "What documentation do I need from a Chinese FRP supplier for EU CBAM compliance?",
+              name: "Does EU CBAM apply to FRP imported from China?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "For CBAM Default Values you need: 1) verified business license + USCC, 2) Material Test Certificate per batch (composition, fiber/resin ratio), 3) energy mix declaration covering the production site, 4) embedded carbon calculation (kgCO2 per kg product) using the EU Commission's CBAM Default Values or installation-specific data. getfrp's sourcing desk pre-generates this pack on first shipment.",
+                text: "No. EU CBAM's definitive scope from 2026 covers six high-carbon goods — iron and steel, aluminium, cement, fertilisers, electricity and hydrogen — and fibre-reinforced polymers (GFRP / CFRP / BFRP) are not on the list, so there is no CBAM declaration or embedded-carbon document pack required to import Chinese FRP into the EU. What actually changes your landed cost is trade remedy: anti-dumping / countervailing duties on glass fibre and US Section 301. getfrp prices those in per shipment and tracks any future CBAM extension to polymers.",
               },
             },
             {
@@ -704,8 +704,8 @@ export default async function SourceFromChinaPage({
             },
             {
               slug: "cbam-frp-china",
-              title: "CBAM compliance document pack",
-              sub: "Default values vs installation data, accredited verifiers",
+              title: "CBAM & FRP — what actually applies",
+              sub: "FRP isn't in CBAM scope — trade remedy is the real driver",
             },
             {
               slug: "gb-vs-astm-frp",
@@ -715,7 +715,22 @@ export default async function SourceFromChinaPage({
             {
               slug: "china-frp-import-tariffs",
               title: "China FRP import tariffs & anti-dumping",
-              sub: "MFN duty, EU GFF AD 34–69%, Section 301, CBAM — scoped honestly",
+              sub: "MFN duty, EU GFF AD 34–69%, Section 301 — scoped honestly",
+            },
+            {
+              slug: "pultruded-profiles",
+              title: "Pultruded FRP profiles (I-beam, channel, tube)",
+              sub: "EN 13706 E17 / E23 — grades, resin systems, tolerances",
+            },
+            {
+              slug: "frp-cable-tray",
+              title: "FRP cable tray & ladder",
+              sub: "NEMA FG-1 / IEC 61537 — corrosion-proof cable support",
+            },
+            {
+              slug: "frp-baba-buy-america",
+              title: "FRP & Build America, Buy America (BABA)",
+              sub: "US federal-project eligibility — scoped honestly",
             },
           ].map((it) => (
             <Link

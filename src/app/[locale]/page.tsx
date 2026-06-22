@@ -41,10 +41,26 @@ export const revalidate = 60;
 
 // Path-aware canonical + hreflang for the homepage. Layout no longer sets
 // these (would have made every page point at root), so each route declares
-// its own.
-export const metadata: Metadata = {
-  alternates: alternates("/"),
-};
+// its own. The EN deploy (getfrp.com) additionally gets an intent-led
+// <title> + description rather than inheriting the layout's brand-first
+// default — "getfrp" is not a search term, so leading with buyer intent
+// (and the v3 differentiators: verified, conformity, landed cost incl.
+// duties) lifts SERP CTR. zh keeps the layout default.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const base: Metadata = { alternates: alternates("/") };
+  if (locale !== "en") return base;
+  return {
+    ...base,
+    title: "Source FRP from China — verified suppliers & landed cost",
+    description:
+      "Verified Chinese FRP factories, GB ⇄ ASTM ⇄ EN conformity mapped, landed cost incl. AD/CVD & Section 301 — before you commit. Our China desk runs the RFQ to delivery.",
+  };
+}
 
 // AI-native capability groups. AI first, then data, then delivery.
 const AI_CAPABILITIES = [

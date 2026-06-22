@@ -10,6 +10,7 @@ import { SuppliersClient, type SerializedSupplier } from "./suppliers-client";
 import { JsonLd } from "@/components/json-ld";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { alternates } from "@/lib/seo";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export const revalidate = 3600;
 
@@ -71,7 +72,7 @@ export default async function SuppliersPage({
   const suppliersItemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    url: `https://f1frp.com/${locale}/suppliers`,
+    url: `${CURRENT_SITE_URL}/suppliers`,
     inLanguage,
     name: t("pageDirectoryTitle"),
     numberOfItems: top20Verified.length,
@@ -89,7 +90,7 @@ export default async function SuppliersPage({
               addressCountry: "CN",
             }
           : undefined,
-        url: `https://f1frp.com/${locale}/suppliers#${s.id}`,
+        url: `${CURRENT_SITE_URL}/suppliers#${s.id}`,
       },
     })),
   };

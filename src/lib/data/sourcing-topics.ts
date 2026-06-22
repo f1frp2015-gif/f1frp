@@ -226,86 +226,82 @@ export const sourcingTopics: SourcingTopic[] = [
   {
     slug: "cbam-frp-china",
     pillar: "compliance",
-    title: "CBAM compliance for FRP imports from China — the document pack",
+    title: "CBAM and FRP from China — what's actually in scope (and what isn't)",
     intro:
-      "The exact carbon-data deliverables overseas importers need from a Chinese FRP supplier so the CBAM Registry entry clears customs without a delay.",
+      "A straight answer for importers: EU CBAM does not currently cover fibre-reinforced polymers. The constraint that actually moves your FRP landed cost from China is trade remedy — anti-dumping and countervailing duties — not the carbon border tax.",
     deck:
-      "EU CBAM (Carbon Border Adjustment Mechanism) started phasing in for composites-adjacent goods in 2024 and is now the most frequent customs hold-up for FRP shipments into Germany, the Netherlands, France and Italy. The Chinese supply side wasn't designed for it — plants don't routinely produce embedded-carbon documentation in the format the EU CBAM Registry expects. This page lists the exact document pack you should request before the first PO, explains how to calculate or accept the EU default values, and points to the labs that can generate the missing pieces in China.",
-    metaTitle: "CBAM compliance for FRP from China — document pack & deadlines",
+      "Overseas buyers keep asking for a 'CBAM document pack' for FRP. The honest answer is that they almost certainly don't need one yet. CBAM's definitive period, which began in January 2026, applies to six high-carbon goods — iron and steel, aluminium, cement, fertilisers, electricity and hydrogen. Fibre-reinforced polymers (GFRP / CFRP / BFRP) are not on that list, and the EU has only floated possibly extending CBAM to polymers later this decade. What genuinely changes the cost — and sometimes the feasibility — of importing Chinese FRP is the web of anti-dumping (AD), countervailing (CVD) and Section 301 measures on glass fibre and certain finished products. This page draws the line precisely and points you to the measures that do apply.",
+    metaTitle: "CBAM & FRP from China — is fibre-reinforced plastic in scope?",
     metaDescription:
-      "EU CBAM compliance for Chinese FRP imports: required documents, embedded carbon calculation routes, accredited Chinese labs, and the timeline that keeps your CBAM Registry entry clean at customs.",
+      "Does EU CBAM cover FRP imported from China? Not under the 2026 definitive scope (six high-carbon goods only). The real landed-cost driver is anti-dumping / CVD on glass fibre and Section 301 — mapped here, scoped honestly.",
     stats: [
-      { label: "Full reporting obligation since", value: "Jan 2026" },
-      { label: "Quarterly CBAM Registry filing", value: "Required" },
-      { label: "Default-value fallback (loses 20-30% allowance)", value: "Available" },
-      { label: "Pre-shipment doc-pack lead time", value: "2-3 weeks" },
+      { label: "CBAM definitive period (6 sectors only)", value: "Since 2026" },
+      { label: "FRP / polymers in CBAM scope", value: "Not yet" },
+      { label: "EU AD on Chinese glass-fibre fabric", value: "up to ~69%" },
+      { label: "US Section 301 exclusion expiry", value: "Nov 2026" },
     ],
     takeaways: [
-      "The exact five-document pack to request from your Chinese supplier (and which one most plants don't have)",
-      "Default values vs installation-specific data — when each is the right call",
-      "Which Chinese labs (TÜV / Bureau Veritas / SGS) the EU will accept without re-verification",
-      "How to build a buffer into your PO timeline so customs doesn't hold the shipment",
+      "Why FRP / GFRP / CFRP is not in the EU CBAM definitive scope today — and which six goods are",
+      "The earliest realistic timeline for any CBAM extension to polymers",
+      "The measures that actually rewrite your FRP landed cost: AD / CVD on glass fibre + Section 301",
+      "What documentation is genuinely worth requesting now (MTC, ISO 9001, REACH) vs the CBAM pack you don't need yet",
     ],
     byline: "F1 Composite editorial desk",
-    reviewedBy: "Reviewed by F1 Composite compliance partners + cross-checked against EU Commission CBAM guidance (Q1 2026 edition)",
-    reviewedDate: "2026-05",
+    reviewedBy: "Reviewed against the EU CBAM Regulation (EU) 2023/956 definitive-period scope and cross-checked with EUR-Lex / USTR trade-remedy notices",
+    reviewedDate: "2026-06",
     sections: [
       {
-        heading: "The five-document CBAM pack to request from a Chinese supplier",
+        heading: "What EU CBAM actually covers — and why FRP isn't in it",
         body: [
-          "1. Verified business license + Unified Social Credit Code (USCC). This is the entity that owns the production site and is named on the CBAM declaration.",
-          "2. Material Test Certificate (MTC) per shipment batch. Composition (fiber-resin ratio), fiber type, resin type. The MTC ties a specific quantity of product to a specific production run.",
-          "3. Energy mix declaration covering the production site. Grid-electricity emission factor (province-specific in China — Inner Mongolia is dirtier than Sichuan), plus any on-site fuel use. This is the field most Chinese plants don't have ready.",
-          "4. Embedded-carbon calculation, in kgCO₂e per kg of finished FRP product. Either the plant calculates installation-specific data using ISO 14067 LCA boundaries, or you accept the EU Commission's CBAM Default Values (which intentionally penalize 20-30% to discourage default-value usage).",
-          "5. Third-party verification of the embedded-carbon number by an accredited verifier. The EU accepts a limited list: TÜV Rheinland, Bureau Veritas, SGS, DEKRA — and a handful of Chinese national bodies under mutual recognition.",
+          "CBAM's definitive period began in January 2026 after the 2023–2025 transitional reporting phase. Its product scope is six high-carbon, high-trade-exposure goods: iron and steel, aluminium, cement, fertilisers, electricity and hydrogen. The scope is defined by CN code, and fibre-reinforced polymers — whether you classify them under CN 3916 (profiles), CN 3925 / 3926 (builders' ware and other plastics) or CN 7019 (glass fibre and articles) — are not on the CBAM list.",
+          "In practice that means an importer of Chinese FRP gratings, profiles, rebar or panels has no CBAM declaration obligation and does not need an embedded-carbon document pack to clear EU customs. A supplier or intermediary selling you a 'CBAM-ready FRP pack' today is selling a document you are not required to file.",
+          "The one nuance: if an FRP item ships as part of an in-scope assembly (for example a steel-framed structure), the steel or aluminium content can carry its own CBAM obligation. The polymer portion still doesn't.",
         ],
       },
       {
-        heading: "Default values vs installation-specific data — the tradeoff",
+        heading: "Will CBAM ever extend to polymers / composites?",
         body: [
-          "Using the EU CBAM Default Values means you don't need the plant to produce installation-specific carbon data — the EU publishes per-product-category defaults and you use those. The catch: defaults are intentionally set 20-30% higher than typical real-world emissions, which translates directly into CBAM certificate cost.",
-          "Installation-specific data — calculated using the plant's actual energy mix and production efficiency — usually beats the default by exactly that 20-30% margin. But it requires the plant to set up the LCA documentation, which costs USD 8,000-25,000 one-time and 2-3 months elapsed.",
-          "Rule of thumb: if your annual import volume into the EU exceeds 50 tons of FRP product, the installation-specific route pays for itself within the first year. Below that, use defaults.",
+          "Possibly, but not soon. The European Commission is mandated to review extending CBAM to further products, and polymers and organic chemicals are among the categories named for assessment — not for adoption. Any extension would need its own legislative proposal, impact assessment and phase-in, which realistically puts a polymer CBAM no earlier than the late 2020s.",
+          "The sensible posture for an FRP importer: don't build a CBAM documentation pipeline now, but keep the supplier relationship capable of producing province-specific grid-emission and on-site fuel data later. getfrp tracks the CBAM review and will flag the moment composites move from 'assessed' to 'proposed'.",
         ],
       },
       {
-        heading: "Chinese labs that can verify the embedded-carbon number",
+        heading: "What actually changes your FRP landed cost from China",
         body: [
-          "TÜV Rheinland Shanghai, TÜV Süd Shanghai, Bureau Veritas Shanghai and SGS-CSTC operate accredited LCA verification services in China and produce reports the EU Customs Authority accepts without further validation.",
-          "Domestic Chinese verifiers — CTI, CQM, and a few province-level bodies — have mutual recognition under specific EU bilateral arrangements but the import broker on the EU side may require additional documentation.",
-          "Plan 8-12 weeks for the first verification cycle (longer if the plant doesn't have prior LCA work). Subsequent cycles (annual updates) typically run 3-4 weeks.",
+          "Because GFRP is glass fibre plus resin, the binding measures are the trade-remedy duties on glass fibre and on specific finished FRP goods — not a carbon tax. On the EU side: anti-dumping duties on Chinese glass-fibre fabrics (in the tens of percent), provisional measures on glass-fibre rovings, and anti-circumvention duties extended to fibre routed via Egypt, Bahrain, Thailand, Morocco and Turkey. A continuous-filament glass-fibre countervailing measure is also under expiry review.",
+          "On the US side: anti-dumping / countervailing duties on certain Chinese fiberglass products, plus Section 301 tariffs whose product exclusions are scheduled to expire in late 2026. Whether a measure bites depends on the exact HS classification of your product, which is why duty exposure has to be checked per shipment.",
+          "For the rates, scope and HS-code detail, see the dedicated China FRP import-tariffs breakdown — this is where the real money is, not CBAM.",
         ],
       },
       {
-        heading: "How the timeline plays into your purchase order",
+        heading: "What documentation is genuinely worth requesting now",
         body: [
-          "The CBAM declaration is filed quarterly by the EU importer of record, covering shipments that landed in the previous quarter. The supplier-side carbon documentation needs to be in hand before the shipment leaves China — not after — because the EU customs declaration line item references the CBAM Registry entry.",
-          "If documentation is missing at customs, the importer can claim default values as a stopgap but takes the 20-30% penalty, and the importer-of-record is on the hook for any subsequent verification.",
-          "Build a 4-6 week buffer between the supplier's documentation deadline and the PSI date. The most common failure mode is the plant promising the docs in 2 weeks and delivering them in 6.",
+          "Skip the CBAM pack. Do request: a Material Test Certificate (MTC) per batch, the supplier's ISO 9001 certificate, REACH / SVHC declarations where the resin system matters, and the product certifications your end-market screens for (CE / EN 13706 for EU pultrusion, ASTM-tested mill sheets for North America).",
+          "If you want to be ahead of a future CBAM extension, ask whether the plant can produce a province-specific grid emission factor and on-site fuel data. Useful to have on file later — not required now.",
         ],
       },
     ],
     faqs: [
       {
-        question: "Does CBAM apply to FRP products?",
+        question: "Does EU CBAM apply to FRP imported from China?",
         answer:
-          "CBAM's product scope is expanding in phases. As of 2026, fiber-reinforced composite products are within scope for embedded-carbon reporting when imported into the EU. The applicable CN code determines which CBAM product category and default values apply — typically CN 3926 (other articles of plastics) or CN 7019 (glass fibers and articles thereof), depending on whether the finished product is fiber-dominant or matrix-dominant.",
+          "No — not under the definitive scope that began in 2026. CBAM covers six goods: iron and steel, aluminium, cement, fertilisers, electricity and hydrogen. Fibre-reinforced polymers (GFRP / CFRP / BFRP) are not in scope, so there is no CBAM declaration obligation and no embedded-carbon document pack required to import Chinese FRP into the EU.",
       },
       {
-        question: "Can a Chinese FRP supplier provide CBAM documentation?",
+        question: "If not CBAM, what duties actually affect Chinese FRP imports?",
         answer:
-          "Most large Chinese FRP exporters can produce the document pack with 4-8 weeks of lead time, but few have it pre-staged. Smaller plants will typically need to be paired with a third-party LCA consultant. getfrp's sourcing desk pre-generates the document pack on first shipment with an accredited verifier (TÜV / Bureau Veritas / SGS) so the EU importer's CBAM Registry entry is ready before customs.",
+          "Trade remedy, not carbon. On the EU side, anti-dumping and countervailing duties on glass-fibre fabrics and rovings (including anti-circumvention duties on fibre routed through third countries); on the US side, AD / CVD on certain fiberglass products plus Section 301 tariffs. Whether a given measure applies depends on the product's HS classification, so exposure is checked per shipment. See the China FRP import-tariffs guide for rates and scope.",
       },
       {
-        question: "What is the difference between CBAM default values and installation-specific data?",
+        question: "Should I prepare CBAM documentation for FRP now, just in case?",
         answer:
-          "Default values are EU-published per-product carbon factors that you can use without supplier-side measurement — they're intentionally set 20-30% higher than typical real-world values. Installation-specific data is the supplier's actual measured carbon intensity for their plant, calculated under ISO 14067 LCA boundaries and verified by an accredited third party. Above ~50 tons of annual FRP imports, installation-specific data pays for itself; below that, defaults are usually more economical.",
+          "There's no need to build a CBAM pipeline today. Any extension of CBAM to polymers would require its own legislation and phase-in, realistically not before the late 2020s. Keep your supplier capable of producing energy-mix and embedded-carbon data, and request the documentation that matters now — MTC, ISO 9001, REACH and market-specific product certificates.",
       },
     ],
     related: [
+      { label: "China FRP import tariffs, AD/CVD & Section 301", href: "/sourcing/china-frp-import-tariffs" },
       { label: "Standards & test method crosswalk", href: "/standards" },
       { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
-      { label: "Sourcing playbook", href: "/source-from-china" },
     ],
   },
 
@@ -493,6 +489,251 @@ export const sourcingTopics: SourcingTopic[] = [
       { label: "CBAM for Chinese FRP — buyer's compliance guide", href: "/sourcing/cbam-frp-china" },
       { label: "Source FRP from China — directory & playbook", href: "/source-from-china" },
       { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
+    ],
+  },
+
+  {
+    slug: "pultruded-profiles",
+    pillar: "product",
+    title: "Source pultruded FRP profiles from China — I-beam, channel, angle, tube",
+    intro:
+      "Verified Chinese pultruders of structural FRP profiles — I-beams, channels, angles, tubes and SHS — graded to EN 13706, with the resin systems and tolerances overseas structural buyers screen for.",
+    deck:
+      "Pultruded structural profiles are the highest-tonnage engineered FRP category in cross-border trade — the corrosion-proof substitute for hot-dip galvanised steel in walkways, platforms, cable supports, handrail and process structures. China has the deepest pultrusion line capacity in the world, but quality splits sharply between commodity and structural-grade plants. This page maps the Chinese profile supply base by section type and resin system, explains the EN 13706 E17 / E23 grades a specifier will ask for, and flags the tolerance and straightness checks that separate a structural pultruder from a fence-post extruder.",
+    metaTitle: "Pultruded FRP profiles from China — I-beam, channel, EN 13706",
+    metaDescription:
+      "Source structural pultruded FRP profiles from verified Chinese pultruders: I-beams, channels, angles, tubes and SHS, graded to EN 13706 E17 / E23, with resin-system, tolerance and straightness checks for overseas structural buyers.",
+    stats: [
+      { label: "Common structural grade", value: "EN 13706 E23" },
+      { label: "Standard resin systems", value: "ISO / VE / Phenolic" },
+      { label: "Typical glass content", value: "60–70% wt" },
+      { label: "Order that clears export overhead", value: "~1–2 t" },
+    ],
+    takeaways: [
+      "The five profile families Chinese pultruders run (I / wide-flange, channel, angle, square & rectangular tube, flat & rod) and what each is for",
+      "EN 13706 E17 vs E23 — what the grade actually guarantees, and when a specifier requires it",
+      "Resin system selection: isophthalic polyester vs vinyl ester vs phenolic, by corrosion and fire exposure",
+      "The tolerance, straightness and surface-veil checks that separate structural-grade from commodity pultrusion",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy:
+      "Reviewed against EN 13706 (structural pultruded profiles) and ASTM pultrusion test methods; tolerances cross-checked with verified plant data sheets",
+    reviewedDate: "2026-06",
+    sections: [
+      {
+        heading: "The five profile families and where they're used",
+        body: [
+          "Structural pultruded FRP comes in five repeatable section families: I-beams and wide-flange sections (primary beams and columns), channels (secondary framing, purlins, edge trim), equal and unequal angles (bracing, ladders, supports), square and rectangular hollow sections / SHS-RHS (posts, frames, handrail), and flats, rods and round tube (grating bearing bars, rungs, infill). Most overseas projects buy a kit across two or three families rather than a single section.",
+          "The corrosion case is the reason to buy: a pultruded GFRP frame doesn't rust, needs no galvanising or painting, and weighs roughly a quarter of steel — which is why it dominates water and wastewater plants, chemical and electroplating plants, offshore and coastal walkways, and electrified-rail and substation structures where a non-conductive, non-magnetic frame is an advantage.",
+        ],
+      },
+      {
+        heading: "EN 13706 grades — what E17 and E23 actually mean",
+        body: [
+          "EN 13706 is the European standard for structural pultruded profiles and the one a serious specifier names. It defines two minimum grades by full-section axial tensile modulus: E17 (≥17 GPa) and E23 (≥23 GPa). E23 is the structural default for load-bearing frames; E17 is acceptable for lighter secondary members. The standard also fixes minimum tensile, flexural, shear and pin-bearing strengths and the test methods to prove them.",
+          "Ask any candidate plant for an EN 13706 classification report — not just a generic data sheet. The gap between a plant that can produce a third-party EN 13706 E23 report and one that quotes nominal catalogue numbers is the single clearest screen for structural capability.",
+        ],
+      },
+      {
+        heading: "Resin system: match it to the exposure, not the price",
+        body: [
+          "Isophthalic polyester is the economical default for general structural and outdoor use. Vinyl ester is the upgrade for chemical, wastewater and saline / offshore exposure, where it resists acids, alkalis and chlorides far better. Phenolic is the choice where fire performance governs — rail, tunnel, offshore and public-access structures — because it gives low flame spread, low smoke and low toxicity, and is often required to EN 45545 or an equivalent.",
+          "All three are typically E-glass reinforced and finished with a synthetic surface veil plus a UV-stabilised resin-rich surface. For long outdoor service, confirm the profile carries a surface veil and UV package — a bare-glass surface fibre-blooms within a year or two of UV exposure.",
+        ],
+      },
+      {
+        heading: "What to verify before the PO",
+        body: [
+          "Dimensional tolerance and straightness: structural pultrusion holds tight wall and flange tolerances and low bow / twist over length. Ask for the plant's tolerance table and a straightness spec and write them into the PO; commodity lines run loose, which shows up as poor fit-up on site.",
+          "Glass content and cure: request glass content (loss-on-ignition) and Barcol hardness on the production batch as a cure check, plus the EN 13706 (or ASTM-tested) mechanical report. For visible or wet structures, also specify the surface veil and colour, since pultruded colour is integral and can't be touched up like paint.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "What is the difference between EN 13706 E17 and E23 pultruded profiles?",
+        answer:
+          "Both are minimum structural grades in EN 13706, distinguished by full-section axial tensile modulus: E17 guarantees ≥17 GPa and E23 ≥23 GPa, alongside minimum tensile, flexural, shear and pin-bearing strengths. E23 is the usual specification for load-bearing frames and beams; E17 suits lighter secondary members. Always request the plant's third-party EN 13706 classification report rather than catalogue nominal values.",
+      },
+      {
+        question: "Which resin system should I choose for pultruded FRP profiles?",
+        answer:
+          "Match it to exposure: isophthalic polyester for general structural and outdoor use, vinyl ester for chemical, wastewater and saline / offshore environments, and phenolic where fire performance governs (rail, tunnel, offshore, public access) because it delivers low flame spread, smoke and toxicity. For outdoor service confirm a synthetic surface veil and UV-stabilised resin surface.",
+      },
+      {
+        question: "Are Chinese pultruded FRP profiles suitable for structural use?",
+        answer:
+          "Yes, when sourced from a structural-grade pultruder — China has the deepest pultrusion capacity globally and several plants produce EN 13706 E23 profiles with third-party classification reports. The risk is buying commodity-grade product on price: screen for an EN 13706 (or ASTM-tested) mechanical report, a published tolerance and straightness spec, glass content and Barcol hardness on the batch, and a UV surface package for outdoor use.",
+      },
+    ],
+    related: [
+      { label: "FRP grating supplier shortlist", href: "/sourcing/frp-grating" },
+      { label: "GB ⇄ ASTM ⇄ EN test method crosswalk", href: "/sourcing/gb-vs-astm-frp" },
+      { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
+    ],
+    supplierFilter: { category: "manufacturer" },
+  },
+
+  {
+    slug: "frp-cable-tray",
+    pillar: "product",
+    title: "Source FRP cable tray & ladder from China — NEMA FG-1 corrosion-proof",
+    intro:
+      "Verified Chinese manufacturers of FRP cable tray, ladder and trunking — the non-corroding, non-conductive cable support for chemical, coastal, offshore and tunnel installations, tested to NEMA FG-1 and IEC 61537.",
+    deck:
+      "FRP cable tray is the corrosion-proof alternative to hot-dip galvanised and stainless steel cable support, and a natural companion SKU to FRP grating and profiles. In chemical plants, coastal and offshore facilities, water treatment, tunnels and electrified rail, steel tray corrodes and stainless gets expensive fast — pultruded GFRP ladder and tray solve both while staying non-conductive and non-magnetic. This page maps the Chinese cable-tray supply base by type, explains the NEMA FG-1 and IEC 61537 load classes a specifier will quote, and lists the fire and span ratings that decide whether a tray passes.",
+    metaTitle: "FRP cable tray from China — NEMA FG-1 ladder & trough suppliers",
+    metaDescription:
+      "Source corrosion-proof FRP cable tray, ladder and trunking from verified Chinese pultruders: NEMA FG-1 and IEC 61537 load classes, fire ratings, support-span data, and the resin systems for chemical, coastal and offshore use.",
+    stats: [
+      { label: "Reference standard (US)", value: "NEMA FG-1" },
+      { label: "Reference standard (IEC)", value: "IEC 61537" },
+      { label: "Typical resin for corrosion", value: "Vinyl ester" },
+      { label: "Non-conductive / non-magnetic", value: "Yes" },
+    ],
+    takeaways: [
+      "Tray types — ladder, solid-bottom trough, channel and trunking — and where each fits",
+      "NEMA FG-1 vs IEC 61537: how cable-tray load classes and support spans are rated",
+      "Resin and fire selection for chemical, coastal, offshore and tunnel installations",
+      "Why FRP tray wins over galvanised and stainless on corrosion total cost",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy:
+      "Reviewed against NEMA FG-1 and IEC 61537 cable-tray classifications; load and span figures cross-checked with verified plant data",
+    reviewedDate: "2026-06",
+    sections: [
+      {
+        heading: "Tray types and where each is used",
+        body: [
+          "FRP cable management comes in four common forms: ladder tray (rungs on two side rails — the workhorse for power and heavy cabling, with good airflow), solid-bottom trough (continuous base, for small cables and fibre and where falling debris must be kept off the runs), channel / cable runway (single-piece small runs), and trunking / cable duct (enclosed, for protection and segregation). Side-rail height sets the load class; rung pitch (typically 150–300 mm) sets cable bearing.",
+          "Because pultruded GFRP doesn't corrode and is non-conductive and non-magnetic, FRP tray dominates the same environments as FRP grating and profiles: chemical and electroplating plants, water and wastewater, coastal and offshore platforms, tunnels and electrified rail, and any installation where galvanised steel would rust out or stainless would blow the budget.",
+        ],
+      },
+      {
+        heading: "NEMA FG-1 and IEC 61537 — how tray is rated",
+        body: [
+          "NEMA FG-1 is the US standard for fiberglass cable tray; it defines load / span classes by the working load a tray supports at a given support spacing with a safety factor, plus the test methods to prove it. IEC 61537 is the international equivalent used in EU and Asia-Pacific specifications, rating safe working load against support span (e.g. 2 m or 3 m). A specifier quotes a class plus a support span, and the plant must show a load table that meets it.",
+          "Ask for the manufacturer's load-deflection table tied to the standard and your support spacing — not a single headline number. FRP creeps under sustained load, so the rated working load already includes a long-term factor; confirm the table states the standard and the safety factor used.",
+        ],
+      },
+      {
+        heading: "Resin and fire — match to the environment",
+        body: [
+          "Vinyl ester is the default resin for FRP tray because most installations are chosen specifically for corrosion (chemical, wastewater, coastal, offshore). Where fire performance governs — tunnels, rail, offshore, enclosed public spaces — specify a fire-retardant or phenolic system with a documented flame-spread rating (ASTM E84 Class 1 in North America, or EN 45545 / IEC fire classifications in EU and rail).",
+          "Confirm a UV-stabilised, surface-veiled finish for outdoor runs, and check the fittings (bends, tees, reducers, splice plates and supports) are from the same system — a corrosion-proof tray on steel supports defeats the purpose.",
+        ],
+      },
+      {
+        heading: "The corrosion total-cost case",
+        body: [
+          "Galvanised steel tray is cheapest at purchase and most expensive over life in a corrosive plant: it's replaced on a corrosion cycle and carries shutdown and labour cost each time. Stainless avoids corrosion but at a steep material premium and still conducts. FRP tray sits between them on first cost and wins on life: no corrosion replacement, no painting, lighter handling and install, and inherent electrical isolation.",
+          "For the import-cost comparison, FRP tray is glass fibre plus resin, so check trade-remedy exposure on the glass content the same way you would for grating or profiles — see the import-tariffs guide.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "What standards apply to FRP cable tray?",
+        answer:
+          "In the US, NEMA FG-1 is the reference standard for fiberglass cable tray, defining load / span classes and test methods. Internationally, IEC 61537 rates safe working load against support span and includes fire classifications. A specifier quotes a load class and a support spacing (e.g. 2 m or 3 m); the manufacturer must provide a load-deflection table tied to that standard and span, including the long-term safety factor.",
+      },
+      {
+        question: "When should I use FRP cable tray instead of steel?",
+        answer:
+          "Whenever corrosion or electrical isolation matters: chemical and electroplating plants, water and wastewater, coastal and offshore platforms, tunnels and electrified rail. Pultruded GFRP tray doesn't corrode, needs no galvanising or painting, is non-conductive and non-magnetic, and is about a quarter the weight of steel. Galvanised steel is cheaper to buy but is replaced on a corrosion cycle; stainless avoids corrosion but at a large premium.",
+      },
+      {
+        question: "Which resin should FRP cable tray use?",
+        answer:
+          "Vinyl ester is the usual default because most FRP-tray installations are chosen for corrosion resistance (chemical, wastewater, coastal, offshore). Where fire governs — tunnels, rail, offshore, enclosed public areas — specify a fire-retardant or phenolic system with a documented flame-spread rating (ASTM E84 Class 1 in North America, or EN 45545 for rail in Europe), and confirm a UV-stabilised surface veil for outdoor runs.",
+      },
+    ],
+    related: [
+      { label: "Pultruded FRP profiles from China", href: "/sourcing/pultruded-profiles" },
+      { label: "FRP grating supplier shortlist", href: "/sourcing/frp-grating" },
+      { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
+    ],
+    supplierFilter: { category: "manufacturer" },
+  },
+
+  {
+    slug: "frp-baba-buy-america",
+    pillar: "compliance",
+    title: "FRP on US federal projects — Build America, Buy America (BABA) explained",
+    intro:
+      "An honest guide to whether Chinese-made FRP can be used on US federally funded infrastructure — what Build America, Buy America requires, where imported FRP is excluded, and when a waiver or domestic route applies.",
+    deck:
+      "If your FRP is going into a US project that touches federal infrastructure funding, Build America, Buy America (BABA) usually decides whether Chinese-origin material is even eligible — long before price or lead time matter. BABA, part of the 2021 Infrastructure Investment and Jobs Act, imposes domestic-content requirements on iron, steel, manufactured products and construction materials in federally funded infrastructure. This page explains, without spin, how FRP is classified under BABA, where imported product is excluded, the waiver routes that exist, and how to tell early whether your scope is federal or private.",
+    metaTitle: "FRP & Build America Buy America (BABA) — federal eligibility",
+    metaDescription:
+      "Can Chinese-made FRP be used on US federally funded projects? An honest guide to Build America, Buy America (BABA): how FRP is classified, where imported product is excluded, waiver routes, and how to tell federal from private scope.",
+    stats: [
+      { label: "Statute", value: "BABA (IIJA, 2021)" },
+      { label: "Manufactured-product domestic content", value: "≥55%*" },
+      { label: "Applies to", value: "Federal infra funding" },
+      { label: "Imported FRP on federal scope", value: "Usually excluded" },
+    ],
+    takeaways: [
+      "What Build America, Buy America (BABA) is and which projects it touches",
+      "How FRP is classified under BABA — manufactured product vs construction material — and why it matters",
+      "Where imported (including Chinese) FRP is excluded, and the waiver routes that exist",
+      "How to tell early whether your scope is federally funded or private / commercial",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy:
+      "Reviewed against the Build America, Buy America Act (IIJA 2021) and OMB BABA guidance; classification points flagged for project-counsel confirmation",
+    reviewedDate: "2026-06",
+    sections: [
+      {
+        heading: "What BABA is and when it applies",
+        body: [
+          "Build America, Buy America (BABA) is the domestic-content regime created by the 2021 Infrastructure Investment and Jobs Act. It requires that iron, steel, manufactured products and construction materials used in infrastructure projects receiving US federal financial assistance be produced in the United States. It covers the project's permanent materials, not contractor tools or equipment.",
+          "The trigger is federal funding into infrastructure — highways, bridges, water, rail, broadband, ports, utilities and similar. Purely private or commercial work with no federal assistance is outside BABA. The first question on any US enquiry is therefore not price — it's whether the scope touches federal money.",
+        ],
+      },
+      {
+        heading: "How FRP is classified — and why it decides eligibility",
+        body: [
+          "BABA treats categories differently. For a manufactured product, the standard is that it is manufactured in the US and the cost of its US-made components exceeds a domestic-content threshold (currently 55%, subject to scheduled increases). For a construction material — and certain polymer-based building materials fall here — all manufacturing processes must occur in the US. FRP can be argued into either bucket depending on the item and how it's incorporated, and the determination materially changes whether an imported product can qualify.",
+          "Because the classification is fact-specific and is the funding agency's call, treat any blanket claim that imported FRP is BABA-compliant with suspicion. In practice, Chinese-origin FRP rarely satisfies BABA on federal scope; the honest answer is usually that it does not qualify without a waiver.",
+        ],
+      },
+      {
+        heading: "Waivers and the domestic route",
+        body: [
+          "BABA allows agency waivers in three situations: non-availability (the product isn't produced in the US in sufficient quantity or quality), unreasonable cost (domestic product raises overall project cost unreasonably), or public interest. Waivers are project-specific, slow and posted for public comment — not a reliable plan for a standard procurement, but real where a US-made FRP equivalent genuinely doesn't exist.",
+          "Where federal scope is firm and no waiver applies, the route is domestic or domestically finished FRP, not Chinese import. getfrp's role on those enquiries is to say so early and redirect to private / commercial scope where imported FRP is a clean fit — surfacing the constraint up front beats discovering it at inspection.",
+        ],
+      },
+      {
+        heading: "Tell federal from private early",
+        body: [
+          "Ask the buyer two questions before quoting: is the project receiving any US federal financial assistance, and is the FRP a permanent part of the infrastructure? If both are yes, assume BABA applies and that imported FRP is excluded unless a waiver is in hand. If either is no, BABA generally doesn't bite and imported FRP is eligible on its merits.",
+          "This is distinct from tariffs and trade remedy, which apply to imports regardless of funding source — see the import-tariffs guide. BABA is an eligibility gate; tariffs are a cost. A project can clear BABA (private scope) and still carry AD/CVD or Section 301 exposure on the glass content.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Can Chinese-made FRP be used on US federally funded projects?",
+        answer:
+          "Usually not without a waiver. Build America, Buy America (BABA) requires iron, steel, manufactured products and construction materials in federally funded infrastructure to be produced in the United States, and Chinese-origin FRP generally does not satisfy BABA on federal scope. It remains fully eligible on private or commercial projects with no federal funding.",
+      },
+      {
+        question: "What is the BABA domestic-content threshold for FRP?",
+        answer:
+          "It depends on classification. If the FRP item is treated as a manufactured product, it must be made in the US with US-made components exceeding the domestic-content threshold (currently 55%, scheduled to rise). If treated as a construction material, all manufacturing processes must occur in the US. The classification is fact-specific and the funding agency's determination, so confirm it with project counsel rather than relying on a supplier claim.",
+      },
+      {
+        question: "How do I know if Build America, Buy America applies to my project?",
+        answer:
+          "Ask whether the project receives any US federal financial assistance and whether the FRP is a permanent part of the infrastructure. If both are yes, assume BABA applies and that imported FRP is excluded unless an agency waiver (non-availability, unreasonable cost, or public interest) is in place. Private and commercial projects with no federal funding are outside BABA, and imported FRP is eligible there on its merits.",
+      },
+    ],
+    related: [
+      { label: "China FRP import tariffs, AD/CVD & Section 301", href: "/sourcing/china-frp-import-tariffs" },
+      { label: "CBAM & FRP — what actually applies", href: "/sourcing/cbam-frp-china" },
+      { label: "Source FRP from China — directory & playbook", href: "/source-from-china" },
     ],
   },
 ];
