@@ -738,6 +738,249 @@ export const sourcingTopics: SourcingTopic[] = [
       { label: "Source FRP from China — directory & playbook", href: "/source-from-china" },
     ],
   },
+
+  {
+    slug: "frp-tanks-vessels",
+    pillar: "product",
+    title: "Source FRP / GRP tanks & vessels from China — ASME RTP-1, EN 13121",
+    intro:
+      "Verified Chinese fabricators of FRP/GRP corrosion-resistant tanks, vessels, scrubbers and ducting — filament-wound and contact-moulded, built to ASME RTP-1, ASTM D3299/D4097, BS 4994 or EN 13121.",
+    deck:
+      "Corrosion-resistant FRP tanks and vessels are where composites earn their keep: storing acids, caustics, chlorine, brine and wastewater that eat carbon steel and stress stainless. China has deep filament-winding and hand-lay capacity, but a tank is only as good as its corrosion barrier and the design code it's built to. This page maps the Chinese tank/vessel supply base by process, explains the ASME RTP-1 / EN 13121 / BS 4994 design codes a serious buyer specifies, and flags the corrosion-barrier, resin and inspection points that separate a 20-year tank from a 2-year failure.",
+    metaTitle: "FRP / GRP tanks & vessels from China — ASME RTP-1, EN 13121",
+    metaDescription:
+      "Source corrosion-resistant FRP/GRP tanks, vessels, scrubbers and duct from verified Chinese fabricators: filament-wound vs contact-moulded, ASME RTP-1 / ASTM D3299 / BS 4994 / EN 13121 design codes, corrosion-barrier and resin selection, and the inspection points that matter.",
+    stats: [
+      { label: "US design code", value: "ASME RTP-1" },
+      { label: "EU / UK design code", value: "EN 13121 / BS 4994" },
+      { label: "Corrosion-barrier resin", value: "Vinyl ester" },
+      { label: "Build methods", value: "Wound · contact-moulded" },
+    ],
+    takeaways: [
+      "Filament-wound vs contact-moulded (hand-lay) — strength, cost and which suits your vessel",
+      "The design codes that matter: ASME RTP-1 (US), EN 13121 / BS 4994 (EU/UK), ASTM D3299 / D4097",
+      "Corrosion barrier: resin-rich liner + surfacing veil — the single biggest determinant of tank life",
+      "Resin selection (iso polyester / vinyl ester / dual-laminate) by chemical service",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy:
+      "Reviewed against ASME RTP-1, EN 13121, BS 4994 and ASTM D3299 / D4097; corrosion-barrier guidance cross-checked with resin-supplier chemical-resistance tables",
+    reviewedDate: "2026-06",
+    sections: [
+      {
+        heading: "Filament-wound vs contact-moulded — choosing the build method",
+        body: [
+          "Two processes dominate FRP tank fabrication. Filament winding wraps resin-wetted glass roving onto a rotating mandrel at controlled angles, giving high, predictable hoop strength — ideal for cylindrical pressure and large vertical storage tanks. Contact moulding (hand lay-up / spray-up) builds the laminate by hand against a mould, which suits complex shapes, fittings, ducts, hoods and one-offs where winding can't reach. Many vessels combine both: a wound shell with hand-laid heads, nozzles and saddles.",
+          "Process drives economics and inspection: wound tanks are more repeatable and material-efficient at volume; contact-moulded work depends more on the laminator's skill, so for hand-laid scope the QA on laminate thickness, glass content and cure matters even more.",
+        ],
+      },
+      {
+        heading: "Design codes — specify one, and get the calculation",
+        body: [
+          "A corrosion tank should be built to a recognised design code, not a catalogue. ASME RTP-1 (Reinforced Thermoset Plastic Corrosion-Resistant Equipment) is the US standard for atmospheric vessels and the one most US buyers name; EN 13121 (GRP tanks and vessels for use above ground) and BS 4994 are the European / UK equivalents. ASTM D3299 (filament-wound) and ASTM D4097 (contact-moulded) cover the laminate construction itself.",
+          "Ask the fabricator for the design calculation to the named code (shell thickness, heads, nozzles, wind / seismic, hold-down) plus the laminate sequence — a plant that can produce a stamped RTP-1 design package is in a different tier from one quoting wall thickness off a chart.",
+        ],
+      },
+      {
+        heading: "The corrosion barrier is the whole game",
+        body: [
+          "Tank life is decided by the corrosion barrier on the wetted face: a resin-rich inner liner (typically 2.5–3 mm) reinforced with a chemically resistant surfacing veil (C-glass or synthetic) and chopped-strand mat plies, all in the corrosion-grade resin. Behind it sits the structural laminate. Get the barrier wrong — thin, under-cured, wrong veil — and the chemical reaches the structural glass and the tank fails early regardless of wall thickness.",
+          "Specify the barrier resin to the service: vinyl ester (bisphenol-A or novolac epoxy vinyl ester) for most acids, caustics and oxidisers; dual-laminate (a thermoplastic liner such as PVC / PP / PVDF bonded to the FRP) for the most aggressive duties. Always give the chemical, concentration and temperature so the fabricator can pick the resin against a chemical-resistance table — don't accept a generic 'GRP' quote.",
+        ],
+      },
+      {
+        heading: "What to verify before the PO",
+        body: [
+          "Require: the design package to the named code, the laminate / barrier specification, resin and veil brand + corrosion-grade confirmation, Barcol hardness (and where specified an acetone-sensitivity test) as cure checks, and a hydrotest on completion. For larger vessels, a third-party design review or witnessed inspection (SGS / BV / TÜV) is worth the cost.",
+          "Logistics: large tanks are volume, not weight — confirm shippable diameter (out-of-gauge / open-top container limits) early, or plan field assembly of wound segments. FRP is light, so the constraint is dimensions, not tonnage.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "What design code should a Chinese FRP tank be built to?",
+        answer:
+          "Name one and require the calculation. ASME RTP-1 is the US standard for reinforced thermoset plastic corrosion-resistant equipment; EN 13121 and BS 4994 are the European / UK equivalents for above-ground GRP tanks; ASTM D3299 (filament-wound) and D4097 (contact-moulded) govern the laminate. A capable Chinese fabricator can produce a design package to the named code — treat a wall-thickness-off-a-chart quote as a red flag.",
+      },
+      {
+        question: "What resin should an FRP tank use for chemical storage?",
+        answer:
+          "Match the corrosion-barrier resin to the chemical, concentration and temperature. Vinyl ester (bisphenol-A or novolac epoxy vinyl ester) handles most acids, caustics and oxidisers; isophthalic polyester suits milder service; dual-laminate (a PVC / PP / PVDF thermoplastic liner bonded to FRP) is used for the most aggressive duties. Always give the fabricator the full chemical spec so they can select against a chemical-resistance table.",
+      },
+      {
+        question: "Filament-wound or contact-moulded FRP tank — which is better?",
+        answer:
+          "Neither universally — they suit different jobs. Filament winding gives high, repeatable hoop strength for cylindrical storage and pressure vessels and is material-efficient at volume. Contact moulding (hand lay-up) suits complex shapes, ducts, hoods, nozzles and one-offs. Many vessels use both. For hand-laid scope, scrutinise QA on laminate thickness, glass content and cure, since it's more operator-dependent.",
+      },
+    ],
+    related: [
+      { label: "FRP piping from China — GRE / GRP pressure pipe", href: "/sourcing/frp-piping" },
+      { label: "GB ⇄ ASTM ⇄ EN test method crosswalk", href: "/sourcing/gb-vs-astm-frp" },
+      { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
+    ],
+    supplierFilter: { category: "manufacturer" },
+  },
+
+  {
+    slug: "frp-piping",
+    pillar: "product",
+    title: "Source FRP / GRP / GRE pipe from China — AWWA C950, ISO 14692",
+    intro:
+      "Verified Chinese manufacturers of FRP/GRP/GRE pipe and fittings — filament-wound pressure pipe for water, wastewater, seawater, firewater and oilfield service, built to AWWA C950, ASTM D3517 / D2996 or ISO 14692.",
+    deck:
+      "FRP pipe is the corrosion-proof workhorse for water, wastewater, desalination, firewater and oilfield fluid transport — lighter than ductile iron, immune to internal and external corrosion, and good for decades of buried or topside service. China has large filament-winding pipe capacity, but pressure and stiffness ratings, jointing and the design standard are where buyers get burned. This page maps the Chinese pipe supply base, explains the AWWA C950 / ASTM / ISO 14692 ratings a specifier quotes, and covers the jointing systems that decide install cost and reliability.",
+    metaTitle: "FRP / GRP / GRE pipe from China — AWWA C950, ISO 14692 suppliers",
+    metaDescription:
+      "Source corrosion-proof FRP/GRP/GRE pressure pipe and fittings from verified Chinese manufacturers: AWWA C950 / ASTM D3517 / D2996 / ISO 14692 ratings, pressure (PN) and stiffness (SN) classes, jointing systems, and service from potable water to oilfield.",
+    stats: [
+      { label: "Water pressure-pipe std", value: "AWWA C950" },
+      { label: "Oil & gas GRP/GRE std", value: "ISO 14692" },
+      { label: "Rated by", value: "Pressure (PN) × stiffness (SN)" },
+      { label: "Process", value: "Filament-wound (RTRP)" },
+    ],
+    takeaways: [
+      "FRP/GRP vs GRE (glass-reinforced epoxy) — resin systems and where each is used",
+      "The standards a specifier names: AWWA C950, ASTM D3517 / D2996, ISO 14692, API 15HR/15LR",
+      "Pressure class (PN) × stiffness class (SN) — how FRP pipe is actually rated and ordered",
+      "Jointing systems (bell-and-spigot, adhesive, butt-and-wrap, flanged) and their trade-offs",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy:
+      "Reviewed against AWWA C950, ASTM D3517 / D2996, ISO 14692 and API 15HR / 15LR; rating and jointing guidance cross-checked with manufacturer design manuals",
+    reviewedDate: "2026-06",
+    sections: [
+      {
+        heading: "GRP vs GRE — match the resin to the service",
+        body: [
+          "FRP pipe splits by resin. GRP (glass-reinforced polyester or vinyl ester) covers most water, wastewater, seawater and chemical service. GRE (glass-reinforced epoxy) is the higher-temperature, higher-pressure system used in firewater and oil & gas duties. Liners (resin-rich, sometimes thermoplastic) tailor the bore to the fluid. Specify the fluid, temperature and pressure and let that drive the resin choice.",
+          "All are filament-wound (reinforced thermosetting resin pipe, RTRP), giving controlled hoop and axial strength. The same corrosion-immunity and light weight apply as for tanks — a buried FRP water main needs no cathodic protection and a fraction of the install plant of ductile iron.",
+        ],
+      },
+      {
+        heading: "Standards — name the one your specifier uses",
+        body: [
+          "Water and wastewater: AWWA C950 (fiberglass pressure pipe) is the US reference; ASTM D3517 (FRP pressure pipe), ASTM D3754 (FRP sewer and industrial pressure pipe) and the D2996 filament-wound RTRP specification sit alongside it. Oil & gas: ISO 14692 (GRP piping) is the global standard, with API 15HR (high-pressure) and 15LR (low-pressure) for line pipe. Ask which the project specifies and require the type-test / qualification evidence to it.",
+          "Buried pipe is also governed by long-term performance: the hydrostatic design basis (HDB) and long-term stiffness, not just a short-term burst number. A serious manufacturer shows regression-tested long-term ratings, not only as-made values.",
+        ],
+      },
+      {
+        heading: "Pressure × stiffness — how pipe is ordered",
+        body: [
+          "FRP pipe is specified on two axes. Pressure class (PN, e.g. PN 6 / 10 / 16 / 25 bar) sets the wall against internal pressure. Stiffness class (SN, e.g. SN 2500 / 5000 / 10000 N/m²) sets the ring stiffness against external / burial loads and vacuum. A buried gravity sewer is stiffness-driven; a pumped main is pressure-driven; many specs require both. Order against the PN × SN the design calls for — under-spec stiffness is the classic buried-FRP failure.",
+        ],
+      },
+      {
+        heading: "Jointing and what to verify",
+        body: [
+          "Jointing decides install speed and leak risk. Bell-and-spigot with elastomeric seals (often with a locking key) is the fast, common choice for buried water / sewer; adhesive-bonded and butt-and-wrap (laminated) joints give a monolithic, high-integrity line for chemical and high-pressure service; flanged connections tie into pumps, valves and equipment. Match the joint to pressure, access and whether the line must be restrained against thrust.",
+          "Before the PO require: the qualification / type-test to the named standard, PN and SN confirmation with a long-term (regression) basis, the jointing system and any required field-joint training, and a hydrotest regime. For oilfield / ISO 14692 work, confirm the manufacturer's qualification envelope covers your temperature and pressure.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "What standards apply to Chinese FRP / GRP pressure pipe?",
+        answer:
+          "For water and wastewater, AWWA C950 is the US reference, with ASTM D3517 / D3754 and the D2996 filament-wound RTRP specification. For oil & gas, ISO 14692 is the global GRP-piping standard, supported by API 15HR (high-pressure) and 15LR (low-pressure). Name the standard your project uses and require the manufacturer's qualification / type-test evidence and long-term (regression-based) ratings to it.",
+      },
+      {
+        question: "What is the difference between GRP and GRE pipe?",
+        answer:
+          "GRP (glass-reinforced polyester or vinyl ester) covers most water, wastewater, seawater and chemical service. GRE (glass-reinforced epoxy) is the higher-temperature, higher-pressure system used for firewater and oil & gas duties. Both are filament-wound; the resin (and any liner) is chosen for the fluid, temperature and pressure — specify all three so the manufacturer can match the system.",
+      },
+      {
+        question: "How is FRP pipe rated and ordered?",
+        answer:
+          "On two axes: pressure class (PN, e.g. PN 10 / 16 / 25 bar) for internal pressure, and stiffness class (SN, e.g. SN 5000 / 10000 N/m²) for external and burial loads. Gravity sewers are stiffness-driven, pumped mains pressure-driven, and many specs require both. Order against the PN × SN the design calls for, with long-term (regression) ratings — under-specifying ring stiffness is the classic buried-FRP failure mode.",
+      },
+    ],
+    related: [
+      { label: "FRP / GRP tanks & vessels from China", href: "/sourcing/frp-tanks-vessels" },
+      { label: "GB ⇄ ASTM ⇄ EN test method crosswalk", href: "/sourcing/gb-vs-astm-frp" },
+      { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
+    ],
+    supplierFilter: { category: "manufacturer" },
+  },
+
+  {
+    slug: "frp-conformity-china",
+    pillar: "standards",
+    title: "Will Chinese FRP pass my standard? — conformity, testing & acceptance",
+    intro:
+      "How to make sure Chinese FRP actually conforms to the ASTM, EN or ISO standard your specifier or authority requires — what to test, at which lab, and which certificates clear acceptance.",
+    deck:
+      "The question that decides most cross-border FRP deals isn't price — it's 'will it pass my standard?' Chinese plants test to GB by default, your specifier wants ASTM / EN / ISO, and a generic data sheet won't survive a submittal review or an authority-having-jurisdiction (AHJ) acceptance. This page is the conformity playbook: how GB maps to ASTM / EN, what to require (test to YOUR standard, at a named accredited lab, with first-article-to-production correlation), and which certificates actually unlock acceptance in each market.",
+    metaTitle: "Will Chinese FRP pass my standard? Conformity & acceptance guide",
+    metaDescription:
+      "A conformity playbook for buyers of Chinese FRP: how GB maps to ASTM / EN / ISO, what to require (third-party testing to your standard at a named accredited lab, first-article-to-production correlation), and the certificates — CE, ICC-ES, classification reports — that clear acceptance.",
+    stats: [
+      { label: "China's default test base", value: "GB / GB/T" },
+      { label: "Accreditation to require", value: "CNAS / ILAC" },
+      { label: "Independent labs", value: "SGS · BV · Intertek · TÜV" },
+      { label: "Rule of thumb", value: "Test to YOUR standard" },
+    ],
+    takeaways: [
+      "Why a GB data sheet isn't conformity to ASTM / EN — and how the standards map (and don't)",
+      "What to require: third-party testing to your standard at a CNAS / ILAC-accredited lab",
+      "First-article vs production: proving the sample and the shipment are the same thing",
+      "The acceptance certificates that matter per market (CE / EN 13706, ICC-ES, classification reports)",
+    ],
+    byline: "F1 Composite editorial desk",
+    reviewedBy:
+      "Reviewed against ASTM, EN and ISO FRP test methods and CNAS / ILAC accreditation practice; acceptance routes cross-checked per market",
+    reviewedDate: "2026-06",
+    sections: [
+      {
+        heading: "A GB data sheet is not conformity to your standard",
+        body: [
+          "Chinese plants design and test to GB / GB-T by default. GB methods are often close to — but not identical with — ASTM, EN or ISO: specimen geometry, conditioning, grip and reporting can differ enough that a GB number won't be accepted as an ASTM number in a submittal. The crosswalk tells you which GB method corresponds to which ASTM / EN method, but correspondence is not equivalence. For anything load-bearing or safety-related, the safe move is to have the property tested to your standard, not to accept a GB result relabelled.",
+          "See the full GB ⇄ ASTM ⇄ EN test-method crosswalk for the method-by-method mapping; use it to write the test matrix into your PO.",
+        ],
+      },
+      {
+        heading: "Require testing to your standard, at a named accredited lab",
+        body: [
+          "The single most effective conformity clause: properties to be tested to the named ASTM / EN / ISO method at a CNAS- or ILAC-accredited laboratory, report issued before shipment. CNAS accreditation (China's signatory to the ILAC mutual-recognition arrangement) means the report is recognised internationally. The big independents — SGS, Bureau Veritas, Intertek, TÜV — run accredited labs in China and issue reports that travel.",
+          "Name the lab or the accreditation in the PO, name the exact methods and the acceptance values, and require the report before the balance payment. 'We test in-house' is not the same as an accredited third-party report.",
+        ],
+      },
+      {
+        heading: "First-article to production — prove they're the same",
+        body: [
+          "A passing sample proves the sample passed — not that the shipment will. Close the gap: require a first-article inspection (FAI) on the qualified construction, then per-batch production evidence (glass content / loss-on-ignition, Barcol hardness, key dimensions) that correlates running production to the qualified first article. For composites, time-dependent properties (creep, UV, fatigue) can't be proven by one coupon, so for long-life structures specify the relevant durability or weathering test up front.",
+          "This is also where a witnessed inspection or resident QA pays off: it ties the certificate to the product actually in the container.",
+        ],
+      },
+      {
+        heading: "Acceptance certificates by market",
+        body: [
+          "What clears a submittal differs by market and product. EU pultruded structural profiles: a CE mark where applicable plus an EN 13706 classification report. North American building products: an ICC-ES Evaluation Report (ESR) is often what an AHJ accepts, alongside ASTM-tested data. Marine / offshore: class-society approval (Lloyd's, DNV, ABS, CCS). Potable-water contact: NSF/ANSI 61 certification. Identify the certificate your specifier or AHJ screens by before you source, because retrofitting it after the order is slow and sometimes impossible.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Does a GB test report prove a Chinese FRP product meets ASTM or EN?",
+        answer:
+          "Not on its own. GB methods often correspond to ASTM / EN / ISO methods but are rarely identical — specimen geometry, conditioning and reporting can differ enough that a GB result isn't accepted as an ASTM result in a submittal. Use the GB ⇄ ASTM ⇄ EN crosswalk to map methods, but for load-bearing or safety-critical use require the property to be tested to your standard rather than accepting a relabelled GB number.",
+      },
+      {
+        question: "How do I make sure Chinese FRP conforms to my standard?",
+        answer:
+          "Write it into the PO: properties tested to the named ASTM / EN / ISO method at a CNAS- or ILAC-accredited laboratory (SGS, Bureau Veritas, Intertek and TÜV all run accredited China labs), with the report issued before the balance payment. Then require a first-article inspection plus per-batch production checks (glass content, Barcol hardness, key dimensions) so the shipment correlates to the qualified sample.",
+      },
+      {
+        question: "What certificate do I need for Chinese FRP to be accepted in my market?",
+        answer:
+          "It depends on the product and market. EU structural pultrusion: CE where applicable plus an EN 13706 classification report. North American building products: often an ICC-ES Evaluation Report (ESR) plus ASTM-tested data. Marine / offshore: class-society approval (Lloyd's, DNV, ABS, CCS). Potable water: NSF/ANSI 61. Identify the certificate your specifier or AHJ screens by before sourcing.",
+      },
+    ],
+    related: [
+      { label: "GB ⇄ ASTM ⇄ EN test method crosswalk", href: "/sourcing/gb-vs-astm-frp" },
+      { label: "Pultruded FRP profiles from China (EN 13706)", href: "/sourcing/pultruded-profiles" },
+      { label: "Verified Chinese FRP suppliers", href: "/suppliers" },
+    ],
+  },
 ];
 
 export const sourcingTopicSlugs = sourcingTopics.map((t) => t.slug);

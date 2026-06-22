@@ -732,6 +732,21 @@ export default async function SourceFromChinaPage({
               title: "FRP & Build America, Buy America (BABA)",
               sub: "US federal-project eligibility — scoped honestly",
             },
+            {
+              slug: "frp-tanks-vessels",
+              title: "FRP / GRP tanks & vessels",
+              sub: "ASME RTP-1 / EN 13121 — corrosion barrier & resin",
+            },
+            {
+              slug: "frp-piping",
+              title: "FRP / GRP / GRE pipe",
+              sub: "AWWA C950 / ISO 14692 — PN × SN, jointing",
+            },
+            {
+              slug: "frp-conformity-china",
+              title: "Will Chinese FRP pass my standard?",
+              sub: "Conformity, accredited testing & acceptance certs",
+            },
           ].map((it) => (
             <Link
               key={it.slug}
