@@ -25,6 +25,8 @@ const WESTERN_AGENTS = [
   "Perplexity-User",
   "ClaudeBot",
   "anthropic-ai",
+  "Claude-SearchBot",
+  "Claude-User",
   "Google-Extended",
   "Applebot",
   "Applebot-Extended",

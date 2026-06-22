@@ -3,8 +3,13 @@
 // safe to call on every ingest — just configure the engines you want enabled.
 
 import { pushToBaidu } from "./baidu-push";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
-const SITE = "f1frp.com";
+// 按部署侧动态取站点(getfrp.com / f1frp.com)。曾写死 "f1frp.com" → getfrp 侧
+// 发布的英文页从不进 IndexNow(Bing/Yandex),而 ChatGPT 搜索的发现层走 Bing,
+// 等于 getfrp 的新页/更新页对 ChatGPT 搜索"隐形"。
+const SITE = new URL(CURRENT_SITE_URL).hostname;
+const KEY_LOCATION = `${CURRENT_SITE_URL}/indexnow-key`;
 
 type PushResult =
   | { engine: string; skipped: true; reason: string }
@@ -22,7 +27,7 @@ async function pushIndexNow(urls: string[]): Promise<PushResult> {
       body: JSON.stringify({
         host: SITE,
         key,
-        keyLocation: `https://${SITE}/indexnow-key`,
+        keyLocation: KEY_LOCATION,
         urlList: urls,
       }),
     });
