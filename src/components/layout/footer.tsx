@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Calendar, Clock, ShieldCheck, ChevronDown } from "lucide-react";
+import { Calendar, ShieldCheck, ChevronDown } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/logo";
@@ -64,14 +64,23 @@ export function Footer() {
   const locale = useLocale();
   const isEn = locale === "en";
 
-  const techLinks = [
-    { label: tn("materials"), href: "/materials" },
-    { label: tn("formulas"), href: "/formulas" },
-    { label: tn("standards"), href: "/standards" },
-    { label: tn("processes"), href: "/tech" },
-    { label: tn("papers"), href: "/papers" },
-    { label: tn("patents"), href: "/patents" },
-  ];
+  // EN (getfrp) trims to the 4 sourcing-relevant entries; zh keeps the full
+  // domestic-facing set (formulas + patents are thin / off the export path).
+  const techLinks = isEn
+    ? [
+        { label: tn("materials"), href: "/materials" },
+        { label: tn("standards"), href: "/standards" },
+        { label: tn("processes"), href: "/tech" },
+        { label: tn("papers"), href: "/papers" },
+      ]
+    : [
+        { label: tn("materials"), href: "/materials" },
+        { label: tn("formulas"), href: "/formulas" },
+        { label: tn("standards"), href: "/standards" },
+        { label: tn("processes"), href: "/tech" },
+        { label: tn("papers"), href: "/papers" },
+        { label: tn("patents"), href: "/patents" },
+      ];
   const resourceLinks = [
     { label: tn("ai"), href: "/ai" },
     { label: tn("supplyLib"), href: "/suppliers" },
@@ -114,22 +123,13 @@ export function Footer() {
                 </p>
               </div>
               {isEn && (
-                <>
-                  <div className="space-y-1.5">
-                    <p className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">
-                      <Clock size={10} />
-                      {t("deskHoursLabel")}
-                    </p>
-                    <p className="text-[12px] leading-snug">{t("deskHoursValue")}</p>
-                  </div>
-                  <Link
-                    href={"/book" as never}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-muted"
-                  >
-                    <Calendar size={12} />
-                    {t("bookCallLabel")}
-                  </Link>
-                </>
+                <Link
+                  href={"/book" as never}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  <Calendar size={12} />
+                  {t("bookCallLabel")}
+                </Link>
               )}
             </div>
           </FooterSection>

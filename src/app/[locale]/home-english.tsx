@@ -298,15 +298,13 @@ export async function HomePageEnglish() {
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
-              From resin and fiber to finished pultrusions, most of the
-              world&apos;s FRP is made in China — but the supply chain is
-              opaque, Chinese-only, and impossible to audit from overseas.
-              We&apos;ve turned it into one AI-native workspace:{" "}
+              Most of the world&apos;s FRP is made in China — but that supply
+              chain is opaque, Chinese-only, and impossible to audit from
+              overseas. We turned it into one AI-native workspace:{" "}
               <strong className="font-semibold text-foreground">200+ factories
-              audited on the ground since 2022</strong>, GB ⇄ ASTM ⇄ EN
-              standards mapped, materials and processes indexed. Ask in plain
-              English; our China desk runs the RFQ and ships when you&apos;re
-              ready.
+              audited on the ground since 2022</strong>, GB ⇄ ASTM ⇄ EN mapped,
+              materials and processes indexed. Ask in plain English; our China
+              desk runs the RFQ.
             </p>
           </div>
 
@@ -342,6 +340,65 @@ export async function HomePageEnglish() {
         </div>
       </section>
 
+      {/* ─────────── One-stop chain: ribbon + the difference ─────────── */}
+      <section className="border-b border-border/80">
+        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+          {/* Static chain ribbon — asserts the whole supply chain with no live
+              count to come back empty (equipment/tooling/molds have 0 rows). */}
+          <div className="text-center">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              ONE CHAIN · ONE WORKSPACE · ONE DESK
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-[12px] sm:text-[13px]">
+              <span className="text-muted-foreground">Resin</span>
+              <span className="text-muted-foreground/40">→</span>
+              <span className="text-muted-foreground">Fiber</span>
+              <span className="text-muted-foreground/40">→</span>
+              <span className="text-muted-foreground">Profiles &amp; gratings</span>
+              <span className="text-muted-foreground/40">→</span>
+              <span className="text-muted-foreground">Finished parts</span>
+              <span className="text-muted-foreground/40">→</span>
+              <span className="font-semibold text-foreground">Exported by us</span>
+            </div>
+            <p className="mt-3 text-[12px] text-muted-foreground">
+              The whole chain — raw material to delivered PO — verified and
+              queryable in one place.
+            </p>
+          </div>
+
+          {/* The difference: scattered status quo vs one accountable workspace */}
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-border/70 bg-background p-6">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                THE STATUS QUO
+              </div>
+              <h3 className="mt-2 text-base font-semibold tracking-tight">
+                Scattered, opaque, Chinese-only.
+              </h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                Hundreds of relevant factories spread across Alibaba and 1688
+                listings you can&apos;t audit from overseas. Specs in Chinese.
+                No standards crosswalk. No one accountable when the sample never
+                shows.
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-background p-6">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                WITH GETFRP
+              </div>
+              <h3 className="mt-2 text-base font-semibold tracking-tight">
+                One verified, AI-queryable workspace.
+              </h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                200+ plants audited on the ground since 2022, GB ⇄ ASTM ⇄ EN
+                mapped, materials and processes indexed — ask in English, and a
+                China desk runs the order as principal.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ─────────── How it works ─────────── */}
       <section className="border-b border-border/80">
         <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
@@ -360,19 +417,19 @@ export async function HomePageEnglish() {
                 Icon: Bot,
                 step: "01",
                 title: "Ask anything",
-                body: "Specs, materials, suppliers, GB-vs-ASTM mappings, lead times. Answers come back in your unit system with links to the source row in our database, so you can verify before forwarding.",
+                body: "Specs, GB-vs-ASTM mappings, lead times — answered in your unit system, each linked to the source row in our database so you can verify before forwarding.",
               },
               {
                 Icon: Building2,
                 step: "02",
                 title: "We match verified suppliers",
-                body: "Every supplier in the registry has a checked business license and a scale tier we set by visiting the plant. Certifications are on file. If we can't verify a claim, we say so.",
+                body: "Every supplier has a checked business license and a scale tier we set by visiting the plant. Certs on file. If we can't verify a claim, we say so.",
               },
               {
                 Icon: MessagesSquare,
                 step: "03",
                 title: "We run the order to delivery",
-                body: "Once you've picked candidates, our China desk takes over: chasing samples, translating spec sheets, walking the floor for QA, and routing the payment. Most overseas RFQs fail at one of those four steps; that's where we earn our keep.",
+                body: "Our China desk chases the sample, translates the spec sheet, walks the floor for QA, and routes payment — the four steps where overseas RFQs usually die.",
               },
             ].map((s) => {
               const I = s.Icon;
@@ -400,31 +457,32 @@ export async function HomePageEnglish() {
         </div>
       </section>
 
-      {/* ─────────── Featured deep links ──────────────────────
+      {/* ─────────── THE INDEX — live DB shelf + always-on browse row ─────
           Three columns of real database entries, linking deep into
-          /standards/[id] /papers/[id] /suppliers#id. Purposes:
+          /standards/[id] /papers/[id] /suppliers/[id]. Purposes:
             1) Distribute PageRank from homepage into deep pages so
                Googlebot doesn't have to crawl 4 levels to find them.
             2) Give returning visitors a fresh shelf each week (sort
                keys change as new data is ingested).
-            3) Prove the database is real and curated, not a placeholder. */}
-      {(featured.topStandards.length || featured.topPapers.length || featured.topSuppliers.length) > 0 && (
-        <section className="border-b border-border/80">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
-            <div className="text-center">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                FROM THE INDEX
-              </div>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                What&apos;s in the database, right now.
-              </h2>
-              <p className="mx-auto mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-                A few sample entries from the standards, papers and suppliers
-                we&apos;ve indexed. Click through to see how the data is
-                structured. New rows land most weekdays.
-              </p>
+            3) Prove the database is real and curated, not a placeholder.
+          The grid is guarded on having rows; the browse row below renders
+          ALWAYS so the crawl paths survive a cold/empty DB. */}
+      <section className="border-b border-border/80">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+          <div className="text-center">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              THE INDEX
             </div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              A real, queryable database — not a placeholder.
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
+              Sample rows from what we&apos;ve indexed. New entries land most
+              weekdays.
+            </p>
+          </div>
 
+          {(featured.topStandards.length || featured.topPapers.length || featured.topSuppliers.length) > 0 && (
             <div className="mt-10 grid gap-6 md:grid-cols-3">
               {/* Standards */}
               <div className="rounded-xl border border-border/70 bg-background p-6">
@@ -521,65 +579,46 @@ export async function HomePageEnglish() {
                 </ul>
               </div>
             </div>
-          </div>
-        </section>
-      )}
+          )}
 
-      {/* ─────────── Below-fold: prefer to browse? ─────────── */}
-      <section className="border-b border-border/80 bg-muted/20">
-        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-          <div className="grid gap-8 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                PREFER TO BROWSE?
-              </div>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight">
-                The full directory and standards crosswalk are still here.
-              </h2>
-              <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-muted-foreground">
-                Skip the chat and walk through the verified supplier
-                directory by category, the GB ⇄ ASTM standards crosswalk,
-                or the 6-step sourcing playbook. Every page has an
-                &ldquo;Ask AI&rdquo; button when you want a second opinion.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[13px]">
-                <Link
-                  href={"/source-from-china" as never}
-                  className="inline-flex items-center gap-1 text-foreground hover:underline"
-                >
-                  Sourcing playbook
-                  <ArrowUpRight size={13} />
-                </Link>
-                <Link
-                  href={"/suppliers?verified=1" as never}
-                  className="inline-flex items-center gap-1 text-foreground hover:underline"
-                >
-                  Verified suppliers ({verifiedSupplierCount.toLocaleString()})
-                  <ArrowUpRight size={13} />
-                </Link>
-                <Link
-                  href={"/standards" as never}
-                  className="inline-flex items-center gap-1 text-foreground hover:underline"
-                >
-                  Standards ({standardsCount.toLocaleString()})
-                  <ArrowUpRight size={13} />
-                </Link>
-                <Link
-                  href={"/materials" as never}
-                  className="inline-flex items-center gap-1 text-foreground hover:underline"
-                >
-                  Materials ({materialsCount.toLocaleString()})
-                  <ArrowUpRight size={13} />
-                </Link>
-                <Link
-                  href={"/papers" as never}
-                  className="inline-flex items-center gap-1 text-foreground hover:underline"
-                >
-                  Papers ({papersCount.toLocaleString()})
-                  <ArrowUpRight size={13} />
-                </Link>
-              </div>
-            </div>
+          {/* Always-on browse row — carries every crawl path the old
+              "prefer to browse" band had, and survives a cold/empty DB. */}
+          <div className="mt-10 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[13px]">
+            <Link
+              href={"/source-from-china" as never}
+              className="inline-flex items-center gap-1 text-foreground hover:underline"
+            >
+              Sourcing playbook
+              <ArrowUpRight size={13} />
+            </Link>
+            <Link
+              href={"/suppliers?verified=1" as never}
+              className="inline-flex items-center gap-1 text-foreground hover:underline"
+            >
+              Verified suppliers ({verifiedSupplierCount.toLocaleString()})
+              <ArrowUpRight size={13} />
+            </Link>
+            <Link
+              href={"/standards" as never}
+              className="inline-flex items-center gap-1 text-foreground hover:underline"
+            >
+              Standards ({standardsCount.toLocaleString()})
+              <ArrowUpRight size={13} />
+            </Link>
+            <Link
+              href={"/materials" as never}
+              className="inline-flex items-center gap-1 text-foreground hover:underline"
+            >
+              Materials ({materialsCount.toLocaleString()})
+              <ArrowUpRight size={13} />
+            </Link>
+            <Link
+              href={"/papers" as never}
+              className="inline-flex items-center gap-1 text-foreground hover:underline"
+            >
+              Papers ({papersCount.toLocaleString()})
+              <ArrowUpRight size={13} />
+            </Link>
           </div>
         </div>
       </section>
@@ -594,11 +633,10 @@ export async function HomePageEnglish() {
             Let a human take over.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[14px] leading-relaxed text-background/80">
-            Our sourcing desk is run out of China by bilingual composites
-            engineers. They&apos;ve been visiting these plants for a decade.
-            They&apos;ll chase the sample, translate the spec sheet, walk
-            the floor for QA, and route the payment. If your RFQ has ever
-            died in any of those steps, you know why this matters.
+            Our China desk is run by bilingual composites engineers
+            who&apos;ve walked these plant floors for a decade. Hand off the
+            RFQ — they chase the sample, translate the spec, run QA, and route
+            the payment, then ship as principal.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <a
