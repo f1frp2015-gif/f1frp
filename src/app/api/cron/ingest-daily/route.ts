@@ -7,6 +7,7 @@ import { ingestPaper, ingestPatent } from "@/lib/ingest";
 import { fanOutSearchPush } from "@/lib/ingest/search-push";
 import { notifyTelegram } from "@/lib/ingest/telegram-notify";
 import { embedNewRecords } from "@/lib/ingest/embed-records";
+import { isCompositeRelevant } from "@/lib/ingest/relevance";
 import { refreshDemandDigest } from "@/lib/ingest/demand-digest";
 import {
   paperQueryPool,
@@ -105,6 +106,15 @@ export async function GET(req: Request) {
         results.papers.skipped.push(`${p.externalId}: duplicate DOI`);
         continue;
       }
+      const relP = await isCompositeRelevant({
+        title: p.title,
+        titleEn: p.titleEn,
+        abstract: p.abstract,
+      });
+      if (!relP.relevant) {
+        results.papers.skipped.push(`${p.externalId}: non-composite (${relP.reason})`);
+        continue;
+      }
       try {
         const id = await ingestPaper(p, { category: paperPick.category });
         results.papers.inserted.push(id);
@@ -138,6 +148,15 @@ export async function GET(req: Request) {
       }
       if (await patentExistsBy(p.sourceUrl, p.grantNo)) {
         results.patents.skipped.push(`${p.externalId}: duplicate`);
+        continue;
+      }
+      const relP = await isCompositeRelevant({
+        title: p.title,
+        titleEn: p.titleEn,
+        abstract: p.abstract,
+      });
+      if (!relP.relevant) {
+        results.patents.skipped.push(`${p.externalId}: non-composite (${relP.reason})`);
         continue;
       }
       try {
