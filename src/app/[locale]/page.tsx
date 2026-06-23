@@ -82,9 +82,11 @@ const FIBERS = [
   { key: "bio", en: "Bio-based", statKey: "bioStat" },
 ] as const;
 
-async function countOne(
-  table: Parameters<typeof db.select>[0] extends infer _ ? Parameters<ReturnType<typeof db.select>["from"]>[0] : never
-): Promise<number> {
+type CountTable = Parameters<typeof db.select>[0] extends infer _
+  ? Parameters<ReturnType<typeof db.select>["from"]>[0]
+  : never;
+
+async function countOne(table: CountTable): Promise<number> {
   try {
     const rows = await db
       .select({ c: sql<number>`count(*)::int` })
@@ -92,6 +94,23 @@ async function countOne(
     return rows[0]?.c ?? 0;
   } catch {
     return 0;
+  }
+}
+
+// Daily / weekly content growth — makes the AI ingest flywheel visible. d1 =
+// last 24h, d7 = last 7 days. One filtered-aggregate query per table; every
+// content table has created_at. Resilient to a slow/down DB (→ zeros).
+async function growth(table: CountTable): Promise<{ d1: number; d7: number }> {
+  try {
+    const rows = await db
+      .select({
+        d1: sql<number>`count(*) filter (where created_at >= now() - interval '1 day')::int`,
+        d7: sql<number>`count(*) filter (where created_at >= now() - interval '7 days')::int`,
+      })
+      .from(table);
+    return { d1: rows[0]?.d1 ?? 0, d7: rows[0]?.d7 ?? 0 };
+  } catch {
+    return { d1: 0, d7: 0 };
   }
 }
 
@@ -136,6 +155,26 @@ export default async function HomePage({
     "/suppliers": supCount,
     "/tech": techCount,
   };
+
+  // Daily/weekly growth per stat — the AI ingest flywheel made visible.
+  const [gM, gF, gS, gP, gPt, gSup] = await Promise.all([
+    growth(materialsTable),
+    growth(formulasTable),
+    growth(standardsTable),
+    growth(papersTable),
+    growth(patentsTable),
+    growth(supplierListings),
+  ]);
+  const growByHref: Record<string, { d1: number; d7: number }> = {
+    "/materials": gM,
+    "/formulas": gF,
+    "/standards": gS,
+    "/papers": gP,
+    "/patents": gPt,
+    "/suppliers": gSup,
+  };
+  const grewToday = gM.d1 + gF.d1 + gS.d1 + gP.d1 + gPt.d1 + gSup.d1;
+  const grew7d = gM.d7 + gF.d7 + gS.d7 + gP.d7 + gPt.d7 + gSup.d7;
 
   const LIVE_STATS = [
     { value: mCount, labelKey: "statsMaterials", href: "/materials" as const },
@@ -271,6 +310,16 @@ export default async function HomePage({
               <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
                 {t("liveTitle")}
               </h2>
+              {grew7d > 0 && (
+                <p className="mt-2 flex items-center gap-1.5 font-mono text-[11px] text-emerald-600 dark:text-emerald-400">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  </span>
+                  AI 每日自动采集 · 近 7 天 +{grew7d.toLocaleString()}
+                  {grewToday > 0 ? ` · 今日 +${grewToday.toLocaleString()}` : ""}
+                </p>
+              )}
             </div>
           </div>
 
@@ -290,6 +339,11 @@ export default async function HomePage({
                     size={14}
                     className="text-muted-foreground/60 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground"
                   />
+                  {(growByHref[s.href]?.d1 ?? 0) > 0 && (
+                    <span className="ml-auto self-center rounded bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                      +{growByHref[s.href].d1} 今日
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1 text-xs leading-snug text-muted-foreground">
                   {t(s.labelKey as "statsMaterials")}
