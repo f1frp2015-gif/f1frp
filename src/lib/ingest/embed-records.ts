@@ -4,7 +4,7 @@
 // the cron calls embedNewRecords(...) right after insert, so fresh literature
 // is citable by the AI the same day. Chunk format mirrors embed-corpus exactly.
 
-import { inArray } from "drizzle-orm";
+import { inArray, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { papers, patents } from "@/lib/db/schema";
 import { embedAndUpsertChunks, type KbChunk } from "./knowledge-chunk";
@@ -48,6 +48,10 @@ function patentChunk(p: typeof patents.$inferSelect): KbChunk {
   };
 }
 
+// NB: callers (the daily cron) pass the value returned by ingestPaper/
+// ingestPatent — which is the SLUG, not the id. Match on id OR slug so the
+// live-embed actually finds the rows (this was silently embedding 0 chunks
+// when it only matched papers.id). Future callers passing ids still work.
 export async function embedNewRecords(opts: {
   paperIds?: string[];
   patentIds?: string[];
@@ -58,7 +62,10 @@ export async function embedNewRecords(opts: {
 
   const paperIds = opts.paperIds?.filter(Boolean) ?? [];
   if (paperIds.length) {
-    const rows = await db.select().from(papers).where(inArray(papers.id, paperIds));
+    const rows = await db
+      .select()
+      .from(papers)
+      .where(or(inArray(papers.id, paperIds), inArray(papers.slug, paperIds)));
     const res = await embedAndUpsertChunks(rows.map(paperChunk));
     paperCount = res.embedded;
     errors += res.errors;
@@ -66,7 +73,10 @@ export async function embedNewRecords(opts: {
 
   const patentIds = opts.patentIds?.filter(Boolean) ?? [];
   if (patentIds.length) {
-    const rows = await db.select().from(patents).where(inArray(patents.id, patentIds));
+    const rows = await db
+      .select()
+      .from(patents)
+      .where(or(inArray(patents.id, patentIds), inArray(patents.slug, patentIds)));
     const res = await embedAndUpsertChunks(rows.map(patentChunk));
     patentCount = res.embedded;
     errors += res.errors;

@@ -29,7 +29,11 @@ export async function isCompositeRelevant(input: {
     const { text: out } = await generateText({
       model: google("gemini-2.5-flash"),
       temperature: 0,
-      maxOutputTokens: 40,
+      maxOutputTokens: 256,
+      // gemini-2.5-flash is a thinking model — with a tiny token budget the
+      // reasoning eats the whole output and `text` comes back empty. Disable
+      // thinking for this binary classification so it reliably emits YES/NO.
+      providerOptions: { google: { thinkingConfig: { thinkingBudget: 0 } } },
       system:
         "You are a strict topic classifier for a fiber-reinforced polymer (FRP) / composite-materials knowledge base. " +
         "An item is RELEVANT only if it is substantively about FRP/composites: glass/carbon/aramid/basalt fiber; " +
@@ -39,8 +43,11 @@ export async function isCompositeRelevant(input: {
         'Answer EXACTLY "YES" or "NO", then a 2-4 word reason.',
       prompt: text,
     });
-    const relevant = /^\s*yes\b/i.test(out);
-    return { relevant, reason: out.trim().slice(0, 50).replace(/\s+/g, " ") };
+    const trimmed = out.trim();
+    // Only an explicit "NO" drops the item; empty/ambiguous output KEEPS it
+    // (fail-open) so the gate can never silently discard real FRP content.
+    const relevant = !/^\s*no\b/i.test(trimmed);
+    return { relevant, reason: trimmed.slice(0, 50).replace(/\s+/g, " ") || "(empty→kept)" };
   } catch (e) {
     console.warn("[ingest/relevance] classify failed, keeping:", e instanceof Error ? e.message : e);
     return { relevant: true, reason: "classifier-error-kept" };
