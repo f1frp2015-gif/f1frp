@@ -953,6 +953,7 @@
     "adminSection": "管理员",
     "nav": {
       "overview": "总览",
+      "profile": "个人资料",
       "saved": "收藏",
       "postNew": "发布信息",
       "posts": "我的发布",
@@ -966,6 +967,26 @@
       "adminQualifications": "资质审核",
       "adminEnterprises": "入驻审核",
       "adminPrices": "价格行情"
+    },
+    "profilePage": {
+      "metaTitle": "个人资料",
+      "title": "个人资料",
+      "subtitle": "修改你的昵称和头像",
+      "avatarLabel": "头像",
+      "pickAvatar": "上传头像",
+      "uploading": "上传中…",
+      "avatarAllowedHint": "支持 JPG / PNG / WebP，最大 2MB",
+      "avatarTooLarge": "图片过大，请选择 2MB 以内的图片",
+      "phoneLabel": "手机号",
+      "nameLabel": "昵称",
+      "namePlaceholder": "请输入昵称",
+      "nameRequired": "请输入昵称",
+      "nameTooLong": "昵称最多 100 个字符",
+      "uploadError": "上传失败，请重试",
+      "saveError": "保存失败，请重试",
+      "save": "保存",
+      "saving": "保存中…",
+      "saved": "已保存"
     },
     "home": {
       "welcome": "欢迎回来",
@@ -1067,6 +1088,7 @@
       "pickFile": "选择文件并上传",
       "uploading": "上传识别中...",
       "allowedHint": "支持 JPG / PNG / WebP / PDF",
+      "tooLarge": "文件过大，请选择 15MB 以内的文件",
       "uploadError": "上传失败，请重试",
       "resultOk": "已上传并识别，等待平台审核",
       "resultReview": "已上传，需人工复核",

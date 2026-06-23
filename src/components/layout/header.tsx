@@ -33,13 +33,19 @@ function AuthButtons() {
             {t("dashboard")}
           </Button>
         </Link>
-        <Link href="/dashboard">
-          <span
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background"
-            title={user.name ?? user.phone ?? ""}
-          >
-            {userInitial(user)}
-          </span>
+        <Link href="/dashboard/profile" title={user.name ?? user.phone ?? ""}>
+          {user.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.avatarUrl}
+              alt=""
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+              {userInitial(user)}
+            </span>
+          )}
         </Link>
         <Button variant="ghost" size="sm" onClick={() => signOut()}>
           {t("signOut")}

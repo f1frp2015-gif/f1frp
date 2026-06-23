@@ -21,6 +21,7 @@ import {
   Download,
   ArrowRight,
   Bookmark,
+  UserRound,
 } from "lucide-react";
 
 import {
@@ -70,6 +71,7 @@ const REGISTRY: Record<string, IconComponent | LucideIcon> = {
 
   // ── Dashboard nav
   overview: LayoutGrid,
+  profile: UserRound,
   "post-new": PenLine,
   "post-list": FileText,
   messages: MessageCircle,

@@ -980,6 +980,7 @@
     "adminSection": "Admin",
     "nav": {
       "overview": "Overview",
+      "profile": "Profile",
       "saved": "Saved",
       "postNew": "Post listing",
       "posts": "My listings",
@@ -993,6 +994,26 @@
       "adminQualifications": "Qualifications",
       "adminEnterprises": "Registration review",
       "adminPrices": "Price index"
+    },
+    "profilePage": {
+      "metaTitle": "Profile",
+      "title": "Profile",
+      "subtitle": "Update your name and avatar",
+      "avatarLabel": "Avatar",
+      "pickAvatar": "Upload avatar",
+      "uploading": "Uploading…",
+      "avatarAllowedHint": "JPG / PNG / WebP, up to 2MB",
+      "avatarTooLarge": "Image too large, please pick one under 2MB",
+      "phoneLabel": "Phone",
+      "nameLabel": "Display name",
+      "namePlaceholder": "Enter your name",
+      "nameRequired": "Please enter a name",
+      "nameTooLong": "Name must be 100 characters or fewer",
+      "uploadError": "Upload failed, please retry",
+      "saveError": "Save failed, please retry",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved"
     },
     "home": {
       "welcome": "Welcome back",
@@ -1094,6 +1115,7 @@
       "pickFile": "Choose file & upload",
       "uploading": "Uploading & extracting…",
       "allowedHint": "JPG / PNG / WebP / PDF",
+      "tooLarge": "File too large, please pick one under 15MB",
       "uploadError": "Upload failed, please retry",
       "resultOk": "Uploaded & extracted, pending review",
       "resultReview": "Uploaded, needs manual review",

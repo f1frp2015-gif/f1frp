@@ -19,6 +19,14 @@ import {
   type DocKind,
 } from "@/lib/enterprise/doc-schema";
 
+// 单文件大小上限(与前端提示一致)。签名直传 PUT 无法在 OSS 侧限大小,
+// 这里是 server 拉取入内存前的最后一道闸:超限直接拒绝,避免把巨型对象
+// 读进 Uint8Array 撑爆函数内存(OOM/超时)+ 浪费视觉模型调用。
+const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB
+// 抽取整体软超时:留在平台硬超时(maxDuration=60s)之前优雅中断,让上游
+// catch 能把文档落到可复核终态,而不是被硬杀后卡在 'extracting'。
+const EXTRACT_TIMEOUT_MS = 45_000;
+
 const FIELD_HINTS: Record<DocKind, string> = {
   license:
     '{ "companyName": 名称, "creditCode": 统一社会信用代码, "legalRep": 法定代表人, "address": 住所, "businessScope": 经营范围, "establishedDate": 成立日期(YYYY-MM-DD), "registeredCapital": 注册资本 }',
@@ -79,10 +87,19 @@ export async function extractDoc(
   let bytes: Uint8Array;
   let mediaType: string;
   try {
-    const res = await fetch(fileUrl);
+    const res = await fetch(fileUrl, { signal: AbortSignal.timeout(EXTRACT_TIMEOUT_MS) });
     if (!res.ok) return fail(`文档下载失败(${res.status})。`);
+    // Content-Length 是可信的 OSS GET 响应头 → 在缓冲前就挡掉超大对象。
+    const declaredLen = Number(res.headers.get("content-length") || 0);
+    if (declaredLen > MAX_FILE_BYTES) {
+      return fail(`文档过大(超过 ${Math.round(MAX_FILE_BYTES / 1024 / 1024)}MB)，请压缩或导出后重试。`);
+    }
     mediaType = res.headers.get("content-type")?.split(";")[0] || "image/jpeg";
     bytes = new Uint8Array(await res.arrayBuffer());
+    // 兜底:个别情况下 Content-Length 缺失,落地后再核一次实际字节数。
+    if (bytes.byteLength > MAX_FILE_BYTES) {
+      return fail(`文档过大(超过 ${Math.round(MAX_FILE_BYTES / 1024 / 1024)}MB)，请压缩或导出后重试。`);
+    }
   } catch {
     return fail("文档下载失败，请重试或手动填写。");
   }
@@ -106,6 +123,7 @@ export async function extractDoc(
     const { text } = await generateText({
       model: vision.model,
       maxOutputTokens: 1500,
+      abortSignal: AbortSignal.timeout(EXTRACT_TIMEOUT_MS),
       messages: [
         {
           role: "user",

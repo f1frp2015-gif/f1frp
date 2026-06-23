@@ -31,6 +31,7 @@ export default async function DashboardLayout({
 
   const baseItems = [
     { href: "/dashboard" as const, label: t("nav.overview"), iconKey: "overview" },
+    { href: "/dashboard/profile" as const, label: t("nav.profile"), iconKey: "profile" },
     { href: "/dashboard/saved" as const, label: t("nav.saved"), iconKey: "bookmark" },
     { href: "/dashboard/posts/new" as const, label: t("nav.postNew"), iconKey: "post-new" },
     { href: "/dashboard/posts" as const, label: t("nav.posts"), iconKey: "post-list" },

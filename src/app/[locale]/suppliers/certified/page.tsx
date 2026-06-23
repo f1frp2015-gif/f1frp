@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { alternates } from "@/lib/seo";
-import { and, gte, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { db } from "@/lib/db";
-import { supplierDocumentTags, supplierListings } from "@/lib/db/schema";
+import {
+  supplierDocumentTags,
+  supplierDocuments,
+  supplierListings,
+} from "@/lib/db/schema";
 
 import {
   CertifiedDirectoryClient,
@@ -36,7 +40,14 @@ export default async function CertifiedDirectoryPage({
   setRequestLocale(locale);
   const isEn = locale === "en";
 
-  // 只取「可查验 / 已审核」(T2+)且已关联供应商的标签实例
+  // 公开「认证供应商」目录只展示真正过了人工审核的标签:
+  //   ① INNER JOIN supplier_documents 且 status='approved' —— 这是关键安全闸门。
+  //      AI 抽取在上传时就会给 cert(含证号)/license 派生标签写 trust=2,若仅按
+  //      trust>=2 取数,未经审核(甚至他人伪造挂到本供应商)的标签会立即公开。必须
+  //      要求其来源文档已被管理员 approve。
+  //   ② trust>=2 仍保留(approve 时该文档所有标签会被抬到 T3)。
+  //   ③ 过滤掉已过期的标签(validTo 早于今天),避免过期证书仍占目录与分面计数。
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD(force-dynamic,请求期计算)
   const tagRows = await db
     .select({
       supplierListingId: supplierDocumentTags.supplierListingId,
@@ -47,10 +58,19 @@ export default async function CertifiedDirectoryPage({
       certNo: supplierDocumentTags.certNo,
     })
     .from(supplierDocumentTags)
+    .innerJoin(
+      supplierDocuments,
+      eq(supplierDocumentTags.documentId, supplierDocuments.id),
+    )
     .where(
       and(
+        eq(supplierDocuments.status, "approved"),
         gte(supplierDocumentTags.trust, 2),
         isNotNull(supplierDocumentTags.supplierListingId),
+        or(
+          isNull(supplierDocumentTags.validTo),
+          gte(supplierDocumentTags.validTo, today),
+        ),
       ),
     );
 

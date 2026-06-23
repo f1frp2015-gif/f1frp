@@ -25,6 +25,7 @@ function client(): OSS {
 
 export const PAYMENT_PROOF_PREFIX = "payment-proofs";
 export const BUSINESS_LICENSE_PREFIX = "business-licenses";
+export const AVATAR_PREFIX = "avatars";
 
 export function ossConfigured(): boolean {
   return Boolean(

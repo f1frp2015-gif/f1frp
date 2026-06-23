@@ -11,6 +11,7 @@ const KINDS = ["cert", "test", "product", "license"] as const;
 type Kind = (typeof KINDS)[number];
 
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB — 与服务端 extract-doc 上限一致
 
 type UploadResult = {
   status?: "extracted" | "needs_review";
@@ -38,6 +39,10 @@ export function QualificationsUploader({
     setResult(null);
     if (!ALLOWED.includes(file.type)) {
       setError(t("allowedHint"));
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      setError(t("tooLarge"));
       return;
     }
     setBusy(true);
