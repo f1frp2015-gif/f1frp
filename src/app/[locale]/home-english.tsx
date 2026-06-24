@@ -1,6 +1,7 @@
 import { sql, isNotNull, ne, eq, and, desc, asc } from "drizzle-orm";
 import {
   Sparkles,
+  Check,
   Bot,
   ShieldCheck,
   Building2,
@@ -215,7 +216,7 @@ export async function HomePageEnglish() {
                     "@type": "Offer",
                     itemOffered: {
                       "@type": "Service",
-                      name: "AD/CVD, Section 301 & HS-code duty-exposure analysis",
+                      name: "AD/CVD & Section 301 duty-exposure flagging by HS code (advisory)",
                     },
                   },
                   {
@@ -269,7 +270,15 @@ export async function HomePageEnglish() {
                   name: "Does FRP imported from China fall under EU CBAM?",
                   acceptedAnswer: {
                     "@type": "Answer",
-                    text: "Not under the current scope. CBAM's definitive period from 2026 covers six high-carbon goods — iron and steel, aluminium, cement, fertilisers, electricity and hydrogen; fibre-reinforced polymers (GFRP / CFRP / BFRP) are not included, and the EU has only signalled possibly extending CBAM to polymers later this decade. What actually changes your FRP landed cost from China today is trade remedy, not CBAM: EU anti-dumping and countervailing duties on glass fibre (fabrics and rovings), and US Section 301 plus AD/CVD on certain fiberglass products. getfrp prices these into the landed-cost estimate and flags HS-code exposure per shipment, while tracking any future CBAM extension to composites.",
+                    text: "Not under the current scope. CBAM's definitive period from 2026 covers six high-carbon goods — iron and steel, aluminium, cement, fertilisers, electricity and hydrogen; fibre-reinforced polymers (GFRP / CFRP / BFRP) are not included, and the EU has only signalled possibly extending CBAM to polymers later this decade. What actually changes your FRP landed cost from China today is trade remedy, not CBAM: EU anti-dumping and countervailing duties on glass fibre (fabrics and rovings), and US Section 301 plus AD/CVD on certain fiberglass products. getfrp flags which of these measures apply to your HS code so you can price your own landed cost, ships FOB/CIF as principal, and tracks any future CBAM extension to composites — duty-paid (DDP) delivery is on our roadmap.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "Do you ship DDP, or what Incoterms do you use?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Today we ship FOB or CIF to your port and your customs broker clears the import, so you keep control of duties and entry — the arrangement most experienced importers prefer. We flag your AD/CVD and Section 301 duty exposure by HS code up front, so the duty picture is transparent before you commit and there are no surprises at the border. Duty-paid (DDP) delivery and a guaranteed landed-cost figure are on our roadmap; until then we make the duty exposure clear so you can price your own landed cost.",
                   },
                 },
               ],
@@ -299,12 +308,14 @@ export async function HomePageEnglish() {
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
               Most of the world&apos;s FRP is made in China — but that supply
-              chain is opaque, Chinese-only, and impossible to audit from
-              overseas. We turned it into one AI-native workspace:{" "}
+              chain is opaque, Chinese-only, and hard to audit from overseas. We
+              turned it into one AI-native workspace —{" "}
               <strong className="font-semibold text-foreground">200+ factories
-              audited on the ground since 2022</strong>, GB ⇄ ASTM ⇄ EN mapped,
-              materials and processes indexed. Ask in plain English; our China
-              desk runs the RFQ.
+              audited on the ground since 2022</strong>, GB ⇄ ASTM ⇄ EN mapped —
+              backed by one accountable desk: we find the right factory for your
+              spec, control quality with pre-shipment QA, and ship to your port
+              as principal. Your contract is with us, not a factory you&apos;ve
+              never met.
             </p>
           </div>
 
@@ -391,8 +402,9 @@ export async function HomePageEnglish() {
               </h3>
               <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
                 200+ plants audited on the ground since 2022, GB ⇄ ASTM ⇄ EN
-                mapped, materials and processes indexed — ask in English, and a
-                China desk runs the order as principal.
+                mapped — we match the right one to your spec, control quality
+                with pre-shipment QA, and ship FOB/CIF as principal. One
+                contract, one accountable counterparty.
               </p>
             </div>
           </div>
@@ -428,8 +440,8 @@ export async function HomePageEnglish() {
               {
                 Icon: MessagesSquare,
                 step: "03",
-                title: "We run the order to delivery",
-                body: "Our China desk chases the sample, translates the spec sheet, walks the floor for QA, and routes payment — the four steps where overseas RFQs usually die.",
+                title: "We run QA & ship as principal",
+                body: "Our China desk chases the sample, walks the floor for pre-shipment QA, holds batch-to-batch consistency, and ships FOB/CIF — with your AD/CVD & Section 301 duty exposure flagged up front. One contract, with us.",
               },
             ].map((s) => {
               const I = s.Icon;
@@ -453,6 +465,76 @@ export async function HomePageEnglish() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────── What the desk handles — honest scope (today vs roadmap) ───────────
+          Western B2B buyers read a clear scope as credibility, not weakness.
+          Lead with what every order includes today (FOB/CIF as principal, QA,
+          duty exposure flagged); be upfront that DDP / a guaranteed landed-cost
+          figure is still on the roadmap. No overselling. */}
+      <section className="border-b border-border/80 bg-muted/20">
+        <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
+          <div className="text-center">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              WHAT THE DESK HANDLES
+            </div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              Clear on what we do — and what we don&apos;t, yet.
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
+              You contract with us, not a factory you&apos;ve never met. Here is
+              exactly what that covers today.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+            {/* Today */}
+            <div className="rounded-xl border border-border/70 bg-background p-6 sm:p-7">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/70">
+                INCLUDED ON EVERY ORDER
+              </div>
+              <ul className="mt-4 space-y-3 text-[13px] leading-relaxed">
+                {[
+                  "Match the right factory for your spec — vetted, scale-rated, audited on the ground",
+                  "Spec & standards crosswalk: GB ⇄ ASTM ⇄ ISO ⇄ EN, in your unit system",
+                  "Pre-shipment QA and batch-to-batch consistency control",
+                  "Export documentation handled end to end",
+                  "Shipped FOB / CIF to your port — as principal, one contract, one accountable counterparty",
+                  "AD/CVD & Section 301 duty exposure flagged by HS code, before you commit",
+                ].map((item) => (
+                  <li key={item} className="flex gap-2.5">
+                    <Check size={16} className="mt-0.5 shrink-0 text-foreground" />
+                    <span className="text-foreground/90">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Roadmap */}
+            <div className="rounded-xl border border-dashed border-border/70 bg-background/60 p-6 sm:p-7">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                ON THE ROADMAP
+              </div>
+              <ul className="mt-4 space-y-3 text-[13px] leading-relaxed text-muted-foreground">
+                {[
+                  "Duty-paid (DDP) delivery to your door",
+                  "Guaranteed landed-cost figure, duties included",
+                  "Buyer financing & open-account terms",
+                ].map((item) => (
+                  <li key={item} className="flex gap-2.5">
+                    <span className="mt-1 h-3 w-3 shrink-0 rounded-full border border-dashed border-muted-foreground/50" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-5 text-[12px] leading-relaxed text-muted-foreground/80">
+                Until these ship, we keep the duty picture transparent so you can
+                price your own landed cost — and clear import with your own
+                broker, on your terms.
+              </p>
+            </div>
           </div>
         </div>
       </section>

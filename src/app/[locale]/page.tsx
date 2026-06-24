@@ -44,8 +44,8 @@ export const revalidate = 60;
 // its own. The EN deploy (getfrp.com) additionally gets an intent-led
 // <title> + description rather than inheriting the layout's brand-first
 // default — "getfrp" is not a search term, so leading with buyer intent
-// (and the v3 differentiators: verified, conformity, landed cost incl.
-// duties) lifts SERP CTR. zh keeps the layout default.
+// (and the v3 differentiators: verified, conformity, QA, accountable
+// principal) lifts SERP CTR. zh keeps the layout default.
 export async function generateMetadata({
   params,
 }: {
@@ -56,9 +56,9 @@ export async function generateMetadata({
   if (locale !== "en") return base;
   return {
     ...base,
-    title: "Source FRP from China — verified suppliers & landed cost",
+    title: "Source FRP from China — verified suppliers, QA & accountable desk",
     description:
-      "Verified Chinese FRP factories, GB ⇄ ASTM ⇄ EN conformity mapped, landed cost incl. AD/CVD & Section 301 — before you commit. Our China desk runs the RFQ to delivery.",
+      "Verified Chinese FRP factories, GB ⇄ ASTM ⇄ EN conformity mapped, pre-shipment QA, and one accountable desk that ships FOB/CIF as principal — AD/CVD & Section 301 duty exposure flagged before you commit.",
   };
 }
 
