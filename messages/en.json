@@ -2085,7 +2085,7 @@
     "adv3Title": "AI assistant, not chatbot",
     "adv3Desc": "Ask in plain English. Answers cite the underlying data with links, so you can verify before forwarding to your team.",
     "adv4Title": "Human escalation",
-    "adv4Desc": "Our China-based sourcing desk handles the messy part: RFQ paperwork, on-site QA, payment routing, CBAM data, and the conversations factory sales teams expect in Mandarin.",
+    "adv4Desc": "Our China-based sourcing desk handles the messy part: RFQ paperwork, on-site QA, payment routing, duty-exposure flags (AD/CVD, Section 301), and the conversations factory sales teams expect in Mandarin.",
     "roadmapTitle": "Roadmap",
     "roadmap": [
       {

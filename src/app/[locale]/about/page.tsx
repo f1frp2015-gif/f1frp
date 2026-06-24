@@ -218,7 +218,9 @@ function EnglishTrustBlock() {
           visiting Chinese FRP / GFRP / CFRP plants in person for a decade.
           Our bilingual sourcing desk handles every overseas RFQ end-to-end —
           composites engineers fluent in English and Mandarin, on the ground
-          in China.
+          in China. Your contract is with us as principal: we ship FOB/CIF to
+          your port, with pre-shipment QA and your duty exposure flagged up
+          front.
         </p>
       </div>
 
@@ -244,7 +246,7 @@ function EnglishTrustBlock() {
         <TrustBlock
           Icon={FileCheck2}
           label="Compliance pack"
-          value="CBAM · REACH · MTC"
+          value="MTC · CoO · PSI"
           sub="Generated per shipment"
         />
       </div>

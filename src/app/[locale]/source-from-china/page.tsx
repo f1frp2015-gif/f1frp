@@ -322,7 +322,7 @@ export default async function SourceFromChinaPage({
           { id: "certs", num: "03", label: "Export readiness", sub: "Certifications decoded" },
           { id: "standards", num: "04", label: "Standards crosswalk", sub: "GB ⇄ ASTM / ISO / EN" },
           { id: "playbook", num: "05", label: "Sourcing playbook", sub: "Spec → PO → Delivery" },
-          { id: "topics", num: "06", label: "Topic deep dives", sub: "Grating · Rebar · CBAM · GB-vs-ASTM" },
+          { id: "topics", num: "06", label: "Topic deep dives", sub: "Grating · Rebar · Tariffs · GB-vs-ASTM" },
         ].map((i) => (
           <a
             key={i.id}

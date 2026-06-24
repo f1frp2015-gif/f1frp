@@ -55,7 +55,9 @@ export default async function RfqPage({
           </li>
           <li>
             <span className="font-semibold text-foreground">3. Deliver</span> —
-            We support QC, logistics, and CBAM-compliant export documentation.
+            We handle pre-shipment QC, logistics, and export documentation —
+            FOB/CIF as principal, with your duty exposure (AD/CVD, Section 301)
+            flagged by HS code.
           </li>
         </ol>
       </div>
