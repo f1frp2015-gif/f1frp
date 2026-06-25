@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { alternates } from "@/lib/seo";
 
 // Supplier detail pages are CLOSED.
 //
@@ -18,8 +19,19 @@ export function generateStaticParams() {
   return [];
 }
 
-export function generateMetadata(): Metadata {
-  return { robots: { index: false, follow: false } };
+// noindex (the route 404s anyway) but still emit canonical/hreflang via
+// alternates() — the strict SEO check requires every metadata-setting route to
+// call it.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return {
+    robots: { index: false, follow: false },
+    alternates: alternates(`/suppliers/${id}`),
+  };
 }
 
 export default function SupplierDetailClosed() {
