@@ -275,6 +275,12 @@ export async function buildSitemapEntries(
     }
 
     case "suppliers": {
+      // /suppliers/[id] detail pages are closed on getfrp.com (en) to avoid
+      // exposing factory identities — drop them from the EN sitemap entirely.
+      // (zh keeps its existing entries; those already 404 and are left as-is so
+      // f1frp.com output is unchanged.) The anonymized /suppliers index page
+      // itself stays in the core sitemap.
+      if (isEn) return [];
       // Mirror the /suppliers/[id] notFound() gate: verified + English name.
       const rows = (await safeFetch(() =>
         db

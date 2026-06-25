@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { desc, asc, isNotNull, sql } from "drizzle-orm";
+import { desc, asc, eq, isNotNull, sql } from "drizzle-orm";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -28,6 +28,17 @@ export async function generateMetadata({
   };
 }
 
+function NetStat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-background p-4 text-center">
+      <div className="text-2xl font-bold tracking-tight">{value}</div>
+      <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export default async function SuppliersPage({
   params,
 }: {
@@ -37,6 +48,115 @@ export default async function SuppliersPage({
   setRequestLocale(locale);
 
   const t = await getTranslations("Suppliers");
+
+  // ── getfrp.com (en / overseas): anonymized network / credibility view ──────
+  // Never expose individual factory identities to overseas buyers (that would
+  // disintermediate the F1 sourcing desk). Present the vetted network in
+  // aggregate and funnel to the RFQ. f1frp.com (zh) keeps the full named
+  // directory below, unchanged.
+  if (locale === "en") {
+    const netRows = await db
+      .select({
+        province: supplierListings.province,
+        category: supplierListings.category,
+      })
+      .from(supplierListings)
+      .where(eq(supplierListings.verified, true));
+    const factoryCount = netRows.length;
+    const provinceCount = new Set(
+      netRows.map((r) => r.province).filter(Boolean),
+    ).size;
+    const catCounts = new Map<string, number>();
+    for (const r of netRows) {
+      if (r.category)
+        catCounts.set(r.category, (catCounts.get(r.category) ?? 0) + 1);
+    }
+    const catChips = supplierCategories
+      .filter((c) => catCounts.has(c.id))
+      .map((c) => ({ label: c.nameEn, count: catCounts.get(c.id) ?? 0 }))
+      .sort((a, b) => b.count - a.count);
+    const networkJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      serviceType: "China FRP sourcing & supplier vetting",
+      provider: { "@type": "Organization", name: "getfrp" },
+      areaServed: "Worldwide",
+      description: `An audited network of ${factoryCount} verified Chinese FRP factories across ${provinceCount} provinces, sourced as a principal — factory selection, QA and accountability handled by one desk.`,
+      url: `${CURRENT_SITE_URL}/suppliers`,
+    };
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+        <JsonLd data={networkJsonLd} />
+        <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          Vetted supply network
+        </div>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+          A vetted network of Chinese FRP factories — sourced as your principal
+        </h1>
+        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+          getfrp doesn&apos;t hand out a factory list. We audit, shortlist and
+          stand behind the right plant for your spec — you deal with one
+          accountable, English-speaking sourcing desk, not fifty factories.
+          Specific factory identity, samples and pricing are confirmed after you
+          submit an RFQ.
+        </p>
+
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <NetStat value={`${factoryCount}`} label="Verified factories" />
+          <NetStat value={`${provinceCount}`} label="Provinces covered" />
+          <NetStat value={`${catChips.length}`} label="Supply categories" />
+          <NetStat value="1 desk" label="Accountable contact" />
+        </div>
+
+        {catChips.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Capability coverage
+            </h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {catChips.map((c) => (
+                <span
+                  key={c.label}
+                  className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/30 px-3 py-1.5 text-[13px]"
+                >
+                  {c.label}
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    {c.count}
+                  </span>
+                </span>
+              ))}
+            </div>
+            <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
+              Certifications on file across the network include ISO 9001 / ISO
+              14001, CE and EN 13706 — verified per factory against scope and
+              renewal before any order.
+            </p>
+          </div>
+        )}
+
+        <div className="mt-12 rounded-lg border bg-muted/30 p-8 text-center">
+          <h3 className="text-xl font-bold">Tell us what you need to source</h3>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+            Submit a spec and our bilingual sourcing engineers shortlist the
+            right plant, walk the floor for QA, and manage the order. First reply
+            within 24 hours, no account required.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href={"/rfq" as never}
+              className={buttonVariants({ size: "lg" })}
+            >
+              Submit an RFQ
+            </Link>
+            <AskAiButton
+              prompt={`I want to source [product / fiber type] from China to [standard, e.g. EN 13706 / ASTM], approx volume [MOQ]. Is it feasible, which standards can be met, and what's the next step?`}
+              label="Ask AI to check feasibility"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // On English deployments, hide records that don't have an English name yet.
   // Existing Chinese-only rows stay on f1frp.com (zh) until backfilled.
