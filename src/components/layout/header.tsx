@@ -191,6 +191,8 @@ export function Header() {
   const showOverseas = locale === "zh";
   // getfrp（en）侧不再有会员/收费体系：海外买家全程匿名，RFQ 直接走 /rfq + Doris
   const showAuth = locale !== "en";
+  // 供应库（工厂目录）仅国内 f1frp.com 展示；getfrp.com（en）海外侧不在导航暴露具体供应商，避免去中介化
+  const showSupplyLib = locale !== "en";
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -238,13 +240,15 @@ export function Header() {
             )}
           </Link>
 
-          {/* 供应库 */}
-          <Link href="/suppliers" className={singleLinkClass(isActive("/suppliers"))}>
-            {t("supplyLib")}
-            {isActive("/suppliers") && (
-              <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
-            )}
-          </Link>
+          {/* 供应库（仅国内侧；getfrp.com 海外侧隐藏） */}
+          {showSupplyLib && (
+            <Link href="/suppliers" className={singleLinkClass(isActive("/suppliers"))}>
+              {t("supplyLib")}
+              {isActive("/suppliers") && (
+                <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
+              )}
+            </Link>
+          )}
 
           {/* 技术库 ▾ */}
           <NavDropdown
@@ -319,14 +323,16 @@ export function Header() {
                 <span>{t("infoLib")}</span>
               </Link>
 
-              {/* 供应库 */}
-              <Link
-                href="/suppliers"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span>{t("supplyLib")}</span>
-              </Link>
+              {/* 供应库（仅国内侧；getfrp.com 海外侧隐藏） */}
+              {showSupplyLib && (
+                <Link
+                  href="/suppliers"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <span>{t("supplyLib")}</span>
+                </Link>
+              )}
 
               {/* 技术库 分组 */}
               <div className="border-b py-2">
