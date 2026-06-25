@@ -14,12 +14,25 @@ import {
   sourcingTopics,
   type SourcingTopic,
 } from "@/lib/data/sourcing-topics";
+import { FrpSectionFigure, type FrpShape } from "@/components/frp-section-figure";
 
 // Hub-and-spoke long-tail landing pages. Each topic is hand-curated content
 // in @/lib/data/sourcing-topics; this page is the renderer + schema layer.
 // Cached aggressively — the source data only changes on deploy.
 export const revalidate = 86400;
 export const dynamicParams = false;
+
+// Per-topic schematic figure — product topics get a cross-section; pure
+// compliance / standards topics (CBAM, tariffs, BABA, GB⇄ASTM, conformity)
+// get none.
+const TOPIC_SHAPE: Record<string, FrpShape> = {
+  "frp-grating": "grating",
+  "frp-rebar": "rebar",
+  "pultruded-profiles": "i-beam",
+  "frp-cable-tray": "channel",
+  "frp-tanks-vessels": "tube",
+  "frp-piping": "tube",
+};
 
 export function generateStaticParams() {
   // EN-only routes — skip pre-rendering on the zh deploy.
@@ -47,15 +60,12 @@ export async function generateMetadata({
   };
 }
 
+// getfrp supplier identities are anonymized — point topic CTAs at the aggregate
+// vetted-network page, NOT a dead ?category= filter the anonymized /suppliers
+// ignores. Still gated on supplierFilter so only relevant (product) topics
+// surface the CTA.
 function buildSupplierFilterHref(t: SourcingTopic): string | null {
-  if (!t.supplierFilter) return null;
-  const params = new URLSearchParams();
-  if (t.supplierFilter.category) params.set("category", t.supplierFilter.category);
-  if (t.supplierFilter.cert) params.set("cert", t.supplierFilter.cert);
-  if (t.supplierFilter.province) params.set("province", t.supplierFilter.province);
-  params.set("verified", "1");
-  const q = params.toString();
-  return q ? `/suppliers?${q}` : "/suppliers?verified=1";
+  return t.supplierFilter ? "/suppliers" : null;
 }
 
 export default async function SourcingTopicPage({
@@ -71,6 +81,7 @@ export default async function SourcingTopicPage({
 
   const url = `${CURRENT_SITE_URL}/sourcing/${t.slug}`;
   const supplierFilterHref = buildSupplierFilterHref(t);
+  const shape = TOPIC_SHAPE[t.slug];
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -118,15 +129,32 @@ export default async function SourcingTopicPage({
 
       {/* ─────────── Hero ─────────── */}
       <header className="mb-10 border-b border-border/70 pb-8">
-        <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          {t.pillar.toUpperCase()} · SOURCING TOPIC
+        <div className="flex items-start justify-between gap-6">
+          <div className="min-w-0">
+            <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              {t.pillar.toUpperCase()} · SOURCING TOPIC
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-[-0.02em] sm:text-4xl">
+              {t.title}
+            </h1>
+            <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
+              {t.intro}
+            </p>
+          </div>
+          {shape && (
+            <div className="hidden shrink-0 sm:block">
+              <div className="flex h-28 w-28 items-center justify-center rounded-xl border border-border/70 bg-muted/20">
+                <FrpSectionFigure
+                  shape={shape}
+                  className="h-20 w-24 text-foreground/80"
+                />
+              </div>
+              <div className="mt-1.5 text-center font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                Schematic
+              </div>
+            </div>
+          )}
         </div>
-        <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-[-0.02em] sm:text-4xl">
-          {t.title}
-        </h1>
-        <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-          {t.intro}
-        </p>
 
         {/* Editorial attribution — Western readers distrust anonymous content.
             Byline + reviewer + review date is the minimum credibility signal. */}
@@ -235,10 +263,10 @@ export default async function SourcingTopicPage({
           >
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                BROWSE
+                NETWORK
               </div>
               <div className="mt-1 text-sm font-semibold tracking-tight">
-                Verified suppliers in this category
+                See the audited supplier network
               </div>
             </div>
             <ChevronRight
