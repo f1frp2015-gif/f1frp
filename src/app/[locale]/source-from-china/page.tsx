@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { sql, eq, and, desc, isNotNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { setRequestLocale } from "next-intl/server";
 import {
   ShieldCheck,
-  MapPin,
   ClipboardCheck,
   FileSearch,
   Truck,
@@ -12,8 +11,6 @@ import {
   FileText,
   Search,
   ChevronRight,
-  Building2,
-  Award,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
@@ -31,6 +28,7 @@ import { JsonLd } from "@/components/json-ld";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { TestimonialsBlock } from "@/components/testimonials-block";
+import { ProductFamilyGallery } from "@/components/frp-section-figure";
 import {
   crosswalk,
   exportReadinessCerts,
@@ -65,28 +63,19 @@ const TIER_META: Record<string, { label: string; rank: number; tone: string }> =
   },
 };
 
-const TOP_PER_CATEGORY = 6;
-
 type VerifiedRow = {
-  id: string;
-  nameEn: string | null;
-  locationEn: string | null;
-  province: string | null;
   category: string | null;
-  productsEn: string[] | null;
+  province: string | null;
   certificationsEn: string[] | null;
   scaleTier: string | null;
-  brandPriority: number;
-  viewCount: number;
-  established: number | null;
 };
 
 export function generateMetadata(): Metadata {
   return {
     title:
-      "Source FRP composites from China: verified suppliers, ranked by scale",
+      "Source FRP composites from China: products, standards & sourcing playbook",
     description:
-      "A directory of independently verified Chinese FRP suppliers — fiber, resin, equipment, mold makers — sorted by manufacturing scale. Plus the GB ⇄ ASTM / ISO / EN standards crosswalk and a 6-step sourcing playbook for overseas buyers.",
+      "What FRP products to source from China (pultruded profiles, grating, rebar, pipe), the GB ⇄ ASTM / ISO / EN standards crosswalk, export-readiness certifications, and a 6-step sourcing playbook — handled by one bilingual desk that sources as your principal.",
     alternates: alternates("/source-from-china"),
   };
 }
@@ -100,36 +89,18 @@ export default async function SourceFromChinaPage({
   if (locale !== "en") notFound();
   setRequestLocale(locale);
 
-  const tierRank = sql`CASE ${supplierListings.scaleTier} WHEN 'XL' THEN 4 WHEN 'L' THEN 3 WHEN 'M' THEN 2 WHEN 'S' THEN 1 ELSE 0 END`;
-
-  // Pull verified suppliers with English names, pre-sorted by scale.
-  // One query feeds: top-N per category, province counts, cert counts, hero stats.
+  // Aggregate-only query — the page presents the audited network in aggregate
+  // (counts by category / province / cert / tier), NEVER named suppliers. No
+  // factory identity reaches the client; getfrp sources as a principal.
   const verified: VerifiedRow[] = await db
     .select({
-      id: supplierListings.id,
-      nameEn: supplierListings.nameEn,
-      locationEn: supplierListings.locationEn,
-      province: supplierListings.province,
       category: supplierListings.category,
-      productsEn: supplierListings.productsEn,
+      province: supplierListings.province,
       certificationsEn: supplierListings.certificationsEn,
       scaleTier: supplierListings.scaleTier,
-      brandPriority: supplierListings.brandPriority,
-      viewCount: supplierListings.viewCount,
-      established: supplierListings.established,
     })
     .from(supplierListings)
-    .where(
-      and(
-        eq(supplierListings.verified, true),
-        isNotNull(supplierListings.nameEn)
-      )
-    )
-    .orderBy(
-      desc(tierRank),
-      desc(supplierListings.brandPriority),
-      desc(supplierListings.viewCount)
-    );
+    .where(eq(supplierListings.verified, true));
 
   const total = verified.length;
 
@@ -248,8 +219,8 @@ export default async function SourceFromChinaPage({
 
       <PlatformHero
         eyebrow="FOR OVERSEAS BUYERS"
-        title="Source FRP from China, by category, ranked by scale"
-        description="The whole China FRP supply base, mapped. Each supplier below has been independently audited, sorted by manufacturing scale, and tagged with the certifications your end-market actually screens for."
+        title="Source FRP from China — products, standards, one accountable desk"
+        description="The whole China FRP supply base, audited and mapped. See what you can source, how Chinese GB standards map to ASTM / ISO / EN, and the step-by-step path — then hand the factory-side work to one bilingual desk that sources as your principal."
       />
 
       {/* TL;DR — scan UX. Western B2B buyers triage in 5-8 seconds; surface
@@ -261,7 +232,7 @@ export default async function SourceFromChinaPage({
         </div>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {[
-            "A directory of independently audited Chinese FRP plants, sorted by manufacturing scale tier (Major / Large / Mid / Small)",
+            "What FRP products to source (profiles, grating, rebar, pipe) and the audited supply base behind them — by capability and scale tier",
             "Province-by-province map of where each FRP product category is actually made (resin = Jiangsu, fiber = Shandong, etc.)",
             "GB ⇄ ASTM ⇄ ISO ⇄ EN standards crosswalk — set spec expectations before the RFQ, not after",
             "A 6-step sourcing playbook from spec to delivered cargo, with payment / QC / Incoterms benchmarks",
@@ -294,17 +265,23 @@ export default async function SourceFromChinaPage({
       {/* Primary CTA strip */}
       <div className="mb-14 flex flex-wrap items-center gap-3 border-y border-border/70 py-5">
         <Link
-          href="/suppliers?verified=1"
+          href={"/rfq" as never}
           className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
         >
-          Browse all {total.toLocaleString()} verified suppliers
+          Submit an RFQ
           <ChevronRight size={14} />
         </Link>
         <Link
-          href="/ai?q=Find+a+verified+Chinese+supplier+for+FRP+gratings+with+CE+marking"
+          href="/suppliers"
           className="inline-flex items-center gap-1.5 rounded-md border border-border px-5 py-2.5 text-sm transition-colors hover:bg-muted"
         >
-          Ask AI to match a supplier
+          See the vetted network ({total.toLocaleString()})
+        </Link>
+        <Link
+          href="/ai?q=Is+it+feasible+to+source+EN+13706+FRP+grating+with+CE+marking+from+China%3F"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-5 py-2.5 text-sm transition-colors hover:bg-muted"
+        >
+          Ask AI to check feasibility
         </Link>
         <a
           href="mailto:f1frp2015@gmail.com"
@@ -314,11 +291,31 @@ export default async function SourceFromChinaPage({
         </a>
       </div>
 
+      {/* Featured: what you can source — generated product figures, anonymous
+          by design (shows the product, not the factory), each → RFQ */}
+      <section className="mb-12">
+        <div className="mb-5 flex items-end justify-between gap-3 border-b border-border/70 pb-3">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              WHAT YOU CAN SOURCE
+            </div>
+            <h2 className="mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl">
+              FRP product families we source from China
+            </h2>
+          </div>
+        </div>
+        <ProductFamilyGallery />
+        <p className="mt-3 text-xs text-muted-foreground">
+          Figures are schematic. Tell us the spec and target standard — we match
+          the right plant from the audited network and stand behind delivery.
+        </p>
+      </section>
+
       {/* TOC */}
       <div className="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         {[
-          { id: "directory", num: "01", label: "Suppliers by category", sub: "Ranked by scale tier" },
-          { id: "regions", num: "02", label: "Suppliers by region", sub: "China's FRP clusters" },
+          { id: "directory", num: "01", label: "Capability by category", sub: "Audited, by scale tier" },
+          { id: "regions", num: "02", label: "Regional clusters", sub: "China's FRP map" },
           { id: "certs", num: "03", label: "Export readiness", sub: "Certifications decoded" },
           { id: "standards", num: "04", label: "Standards crosswalk", sub: "GB ⇄ ASTM / ISO / EN" },
           { id: "playbook", num: "05", label: "Sourcing playbook", sub: "Spec → PO → Delivery" },
@@ -347,15 +344,15 @@ export default async function SourceFromChinaPage({
       {/* ═══ 01 — Suppliers by category, ranked by scale ═══ */}
       <section id="directory" className="mt-16 scroll-mt-20">
         <PlatformSectionHeading
-          eyebrow="MODULE 01 · DIRECTORY"
-          title="Verified suppliers by category, ranked by scale"
+          eyebrow="MODULE 01 · CAPABILITY"
+          title="The audited network, by capability and scale"
         />
         <p className="mb-8 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-          Each category below lists the largest verified suppliers first.
-          Tiers run from Major (listed groups, Tier-1 manufacturers) down
-          through Large, Mid (regional specialists) and Small. Most overseas
-          RFQs go to Major or Large for low risk; Mid and Small are where
-          you find the niche capabilities the big plants won&apos;t bother with.
+          The supply base behind those products, shown in aggregate. Each card is
+          a supply-chain role with its audited plant count and scale mix — Major
+          (listed groups / Tier-1) through Small (niche SMEs). We pick and stand
+          behind the specific plant for your spec; you deal with one desk, not a
+          directory.
         </p>
 
         {/* Tier legend */}
@@ -376,23 +373,51 @@ export default async function SourceFromChinaPage({
           ))}
         </div>
 
-        {/* Category blocks */}
-        <div className="space-y-10">
+        {/* Capability cards — anonymized: counts + scale mix, no factory names */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {supplierCategories
-            .map((c) => ({
-              cat: c,
-              rows: byCategory.get(c.id) ?? [],
-            }))
+            .map((c) => ({ cat: c, rows: byCategory.get(c.id) ?? [] }))
             .filter((b) => b.rows.length > 0)
-            .map(({ cat, rows }) => (
-              <CategoryBlock
-                key={cat.id}
-                title={cat.nameEn}
-                count={rows.length}
-                categoryId={cat.id}
-                rows={rows.slice(0, TOP_PER_CATEGORY)}
-              />
-            ))}
+            .map(({ cat, rows }) => {
+              const mix = rows.reduce<Record<string, number>>((acc, r) => {
+                const t = r.scaleTier ?? "M";
+                acc[t] = (acc[t] ?? 0) + 1;
+                return acc;
+              }, {});
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/rfq?category=${encodeURIComponent(cat.id)}` as never}
+                  className="group flex flex-col border border-border/70 bg-background p-5 transition-colors hover:border-foreground"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm font-semibold tracking-tight">
+                      {cat.nameEn}
+                    </span>
+                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                      {rows.length}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {(["XL", "L", "M", "S"] as const)
+                      .filter((t) => (mix[t] ?? 0) > 0)
+                      .map((t) => (
+                        <span
+                          key={t}
+                          className={`inline-flex items-center gap-1 border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider ${TIER_META[t].tone}`}
+                        >
+                          {TIER_META[t].label}
+                          <span className="opacity-60">{mix[t]}</span>
+                        </span>
+                      ))}
+                  </div>
+                  <span className="mt-4 inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-foreground/70 transition-colors group-hover:text-foreground">
+                    Source this → RFQ
+                    <ChevronRight size={12} className="transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              );
+            })}
         </div>
       </section>
 
@@ -413,21 +438,15 @@ export default async function SourceFromChinaPage({
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {chinaFrpProvinces.map((p) => {
             // The DB stores Chinese province tokens; reverse-lookup via
-            // provincesEn map (English → Chinese is the inverse direction
-            // we already publish).
+            // provincesEn map to count audited plants per province.
             const zhKey = Object.entries(provincesEn).find(
               ([, en]) => en === p.name
             )?.[0];
             const count = zhKey ? (provinceCounts.get(zhKey) ?? 0) : 0;
             return (
-              <Link
+              <div
                 key={p.code}
-                href={
-                  zhKey
-                    ? (`/suppliers?province=${encodeURIComponent(zhKey)}` as never)
-                    : ("/suppliers" as never)
-                }
-                className="group block border border-border/70 bg-background p-4 transition-colors hover:border-foreground"
+                className="border border-border/70 bg-background p-4"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -437,15 +456,11 @@ export default async function SourceFromChinaPage({
                     <span className="text-sm font-semibold">{p.name}</span>
                   </div>
                   <span className="font-mono text-[11px] text-muted-foreground">
-                    {count} verified
+                    {count} audited
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">{p.specialty}</p>
-                <div className="mt-3 flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-muted-foreground group-hover:text-foreground">
-                  View suppliers
-                  <ChevronRight size={12} className="transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </Link>
+              </div>
             );
           })}
         </div>
@@ -490,10 +505,10 @@ export default async function SourceFromChinaPage({
                 </p>
                 {n > 0 && (
                   <Link
-                    href={`/suppliers?cert=${encodeURIComponent(c.name)}` as never}
+                    href={`/rfq?cert=${encodeURIComponent(c.name)}` as never}
                     className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-foreground hover:underline"
                   >
-                    See holders →
+                    Require in your RFQ →
                   </Link>
                 )}
               </div>
@@ -627,7 +642,7 @@ export default async function SourceFromChinaPage({
               overhead without improving price discovery.
             </p>
             <p className="mt-2 font-mono text-[11px] text-muted-foreground/80">
-              Tool: <Link href="/suppliers?verified=1" className="underline">verified directory</Link>
+              Tool: the <Link href="/suppliers" className="underline">vetted network</Link> + RFQ
             </p>
           </PlatformCard>
 
@@ -820,111 +835,6 @@ function StatCard({ label, value }: { label: string; value: number }) {
       <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </div>
-    </div>
-  );
-}
-
-function CategoryBlock({
-  title,
-  count,
-  categoryId,
-  rows,
-}: {
-  title: string;
-  count: number;
-  categoryId: string;
-  rows: VerifiedRow[];
-}) {
-  return (
-    <div className="border border-border/70 bg-background">
-      {/* Category header */}
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border/70 bg-muted/30 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <Building2 size={18} strokeWidth={1.5} className="text-muted-foreground" />
-          <div>
-            <div className="text-base font-semibold tracking-tight">{title}</div>
-            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              {count} verified · top {Math.min(rows.length, count)} shown
-            </div>
-          </div>
-        </div>
-        <Link
-          href={`/suppliers?category=${encodeURIComponent(categoryId)}` as never}
-          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
-        >
-          See all {count}
-          <ChevronRight size={12} />
-        </Link>
-      </div>
-
-      {/* Supplier rows */}
-      <ul className="divide-y divide-border/70">
-        {rows.map((s, idx) => {
-          const tier = s.scaleTier ?? "M";
-          const meta = TIER_META[tier] ?? TIER_META.M;
-          const provinceEn = s.province ? (provincesEn[s.province] ?? s.province) : null;
-          const certs = (s.certificationsEn ?? []).slice(0, 3);
-          return (
-            <li key={s.id}>
-              <Link
-                href={`/suppliers/${s.id}` as "/suppliers/[id]"}
-                className="group grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-muted/40"
-              >
-                <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                  #{String(idx + 1).padStart(2, "0")}
-                </span>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-semibold tracking-tight">
-                      {s.nameEn}
-                    </span>
-                    <span
-                      className={`inline-flex shrink-0 items-center border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider ${meta.tone}`}
-                      title={`Scale tier: ${tier}`}
-                    >
-                      {meta.label}
-                    </span>
-                    {provinceEn && (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <MapPin size={10} />
-                        {provinceEn}
-                      </span>
-                    )}
-                    {s.established && (
-                      <span className="font-mono text-[10px] text-muted-foreground">
-                        est. {s.established}
-                      </span>
-                    )}
-                  </div>
-                  {certs.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                      <Award size={10} className="text-muted-foreground" />
-                      {certs.map((c) => (
-                        <Badge
-                          key={c}
-                          variant="outline"
-                          className="font-mono text-[9px] uppercase tracking-wider"
-                        >
-                          {c}
-                        </Badge>
-                      ))}
-                      {(s.certificationsEn ?? []).length > 3 && (
-                        <span className="font-mono text-[10px] text-muted-foreground">
-                          +{(s.certificationsEn ?? []).length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <ChevronRight
-                  size={14}
-                  className="text-muted-foreground transition-transform group-hover:translate-x-0.5"
-                />
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
     </div>
   );
 }
