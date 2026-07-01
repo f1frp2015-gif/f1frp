@@ -18,6 +18,7 @@ import { retrieveTopK, buildRagContext, type Retrieved } from "@/lib/ai/retrieve
 import { makeWebSearchTool, isWebSearchConfigured } from "@/lib/ai/tools/web-search";
 import { makeWindowUValueTool } from "@/lib/ai/tools/window-uvalue";
 import { makeProfileCalcTool } from "@/lib/ai/tools/profile-calc";
+import { makeSelectProfileTool } from "@/lib/ai/tools/select-profile";
 import { makeMaterialSelectorTool } from "@/lib/ai/tools/material-selector";
 import { makeFeasibilityMatchTool } from "@/lib/ai/tools/feasibility-match";
 import { makeLandedCostTool } from "@/lib/ai/tools/landed-cost";
@@ -315,6 +316,7 @@ export async function POST(req: Request) {
       : {
           window_u_value: makeWindowUValueTool(),
           profile_mechanics: makeProfileCalcTool(),
+          select_profile: makeSelectProfileTool(),
           material_selector: makeMaterialSelectorTool(),
           feasibility_match: makeFeasibilityMatchTool(),
           landed_cost_usd: makeLandedCostTool(),
