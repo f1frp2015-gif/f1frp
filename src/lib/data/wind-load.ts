@@ -190,6 +190,19 @@ export const MATERIALS: {
   { key: "q355", zh: "钢 Q355", en: "Steel Q355", E: 206000, f: 305 },
 ];
 
+// 门窗/幕墙型材「系列」= 公称框深 (mm)，行业通用命名（如 65 系列 ≈ 框构造深 65mm）。
+// 品牌中立：仅表示公称框深与默认材料上下文，不代表任何厂家专有截面数据。
+// 具体 W(截面模量)/I(惯性矩) 因型材（边框/中挺/扇料）而异，须按型材实测 datasheet 填写。
+export const PROFILE_SERIES: { series: number; depth: number }[] = [
+  { series: 50, depth: 50 },
+  { series: 55, depth: 55 },
+  { series: 60, depth: 60 },
+  { series: 65, depth: 65 },
+  { series: 70, depth: 70 },
+  { series: 80, depth: 80 },
+  { series: 90, depth: 90 },
+];
+
 // 挠度限值 L/n（相对挠度）。铝合金幕墙立柱/横梁 L/180（JGJ 102-2003 §6.2.1）；
 // 钢 L/250；铝合金门窗主要受力杆件 L/150（JGJ 214-2010）；复材宜从严。
 export const DEFLECTION_LIMITS: { n: number; zh: string; en: string }[] = [

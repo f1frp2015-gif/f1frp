@@ -6,6 +6,7 @@ import {
   BASIC_WIND_PRESSURE,
   DEFLECTION_LIMITS,
   MATERIALS,
+  PROFILE_SERIES,
   SHAPE_ZONES,
   TERRAIN,
   type Terrain,
@@ -17,6 +18,8 @@ const L10N = {
     stdBadge: "依据 GB 50009-2012《建筑结构荷载规范》· JGJ 102 / JGJ 214",
     secWind: "① 风荷载参数",
     secMember: "② 框料受力参数（简支梁）",
+    seriesLabel: "门窗型材系列（公称框深）",
+    seriesNone: "不指定 / 自定义",
     city: "工程所在地 / 基本风压 w₀",
     cityCustom: "自定义 w₀",
     w0: "基本风压 w₀ (kN/m²)",
@@ -84,6 +87,8 @@ const L10N = {
     stdBadge: "Per China GB 50009-2012 Load Code · JGJ 102 / JGJ 214",
     secWind: "① Wind-load parameters",
     secMember: "② Frame member (simply-supported beam)",
+    seriesLabel: "Window profile series (nominal depth)",
+    seriesNone: "Not specified / custom",
     city: "Location / basic wind pressure w₀",
     cityCustom: "Custom w₀",
     w0: "Basic wind pressure w₀ (kN/m²)",
@@ -152,6 +157,7 @@ const DEFAULTS = {
   z: 30,
   muSl: 1.0,
   gammaW: 1.5,
+  series: 0, // 0 = 不指定
   matKey: "frp23",
   E: 23000,
   f: 80,
@@ -181,6 +187,7 @@ export default function WindLoadCalculator() {
   const [z, setZ] = useState(DEFAULTS.z);
   const [muSl, setMuSl] = useState(DEFAULTS.muSl);
   const [gammaW, setGammaW] = useState(DEFAULTS.gammaW);
+  const [series, setSeries] = useState(DEFAULTS.series);
   const [matKey, setMatKey] = useState(DEFAULTS.matKey);
   const [E, setE] = useState(DEFAULTS.E);
   const [f, setF] = useState(DEFAULTS.f);
@@ -208,6 +215,10 @@ export default function WindLoadCalculator() {
       setF(m.f);
     }
   }
+  function pickSeries(n: number) {
+    setSeries(n);
+    if (n > 0) pickMaterial("frp23"); // 系列默认材料 = 复材 FRP
+  }
   function resetAll() {
     setCityIdx(DEFAULTS.cityIdx);
     setW0(DEFAULTS.w0);
@@ -215,6 +226,7 @@ export default function WindLoadCalculator() {
     setZ(DEFAULTS.z);
     setMuSl(DEFAULTS.muSl);
     setGammaW(DEFAULTS.gammaW);
+    setSeries(DEFAULTS.series);
     setMatKey(DEFAULTS.matKey);
     setE(DEFAULTS.E);
     setF(DEFAULTS.f);
@@ -427,6 +439,31 @@ export default function WindLoadCalculator() {
           {/* Section 2 — member */}
           <div className="space-y-5 rounded-lg border bg-background p-6">
             <h3 className="text-sm font-bold">{s.secMember}</h3>
+
+            <div>
+              <label className={labelCls}>{s.seriesLabel}</label>
+              <select
+                value={series}
+                onChange={(e) => pickSeries(+e.target.value)}
+                className={selectCls}
+              >
+                <option value={0}>{s.seriesNone}</option>
+                {PROFILE_SERIES.map((p) => (
+                  <option key={p.series} value={p.series}>
+                    {isEn
+                      ? `${p.series} series · ${p.depth} mm`
+                      : `${p.series} 系列 · 公称框深 ${p.depth} mm`}
+                  </option>
+                ))}
+              </select>
+              {series > 0 && (
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {isEn
+                    ? `Nominal frame depth ${series} mm · fill W, I from the profile datasheet`
+                    : `公称框深 ${series} mm · W、I 请按型材实测 datasheet 填写`}
+                </span>
+              )}
+            </div>
 
             <div>
               <label className={labelCls}>{s.material}</label>
