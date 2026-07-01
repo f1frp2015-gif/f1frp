@@ -87,6 +87,8 @@ export const users = pgTable(
     clerkId: varchar("clerk_id", { length: 255 }).unique(),
     phone: varchar("phone", { length: 20 }),
     email: varchar("email", { length: 255 }),
+    // getfrp(en) 邮箱+密码直接注册的密码哈希(scrypt);zh 手机/微信用户为 null。
+    passwordHash: text("password_hash"),
     name: varchar("name", { length: 100 }),
     avatarUrl: text("avatar_url"),
     // 自建会话版本号 — 递增即可让该用户所有已签发 cookie 失效(全端登出)。
