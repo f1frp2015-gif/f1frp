@@ -212,6 +212,7 @@ export function Header() {
     { href: "/pultrusion/quote", label: t("quote"), isNew: true },
     { href: "/tech/calculator", label: t("engCalc"), isNew: true },
     { href: "/tech/u-value-calculator", label: t("windowCalc"), isNew: true },
+    { href: "/tech/wind-load-calculator", label: t("windLoadCalc"), isNew: true },
   ];
   const techActive = techItems.some((it) => isActive(it.href));
   const aiActive = aiItems.some((it) => isActive(it.href));

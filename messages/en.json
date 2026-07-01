@@ -23,6 +23,7 @@
     "aiAssistant": "AI Assistant",
     "engCalc": "Eng. Calc",
     "windowCalc": "Window U-value",
+    "windLoadCalc": "Wind Load",
     "dashboard": "Dashboard",
     "signIn": "Sign in",
     "signUp": "Sign up",
@@ -587,6 +588,12 @@
       "governingHintAl": "When replacing aluminum with FRP, stiffness and strength criteria are often comparable — the FRP profile must satisfy BOTH, so the larger scale factor governs.",
       "governingHintSteel": "When replacing steel with FRP, stiffness almost always governs because FRP modulus is roughly 1/10 of steel.",
       "equivDisclaimer": "Based on geometrically similar scaling with both equal-stiffness (EI) and equal-strength (σW) suggestions per EN 13706-3, GB/T 31539-2015 and ASCE pre-standard. FRP design must satisfy both criteria — the larger scale factor governs. Verify with detailed engineering calculations."
+    },
+    "windLoad": {
+      "metaTitle": "Window & Curtain-Wall Wind-Load Calculator (GB 50009)",
+      "metaDescription": "Check window and curtain-wall wind-pressure resistance to China GB 50009-2012 load code: wind-load standard value plus aluminium, FRP and steel mullion and transom bending strength and deflection.",
+      "h1": "Window & Curtain-Wall Wind-Load Calculator",
+      "subtitle": "Per China's Load Code GB 50009-2012 & Glass Curtain Wall Spec JGJ 102 · wind-load standard value + mullion / transom strength and deflection check"
     },
     "uvalue": {
       "metaTitle": "GFRP-PU Window U-Value Calculator — per JG/T 571-2019 App. C",
