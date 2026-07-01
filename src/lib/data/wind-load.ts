@@ -221,13 +221,100 @@ export const DEFLECTION_LIMITS: { n: number; zh: string; en: string }[] = [
   { n: 300, zh: "L/300（严格）", en: "L/300 (strict)" },
 ];
 
-export interface WindInput {
-  w0: number; // kN/m²
-  terrain: Terrain;
-  z: number; // m
-  muSl: number;
-  gammaW: number; // 风荷载分项系数
-  B: number; // 受荷宽度（框料间距）mm
+// ── 多标准风荷载引擎 ──────────────────────────────────────────────
+// 围护结构风压推导按各国规范分流；框料强度/挠度校核（简支梁 σ=Md/W、
+// δ=5qL⁴/384EI）通用。f1frp.com(中文)固定 GB；getfrp.com(英文)可选地区规范。
+//   pService  用于挠度校核的使用/标准级风压 (kN/m²)
+//   pDesign   用于强度校核的设计/极限级风压 (kN/m²)
+
+export type WindStandard = "gb" | "asce" | "eurocode";
+
+// ===== 美国 ASCE 7-22（Components & Cladding, §26/§30）=====
+// 暴露系数 Kz = 2.01·(z/zg)^(2/α)，α、zg 见表 26.11-1（15ft/4.6m 以下取 4.6m）
+export const ASCE_EXPOSURE: Record<
+  "B" | "C" | "D",
+  { alpha: number; zg: number; zh: string; en: string }
+> = {
+  B: { alpha: 7.0, zg: 365.76, zh: "B 类｜市区/郊区/林地", en: "B — urban / suburban / wooded" },
+  C: { alpha: 9.5, zg: 274.32, zh: "C 类｜开阔地（默认）", en: "C — open terrain (default)" },
+  D: { alpha: 11.5, zg: 213.36, zh: "D 类｜平坦/沿海/滩涂", en: "D — flat / coastal / mud flats" },
+};
+export type AsceExposure = keyof typeof ASCE_EXPOSURE;
+
+export function asceKz(exp: AsceExposure, z: number): number {
+  const { alpha, zg } = ASCE_EXPOSURE[exp];
+  const zz = Math.max(z, 4.6);
+  return 2.01 * Math.pow(zz / zg, 2 / alpha);
+}
+/** ASCE 7-22 速压 qz = 0.613·Kz·Kzt·Kd·Ke·V² (Pa)，V=m/s（3秒阵风·极限风速），Kd=0.85(C&C) */
+export function asceQz(
+  exp: AsceExposure,
+  z: number,
+  V: number,
+  Kzt = 1,
+  Kd = 0.85,
+  Ke = 1,
+): number {
+  return 0.613 * asceKz(exp, z) * Kzt * Kd * Ke * V * V;
+}
+// 美国代表性基本风速 V（m/s，3秒阵风，Risk Cat II，极限/强度级；实际按 ASCE 7 风速图取）
+export const ASCE_WIND_SPEEDS: { zh: string; en: string; V: number }[] = [
+  { zh: "内陆一般（≈115 mph）", en: "Inland typical (≈115 mph)", V: 51 },
+  { zh: "过渡区（≈130 mph）", en: "Transition (≈130 mph)", V: 58 },
+  { zh: "沿海飓风区（≈150 mph）", en: "Hurricane coast (≈150 mph)", V: 67 },
+  { zh: "强飓风区（≈170 mph）", en: "High hurricane (≈170 mph)", V: 76 },
+];
+
+// ===== 欧洲 Eurocode EN 1991-1-4 =====
+// 峰值速压 qp(z)=ce(z)·qb；ce(z)=[1+7·Iv]·cr²（c0=1）；cr=kr·ln(z/z0)，kr=0.19·(z0/0.05)^0.07；
+// Iv=1/ln(z/z0)；qb=0.5·ρ·vb²（ρ=1.25）。z<zmin 取 zmin。
+export const EC_TERRAIN: Record<
+  "0" | "I" | "II" | "III" | "IV",
+  { z0: number; zmin: number; zh: string; en: string }
+> = {
+  "0": { z0: 0.003, zmin: 1, zh: "0 类｜海面/沿海", en: "0 — sea / coastal" },
+  I: { z0: 0.01, zmin: 1, zh: "I 类｜湖泊/平坦无障碍", en: "I — lakes / flat, no obstacles" },
+  II: { z0: 0.05, zmin: 2, zh: "II 类｜低矮植被/零星障碍（默认）", en: "II — low vegetation (default)" },
+  III: { z0: 0.3, zmin: 5, zh: "III 类｜郊区/森林", en: "III — suburban / forest" },
+  IV: { z0: 1.0, zmin: 10, zh: "IV 类｜城市（>15% 建筑, h>15m）", en: "IV — urban (>15% built, h>15m)" },
+};
+export type EcTerrain = keyof typeof EC_TERRAIN;
+
+export function ecCe(cat: EcTerrain, z: number): number {
+  const { z0, zmin } = EC_TERRAIN[cat];
+  const zz = Math.max(z, zmin);
+  const kr = 0.19 * Math.pow(z0 / 0.05, 0.07);
+  const cr = kr * Math.log(zz / z0);
+  const Iv = 1 / Math.log(zz / z0);
+  return (1 + 7 * Iv) * cr * cr;
+}
+/** Eurocode 峰值速压 qp(z)=ce(z)·qb (Pa)，qb=0.5·ρ·vb²（ρ=1.25，特征值） */
+export function ecQp(cat: EcTerrain, z: number, vb: number, rho = 1.25): number {
+  return ecCe(cat, z) * 0.5 * rho * vb * vb;
+}
+// 欧洲代表性基本风速 vb（m/s，10 分钟平均，10m，重现期 50 年；实际按各国国家附录取）
+export const EC_WIND_SPEEDS: { zh: string; en: string; vb: number }[] = [
+  { zh: "内陆一般 22 m/s", en: "Inland typical 22 m/s", vb: 22 },
+  { zh: "较强 26 m/s", en: "Moderate 26 m/s", vb: 26 },
+  { zh: "沿海/强风 30 m/s", en: "Coastal / strong 30 m/s", vb: 30 },
+  { zh: "极端 34 m/s", en: "Severe 34 m/s", vb: 34 },
+];
+
+// 各标准围护结构"净压力系数"（含内压组合）代表绝对值：中间区 / 角部
+// ASCE: |GCp − GCpi|（GCpi=±0.18 封闭）；Eurocode: |cpe − cpi|（cpi=+0.2/−0.3）
+export const NET_CP_PRESETS: {
+  key: string;
+  zh: string;
+  en: string;
+  asce: number;
+  ec: number;
+}[] = [
+  { key: "field", zh: "中间区", en: "Field / interior", asce: 1.3, ec: 1.3 },
+  { key: "corner", zh: "角部 / 边缘", en: "Corner / edge", asce: 1.6, ec: 1.6 },
+];
+
+export interface MemberInput {
+  B: number; // 受荷宽度 mm
   L: number; // 计算跨度 mm
   W: number; // 抗弯截面模量 cm³
   I: number; // 惯性矩 cm⁴
@@ -237,61 +324,53 @@ export interface WindInput {
 }
 
 export interface WindResult {
-  muz: number;
-  bgz: number;
-  wk: number; // kN/m² 标准值
-  wDesign: number; // kN/m² 设计值
-  qk: number; // kN/m 标准线荷载
-  Mk: number; // kN·m 标准弯矩
+  pService: number; // kN/m² 使用/标准级（挠度用）
+  pDesign: number; // kN/m² 设计/极限级（强度用）
+  qk: number; // kN/m 使用级线荷载
   Md: number; // kN·m 设计弯矩
-  sigma: number; // MPa 弯曲应力（设计值）
-  delta: number; // mm 挠度（标准值）
+  sigma: number; // MPa 弯曲应力
+  delta: number; // mm 挠度（使用级）
   deltaLimit: number; // mm 允许挠度
-  strengthRatio: number; // σ / f
-  deflRatio: number; // δ / [δ]
+  strengthRatio: number;
+  deflRatio: number;
   strengthPass: boolean;
   deflPass: boolean;
   pass: boolean;
+  gb?: { muz: number; bgz: number };
+  asce?: { Kz: number; qz: number }; // qz kN/m²
+  ec?: { ce: number; qp: number }; // qp kN/m²
 }
 
-/** 抗风压承载力/挠度核算主函数 */
-export function compute(inp: WindInput): WindResult {
-  const muz = muZ(inp.terrain, inp.z);
-  const bgz = betaGz(inp.terrain, inp.z);
-  const wk = bgz * inp.muSl * muz * inp.w0; // kN/m² 标准值
-  const wDesign = inp.gammaW * wk; // kN/m² 设计值
+/** 共享框料校核：强度用 pDesign、挠度用 pService（简支梁均布风压） */
+function checkMember(
+  pService: number,
+  pDesign: number,
+  m: MemberInput,
+): Omit<WindResult, "gb" | "asce" | "ec"> {
+  const Bm = m.B / 1000; // m
+  const qk = pService * Bm; // kN/m 使用级
+  const qd = pDesign * Bm; // kN/m 设计级
+  const Lm = m.L / 1000; // m
+  const Md = (qd * Lm * Lm) / 8; // kN·m 设计弯矩
 
-  const Bm = inp.B / 1000; // m
-  const Lm = inp.L / 1000; // m
-  const qk = wk * Bm; // kN/m 标准线荷载
-  const Mk = (qk * Lm * Lm) / 8; // kN·m 标准弯矩
-  const Md = inp.gammaW * Mk; // kN·m 设计弯矩
+  const W_mm3 = m.W * 1e3; // cm³ → mm³
+  const I_mm4 = m.I * 1e4; // cm⁴ → mm⁴
 
-  const W_mm3 = inp.W * 1e3; // cm³ → mm³
-  const I_mm4 = inp.I * 1e4; // cm⁴ → mm⁴
-
-  // σ = Md / W ；Md(kN·m) → N·mm ×1e6，W mm³ → MPa
   const sigma = W_mm3 > 0 ? (Md * 1e6) / W_mm3 : Infinity;
-
-  // δ = 5·qk·L⁴/(384·E·I)。qk(kN/m) 数值上等于 N/mm；L mm；E MPa；I mm⁴ → mm
   const delta =
-    inp.E > 0 && I_mm4 > 0
-      ? (5 * qk * Math.pow(inp.L, 4)) / (384 * inp.E * I_mm4)
+    m.E > 0 && I_mm4 > 0
+      ? (5 * qk * Math.pow(m.L, 4)) / (384 * m.E * I_mm4)
       : Infinity;
-
-  const deltaLimit = inp.L / inp.deflN;
-  const strengthRatio = inp.f > 0 ? sigma / inp.f : Infinity;
+  const deltaLimit = m.L / m.deflN;
+  const strengthRatio = m.f > 0 ? sigma / m.f : Infinity;
   const deflRatio = deltaLimit > 0 ? delta / deltaLimit : Infinity;
   const strengthPass = strengthRatio <= 1;
   const deflPass = deflRatio <= 1;
 
   return {
-    muz,
-    bgz,
-    wk,
-    wDesign,
+    pService,
+    pDesign,
     qk,
-    Mk,
     Md,
     sigma,
     delta,
@@ -301,5 +380,56 @@ export function compute(inp: WindInput): WindResult {
     strengthPass,
     deflPass,
     pass: strengthPass && deflPass,
+  };
+}
+
+// ---- 中国 GB 50009-2012 ----
+export interface GBInput extends MemberInput {
+  w0: number;
+  terrain: Terrain;
+  z: number;
+  muSl: number;
+  gammaW: number;
+}
+export function computeGB(inp: GBInput): WindResult {
+  const muz = muZ(inp.terrain, inp.z);
+  const bgz = betaGz(inp.terrain, inp.z);
+  const wk = bgz * inp.muSl * muz * inp.w0; // kN/m² 标准值
+  return { ...checkMember(wk, inp.gammaW * wk, inp), gb: { muz, bgz } };
+}
+
+// ---- 美国 ASCE 7-22 ----
+// V 为极限风速 → pUlt 即强度级；挠度用 0.6W 使用级（ASCE 7 荷载组合）
+export interface ASCEInput extends MemberInput {
+  V: number;
+  exp: AsceExposure;
+  z: number;
+  cp: number; // |GCp − GCpi|
+}
+export function computeASCE(inp: ASCEInput): WindResult {
+  const Kz = asceKz(inp.exp, inp.z);
+  const qz = asceQz(inp.exp, inp.z, inp.V); // Pa（含 Kd=0.85）
+  const pUlt = (qz * inp.cp) / 1000; // kN/m² 极限/强度级
+  return {
+    ...checkMember(0.6 * pUlt, pUlt, inp),
+    asce: { Kz, qz: qz / 1000 },
+  };
+}
+
+// ---- 欧洲 Eurocode EN 1991-1-4 ----
+// qp 为特征值 → we 特征/使用级；强度用 γQ=1.5（ULS）
+export interface ECInput extends MemberInput {
+  vb: number;
+  cat: EcTerrain;
+  z: number;
+  cp: number; // |cpe − cpi|
+}
+export function computeEC(inp: ECInput): WindResult {
+  const ce = ecCe(inp.cat, inp.z);
+  const qp = ecQp(inp.cat, inp.z, inp.vb); // Pa 峰值速压
+  const we = (qp * inp.cp) / 1000; // kN/m² 特征值
+  return {
+    ...checkMember(we, 1.5 * we, inp),
+    ec: { ce, qp: qp / 1000 },
   };
 }
