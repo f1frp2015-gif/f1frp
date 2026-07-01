@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useLocale } from "next-intl";
 import {
+  AS_REGIONS,
+  AS_TERRAIN,
   ASCE_EXPOSURE,
   ASCE_WIND_SPEEDS,
   BASIC_WIND_PRESSURE,
@@ -10,15 +12,21 @@ import {
   EC_TERRAIN,
   EC_WIND_SPEEDS,
   MATERIALS,
+  NBCC_EXPOSURE,
+  NBCC_Q,
   NET_CP_PRESETS,
   PROFILE_SERIES,
   SHAPE_ZONES,
   TERRAIN,
+  computeAS,
   computeASCE,
   computeEC,
   computeGB,
+  computeNBCC,
   type AsceExposure,
+  type AsTerrain,
   type EcTerrain,
+  type NbccExposure,
   type Terrain,
   type WindStandard,
 } from "@/lib/data/wind-load";
@@ -29,9 +37,13 @@ const L10N = {
     stdGB: "🇨🇳 中国 · GB 50009",
     stdASCE: "🇺🇸 美国 · ASCE 7-22",
     stdEC: "🇪🇺 欧盟/英国 · Eurocode",
+    stdNBCC: "🇨🇦 加拿大 · NBCC 2020",
+    stdAS: "🇦🇺🇳🇿 澳新 · AS/NZS 1170.2",
     badgeGB: "依据 GB 50009-2012《建筑结构荷载规范》· JGJ 102 / JGJ 214",
     badgeASCE: "Per ASCE 7-22 · Components & Cladding (§26/§30)",
     badgeEC: "Per Eurocode EN 1991-1-4 · Wind actions",
+    badgeNBCC: "Per NBCC 2020 · Cladding (Div. B 4.1.7)",
+    badgeAS: "Per AS/NZS 1170.2 · Wind actions",
     secWind: "① 风荷载参数",
     secMember: "② 框料受力参数（简支梁）",
     seriesLabel: "门窗型材系列（公称框深）",
@@ -59,6 +71,25 @@ const L10N = {
     ecCpHint: "内压 cpi 取 +0.2 / −0.3；按 EN 1991-1-4 §7.2 分区细化",
     ecLoadNote: "qp 为特征值；强度用 γQ=1.5（ULS），挠度用特征值",
     windSpeed: "风速 (m/s)",
+    // NBCC
+    nbccQ: "工程所在地 / 参考速压 q",
+    nbccQInput: "参考速压 q (kPa)",
+    nbccQCustom: "自定义 q",
+    nbccExp: "地形暴露",
+    nbccCp: "净压力系数 |Cg·Cp|",
+    nbccCpHint: "Cg=2.5(围护)已含阵风；外墙 CgCp≈1.5~2.1，内压 CpiCgi 另加，按 NBCC 附注细化",
+    nbccLoadNote: "q 为 1/50 年指定压力；强度用 1.4W（ULS），挠度用指定级",
+    liveNbccCe: "暴露系数 Ce",
+    liveNbccQh: "高度处速压 q·Ce",
+    // AS
+    asRegion: "风区 / 基本风速 VR",
+    asVrInput: "基本风速 VR (m/s)",
+    asCat: "地形类别",
+    asCp: "净气动体型系数 Cfig",
+    asCpHint: "Cfig=Cp,e·Ka·Kc·Kl·Kp（含内压 Cp,i）；角部含局部因子 Kl，按 AS/NZS §5 细化",
+    asLoadNote: "VR 为 1/500 年 ULS 风速；强度用极限级，挠度用 0.7×（≈使用级）",
+    liveAsMz: "地形高度系数 Mz",
+    liveAsVdes: "设计风速 Vdes",
     // member
     material: "框料材料",
     eMod: "弹性模量 E (MPa)",
@@ -102,6 +133,12 @@ const L10N = {
     fEC1: "Eurocode EN 1991-1-4 峰值速压：",
     fEC1Eq: "qp(z) = ce(z) · qb , qb = 0.5·ρ·vb²",
     fEC2: "ce(z) = [1+7·Iv]·cr²，cr = kr·ln(z/z0)，kr = 0.19·(z0/0.05)^0.07，ρ = 1.25 kg/m³。",
+    fNBCC1: "NBCC 2020 指定压力：",
+    fNBCC1Eq: "p = Iw · q · Ce · Ct · Cg · Cp",
+    fNBCC2: "Ce 开阔 =(h/10)^0.2（≥0.9）、粗糙 =0.7·(h/12)^0.3（≥0.7）；围护 Cg=2.5；q 为 1/50 年（附录 C）。",
+    fAS1: "AS/NZS 1170.2 设计风压：",
+    fAS1Eq: "p = 0.5·ρ·Vdes² · Cfig · Cdyn , Vdes = VR·Md·Mz,cat·Ms·Mt",
+    fAS2: "ρ=1.2 kg/m³；Mz,cat 按地形类别 TC1–TC4 与高度（表 4.1）；VR 为 1/500 年区域风速。",
     fStrength: "框料强度（简支梁均布风压）：σ = Md / W ，Md = γ · qk · L²/8 ，qk = p·B",
     fDefl: "框料挠度（使用级风压）：δ = 5·qk·L⁴ / (384·E·I) ≤ [δ] = L/n",
     // reference tables
@@ -121,6 +158,8 @@ const L10N = {
     stdNoteGB: "中国：GB 50009-2012 荷载 + JGJ 102（幕墙）/ JGJ 214（门窗）；分项系数按 GB 55001-2021。",
     stdNoteASCE: "美国：ASCE 7-22 / IBC；V 为极限（强度级）3 秒阵风，须按 ASCE 7 风速图按 Risk Category 取值。",
     stdNoteEC: "欧盟/英国：EN 1991-1-4 + 各国国家附录（vb、地形、cpe 可能有国家调整）。",
+    stdNoteNBCC: "加拿大：NBCC 2020 Div. B 4.1.7；q 为 1/50 年参考速压（附录 C 按地点取），Cg=2.5（围护），强度 1.4W。",
+    stdNoteAS: "澳新：AS/NZS 1170.2；VR 按风区（A/B/C/D）与重现期取，Md/Ms/Mt 本工具取 1，Cfig 含局部因子 Kl。",
     disclaimer: "本计算结果仅供工程初步估算与方案比选参考，不能替代正式结构计算书。最终设计须由具备资质的结构工程师依据完整现行规范复核并承担相应责任。",
     reset: "恢复默认",
   },
@@ -129,9 +168,13 @@ const L10N = {
     stdGB: "🇨🇳 China · GB 50009",
     stdASCE: "🇺🇸 US · ASCE 7-22",
     stdEC: "🇪🇺 EU/UK · Eurocode",
+    stdNBCC: "🇨🇦 Canada · NBCC 2020",
+    stdAS: "🇦🇺🇳🇿 AU/NZ · AS/NZS 1170.2",
     badgeGB: "Per China GB 50009-2012 Load Code · JGJ 102 / JGJ 214",
     badgeASCE: "Per ASCE 7-22 · Components & Cladding (§26 / §30)",
     badgeEC: "Per Eurocode EN 1991-1-4 · Wind actions",
+    badgeNBCC: "Per NBCC 2020 · Cladding (Div. B 4.1.7)",
+    badgeAS: "Per AS/NZS 1170.2 · Wind actions",
     secWind: "① Wind-load parameters",
     secMember: "② Frame member (simply-supported beam)",
     seriesLabel: "Window profile series (nominal depth)",
@@ -156,6 +199,25 @@ const L10N = {
     ecCpHint: "Internal cpi = +0.2 / −0.3; refine per EN 1991-1-4 §7.2 zones",
     ecLoadNote: "qp is characteristic; strength uses γQ=1.5 (ULS), deflection characteristic",
     windSpeed: "Wind speed (m/s)",
+    // NBCC
+    nbccQ: "Location / reference velocity pressure q",
+    nbccQInput: "Reference velocity pressure q (kPa)",
+    nbccQCustom: "Custom q",
+    nbccExp: "Terrain exposure",
+    nbccCp: "Net pressure coeff |Cg·Cp|",
+    nbccCpHint: "Cg=2.5 (cladding) includes gust; wall CgCp≈1.5–2.1, add internal CpiCgi; refine per NBCC commentary",
+    nbccLoadNote: "q is 1/50-yr specified pressure; strength uses 1.4W (ULS), deflection specified",
+    liveNbccCe: "Exposure factor Ce",
+    liveNbccQh: "Velocity pressure q·Ce",
+    // AS
+    asRegion: "Wind region / speed VR",
+    asVrInput: "Regional wind speed VR (m/s)",
+    asCat: "Terrain category",
+    asCp: "Net aerodynamic factor Cfig",
+    asCpHint: "Cfig=Cp,e·Ka·Kc·Kl·Kp (incl. internal Cp,i); corner includes local factor Kl; refine per AS/NZS §5",
+    asLoadNote: "VR is 1/500-yr ULS speed; strength uses ultimate, deflection 0.7× (≈ service)",
+    liveAsMz: "Terrain/height Mz",
+    liveAsVdes: "Design speed Vdes",
     material: "Frame material",
     eMod: "Young's modulus E (MPa)",
     fStr: "Design bending strength f (MPa)",
@@ -195,6 +257,12 @@ const L10N = {
     fEC1: "Eurocode EN 1991-1-4 peak velocity pressure:",
     fEC1Eq: "qp(z) = ce(z) · qb , qb = 0.5·ρ·vb²",
     fEC2: "ce(z) = [1+7·Iv]·cr², cr = kr·ln(z/z0), kr = 0.19·(z0/0.05)^0.07, ρ = 1.25 kg/m³.",
+    fNBCC1: "NBCC 2020 specified pressure:",
+    fNBCC1Eq: "p = Iw · q · Ce · Ct · Cg · Cp",
+    fNBCC2: "Ce open = (h/10)^0.2 (≥0.9), rough = 0.7·(h/12)^0.3 (≥0.7); cladding Cg = 2.5; q is 1/50-yr (Appendix C).",
+    fAS1: "AS/NZS 1170.2 design wind pressure:",
+    fAS1Eq: "p = 0.5·ρ·Vdes² · Cfig · Cdyn , Vdes = VR·Md·Mz,cat·Ms·Mt",
+    fAS2: "ρ=1.2 kg/m³; Mz,cat by terrain category TC1–TC4 and height (Table 4.1); VR is 1/500-yr regional speed.",
     fStrength: "Member strength (simply-supported beam, UDL): σ = Md / W , Md = γ · qk · L²/8 , qk = p·B",
     fDefl: "Member deflection (service wind): δ = 5·qk·L⁴ / (384·E·I) ≤ [δ] = L/n",
     deflTableTitle: "Deflection-limit reference",
@@ -213,6 +281,8 @@ const L10N = {
     stdNoteGB: "China: GB 50009-2012 loads + JGJ 102 (curtain wall) / JGJ 214 (windows); partial factor per GB 55001-2021.",
     stdNoteASCE: "US: ASCE 7-22 / IBC; V is the ultimate (strength-level) 3-sec gust — take it from the ASCE 7 wind maps for the Risk Category.",
     stdNoteEC: "EU/UK: EN 1991-1-4 + national annexes (vb, terrain, cpe may be nationally adjusted).",
+    stdNoteNBCC: "Canada: NBCC 2020 Div. B 4.1.7; q is the 1/50-yr reference velocity pressure (Appendix C by location), Cg=2.5 (cladding), strength 1.4W.",
+    stdNoteAS: "AU/NZ: AS/NZS 1170.2; take VR by wind region (A/B/C/D) and return period; Md/Ms/Mt taken as 1 here; Cfig includes local factor Kl.",
     disclaimer: "Results are for preliminary estimation and scheme comparison only and do not replace a formal structural calculation. Final design must be reviewed and signed off by a qualified structural engineer per the full current codes.",
     reset: "Reset defaults",
   },
@@ -233,6 +303,15 @@ const DEFAULTS = {
   ecVb: 22,
   ecCat: "II" as EcTerrain,
   ecCp: 1.3,
+  // NBCC
+  nbccQIdx: 0, // 多伦多 Toronto
+  nbccQ: 0.44,
+  nbccExp: "open" as NbccExposure,
+  nbccCp: 2.0,
+  // AS
+  asVR: 45, // Region A
+  asCat: "TC2" as AsTerrain,
+  asCp: 1.2,
   // shared
   z: 30,
   series: 0,
@@ -276,6 +355,15 @@ export default function WindLoadCalculator() {
   const [ecVb, setEcVb] = useState(DEFAULTS.ecVb);
   const [ecCat, setEcCat] = useState<EcTerrain>(DEFAULTS.ecCat);
   const [ecCp, setEcCp] = useState(DEFAULTS.ecCp);
+  // NBCC
+  const [nbccQIdx, setNbccQIdx] = useState(DEFAULTS.nbccQIdx);
+  const [nbccQ, setNbccQ] = useState(DEFAULTS.nbccQ);
+  const [nbccExp, setNbccExp] = useState<NbccExposure>(DEFAULTS.nbccExp);
+  const [nbccCp, setNbccCp] = useState(DEFAULTS.nbccCp);
+  // AS
+  const [asVR, setAsVR] = useState(DEFAULTS.asVR);
+  const [asCat, setAsCat] = useState<AsTerrain>(DEFAULTS.asCat);
+  const [asCp, setAsCp] = useState(DEFAULTS.asCp);
   // shared
   const [z, setZ] = useState(DEFAULTS.z);
   const [series, setSeries] = useState(DEFAULTS.series);
@@ -294,6 +382,10 @@ export default function WindLoadCalculator() {
       return computeASCE({ V: asceV, exp: asceExp, z, cp: asceCp, ...member });
     if (standard === "eurocode")
       return computeEC({ vb: ecVb, cat: ecCat, z, cp: ecCp, ...member });
+    if (standard === "nbcc")
+      return computeNBCC({ q: nbccQ, exp: nbccExp, z, cgcp: nbccCp, ...member });
+    if (standard === "as")
+      return computeAS({ VR: asVR, cat: asCat, z, cfig: asCp, ...member });
     return computeGB({ w0, terrain, z, muSl, gammaW, ...member });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -304,6 +396,12 @@ export default function WindLoadCalculator() {
     ecVb,
     ecCat,
     ecCp,
+    nbccQ,
+    nbccExp,
+    nbccCp,
+    asVR,
+    asCat,
+    asCp,
     w0,
     terrain,
     muSl,
@@ -319,11 +417,23 @@ export default function WindLoadCalculator() {
   ]);
 
   const badge =
-    standard === "asce" ? s.badgeASCE : standard === "eurocode" ? s.badgeEC : s.badgeGB;
+    standard === "asce"
+      ? s.badgeASCE
+      : standard === "eurocode"
+        ? s.badgeEC
+        : standard === "nbcc"
+          ? s.badgeNBCC
+          : standard === "as"
+            ? s.badgeAS
+            : s.badgeGB;
 
   function pickCity(idx: number) {
     setCityIdx(idx);
     if (idx >= 0) setW0(BASIC_WIND_PRESSURE[idx].w0);
+  }
+  function pickNbccCity(idx: number) {
+    setNbccQIdx(idx);
+    if (idx >= 0) setNbccQ(NBCC_Q[idx].q);
   }
   function pickMaterial(key: string) {
     setMatKey(key);
@@ -350,6 +460,13 @@ export default function WindLoadCalculator() {
     setEcVb(DEFAULTS.ecVb);
     setEcCat(DEFAULTS.ecCat);
     setEcCp(DEFAULTS.ecCp);
+    setNbccQIdx(DEFAULTS.nbccQIdx);
+    setNbccQ(DEFAULTS.nbccQ);
+    setNbccExp(DEFAULTS.nbccExp);
+    setNbccCp(DEFAULTS.nbccCp);
+    setAsVR(DEFAULTS.asVR);
+    setAsCat(DEFAULTS.asCat);
+    setAsCp(DEFAULTS.asCp);
     setZ(DEFAULTS.z);
     setSeries(DEFAULTS.series);
     setMatKey(DEFAULTS.matKey);
@@ -401,7 +518,11 @@ export default function WindLoadCalculator() {
   );
 
   // net-Cp preset buttons (ASCE / Eurocode)
-  const cpPresets = (value: number, set: (v: number) => void, key: "asce" | "ec") => (
+  const cpPresets = (
+    value: number,
+    set: (v: number) => void,
+    key: "asce" | "ec" | "nbcc" | "as",
+  ) => (
     <div className="flex flex-wrap gap-2">
       {NET_CP_PRESETS.map((p) => (
         <button
@@ -429,27 +550,40 @@ export default function WindLoadCalculator() {
   );
 
   // live readout cells (standard-specific first two + service/design pressure)
+  const pCells = [
+    { label: s.liveP, value: fmt(r.pService, 3), accent: true },
+    { label: s.livePd, value: fmt(r.pDesign, 3) },
+  ];
   const liveCells: { label: string; value: string; accent?: boolean }[] =
     standard === "asce"
       ? [
           { label: s.liveKz, value: fmt(r.asce?.Kz ?? 0, 3) },
           { label: s.liveQz, value: fmt(r.asce?.qz ?? 0, 3) },
-          { label: s.liveP, value: fmt(r.pService, 3), accent: true },
-          { label: s.livePd, value: fmt(r.pDesign, 3) },
+          ...pCells,
         ]
       : standard === "eurocode"
         ? [
             { label: s.liveCe, value: fmt(r.ec?.ce ?? 0, 3) },
             { label: s.liveQp, value: fmt(r.ec?.qp ?? 0, 3) },
-            { label: s.liveP, value: fmt(r.pService, 3), accent: true },
-            { label: s.livePd, value: fmt(r.pDesign, 3) },
+            ...pCells,
           ]
-        : [
-            { label: s.liveMuz, value: fmt(r.gb?.muz ?? 0, 3) },
-            { label: s.liveBgz, value: fmt(r.gb?.bgz ?? 0, 3) },
-            { label: s.liveP, value: fmt(r.pService, 3), accent: true },
-            { label: s.livePd, value: fmt(r.pDesign, 3) },
-          ];
+        : standard === "nbcc"
+          ? [
+              { label: s.liveNbccCe, value: fmt(r.nbcc?.Ce ?? 0, 3) },
+              { label: s.liveNbccQh, value: fmt(r.nbcc?.qh ?? 0, 3) },
+              ...pCells,
+            ]
+          : standard === "as"
+            ? [
+                { label: s.liveAsMz, value: fmt(r.as?.Mz ?? 0, 3) },
+                { label: s.liveAsVdes, value: fmt(r.as?.Vdes ?? 0, 1) },
+                ...pCells,
+              ]
+            : [
+                { label: s.liveMuz, value: fmt(r.gb?.muz ?? 0, 3) },
+                { label: s.liveBgz, value: fmt(r.gb?.bgz ?? 0, 3) },
+                ...pCells,
+              ];
 
   return (
     <div>
@@ -485,6 +619,8 @@ export default function WindLoadCalculator() {
                 >
                   <option value="asce">{s.stdASCE}</option>
                   <option value="eurocode">{s.stdEC}</option>
+                  <option value="nbcc">{s.stdNBCC}</option>
+                  <option value="as">{s.stdAS}</option>
                   <option value="gb">{s.stdGB}</option>
                 </select>
               </div>
@@ -709,6 +845,134 @@ export default function WindLoadCalculator() {
                 </div>
                 <div className="rounded-md bg-muted/50 px-4 py-2.5 text-xs text-muted-foreground">
                   {s.ecLoadNote}
+                </div>
+              </>
+            )}
+
+            {/* NBCC inputs */}
+            {standard === "nbcc" && (
+              <>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className={labelCls}>{s.nbccQ}</label>
+                    <select
+                      value={nbccQIdx}
+                      onChange={(e) => pickNbccCity(+e.target.value)}
+                      className={selectCls}
+                    >
+                      {NBCC_Q.map((c, i) => (
+                        <option key={c.city} value={i}>
+                          {isEn ? c.cityEn : c.city} · q {c.q.toFixed(2)}
+                        </option>
+                      ))}
+                      <option value={-1}>{s.nbccQCustom}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>{s.nbccQInput}</label>
+                    <input
+                      type="number"
+                      value={nbccQ}
+                      onChange={(e) => {
+                        setNbccQ(Math.max(0, +e.target.value));
+                        setNbccQIdx(-1);
+                      }}
+                      step={0.01}
+                      min={0}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className={labelCls}>{s.nbccExp}</label>
+                    <select
+                      value={nbccExp}
+                      onChange={(e) => setNbccExp(e.target.value as NbccExposure)}
+                      className={selectCls}
+                    >
+                      {(Object.keys(NBCC_EXPOSURE) as NbccExposure[]).map((k) => (
+                        <option key={k} value={k}>
+                          {isEn ? NBCC_EXPOSURE[k].en : NBCC_EXPOSURE[k].zh}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>{s.height}</label>
+                    {numInput(z, setZ, 1, 0)}
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>{s.nbccCp}</label>
+                  {cpPresets(nbccCp, setNbccCp, "nbcc")}
+                  <span className="mt-1 block text-xs text-muted-foreground">{s.nbccCpHint}</span>
+                </div>
+                <div className="rounded-md bg-muted/50 px-4 py-2.5 text-xs text-muted-foreground">
+                  {s.nbccLoadNote}
+                </div>
+              </>
+            )}
+
+            {/* AS/NZS inputs */}
+            {standard === "as" && (
+              <>
+                <div>
+                  <label className={labelCls}>{s.asRegion}</label>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={asVR}
+                      onChange={(e) => setAsVR(+e.target.value)}
+                      className={selectCls}
+                    >
+                      {AS_REGIONS.map((rg) => (
+                        <option key={rg.key} value={rg.VR}>
+                          {isEn ? rg.en : rg.zh}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="w-28 shrink-0">
+                      <input
+                        type="number"
+                        value={asVR}
+                        onChange={(e) => setAsVR(Math.max(0, +e.target.value))}
+                        step={1}
+                        min={0}
+                        className={inputCls}
+                      />
+                      <span className="mt-0.5 block text-center text-[10px] text-muted-foreground">
+                        {s.windSpeed}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className={labelCls}>{s.asCat}</label>
+                    <select
+                      value={asCat}
+                      onChange={(e) => setAsCat(e.target.value as AsTerrain)}
+                      className={selectCls}
+                    >
+                      {(Object.keys(AS_TERRAIN) as AsTerrain[]).map((k) => (
+                        <option key={k} value={k}>
+                          {isEn ? AS_TERRAIN[k].en : AS_TERRAIN[k].zh}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>{s.height}</label>
+                    {numInput(z, setZ, 1, 0)}
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>{s.asCp}</label>
+                  {cpPresets(asCp, setAsCp, "as")}
+                  <span className="mt-1 block text-xs text-muted-foreground">{s.asCpHint}</span>
+                </div>
+                <div className="rounded-md bg-muted/50 px-4 py-2.5 text-xs text-muted-foreground">
+                  {s.asLoadNote}
                 </div>
               </>
             )}
@@ -962,6 +1226,28 @@ export default function WindLoadCalculator() {
               <p>{s.fEC2}</p>
             </>
           )}
+          {standard === "nbcc" && (
+            <>
+              <p>
+                {s.fNBCC1}{" "}
+                <code className="rounded bg-background px-1.5 py-0.5 font-mono text-foreground">
+                  {s.fNBCC1Eq}
+                </code>
+              </p>
+              <p>{s.fNBCC2}</p>
+            </>
+          )}
+          {standard === "as" && (
+            <>
+              <p>
+                {s.fAS1}{" "}
+                <code className="rounded bg-background px-1.5 py-0.5 font-mono text-foreground">
+                  {s.fAS1Eq}
+                </code>
+              </p>
+              <p>{s.fAS2}</p>
+            </>
+          )}
           <p>
             <code className="rounded bg-background px-1.5 py-0.5 font-mono text-foreground">
               {s.fStrength}
@@ -1065,7 +1351,11 @@ export default function WindLoadCalculator() {
               ? s.stdNoteASCE
               : standard === "eurocode"
                 ? s.stdNoteEC
-                : s.stdNoteGB}
+                : standard === "nbcc"
+                  ? s.stdNoteNBCC
+                  : standard === "as"
+                    ? s.stdNoteAS
+                    : s.stdNoteGB}
           </li>
         </ol>
         <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">{s.disclaimer}</p>

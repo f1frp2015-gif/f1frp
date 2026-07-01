@@ -227,7 +227,7 @@ export const DEFLECTION_LIMITS: { n: number; zh: string; en: string }[] = [
 //   pService  用于挠度校核的使用/标准级风压 (kN/m²)
 //   pDesign   用于强度校核的设计/极限级风压 (kN/m²)
 
-export type WindStandard = "gb" | "asce" | "eurocode";
+export type WindStandard = "gb" | "asce" | "eurocode" | "nbcc" | "as";
 
 // ===== 美国 ASCE 7-22（Components & Cladding, §26/§30）=====
 // 暴露系数 Kz = 2.01·(z/zg)^(2/α)，α、zg 见表 26.11-1（15ft/4.6m 以下取 4.6m）
@@ -300,17 +300,90 @@ export const EC_WIND_SPEEDS: { zh: string; en: string; vb: number }[] = [
   { zh: "极端 34 m/s", en: "Severe 34 m/s", vb: 34 },
 ];
 
+// ===== 加拿大 NBCC 2020 =====
+// 指定压力 p = Iw·q·Ce·Ct·Cg·Cp（本工具 Iw=Ct=1，用户输入净 Cg·Cp）
+//   Ce 开阔 =(h/10)^0.2（≥0.9）；粗糙 =0.7·(h/12)^0.3（≥0.7）
+export const NBCC_EXPOSURE: Record<
+  "open" | "rough",
+  { zh: string; en: string }
+> = {
+  open: { zh: "开阔地形", en: "Open terrain" },
+  rough: { zh: "粗糙地形（郊区/城市）", en: "Rough (suburban / urban)" },
+};
+export type NbccExposure = keyof typeof NBCC_EXPOSURE;
+
+export function nbccCe(exp: NbccExposure, h: number): number {
+  if (exp === "rough") return Math.max(0.7, 0.7 * Math.pow(h / 12, 0.3));
+  return Math.max(0.9, Math.pow(h / 10, 0.2));
+}
+// 参考速压 q（kPa，1/50 年重现期，NBCC 附录 C）
+export const NBCC_Q: { city: string; cityEn: string; q: number }[] = [
+  { city: "多伦多", cityEn: "Toronto", q: 0.44 },
+  { city: "渥太华", cityEn: "Ottawa", q: 0.41 },
+  { city: "蒙特利尔", cityEn: "Montreal", q: 0.42 },
+  { city: "魁北克城", cityEn: "Quebec City", q: 0.41 },
+  { city: "温哥华", cityEn: "Vancouver", q: 0.45 },
+  { city: "维多利亚", cityEn: "Victoria", q: 0.45 },
+  { city: "卡尔加里", cityEn: "Calgary", q: 0.48 },
+  { city: "埃德蒙顿", cityEn: "Edmonton", q: 0.45 },
+  { city: "温尼伯", cityEn: "Winnipeg", q: 0.45 },
+  { city: "哈利法克斯", cityEn: "Halifax", q: 0.53 },
+  { city: "圣约翰斯", cityEn: "St. John's", q: 0.77 },
+];
+
+// ===== 澳大利亚/新西兰 AS/NZS 1170.2 =====
+// 设计风压 p = 0.5·ρ·Vdes²·Cfig·Cdyn（ρ=1.2，Cdyn=1）
+//   Vdes = VR·Md·Mz,cat·Ms·Mt（本工具 Md=Ms=Mt=1，用户输入 VR 与 Cfig）
+export const AS_TERRAIN: Record<
+  "TC1" | "TC2" | "TC3" | "TC4",
+  { zh: string; en: string }
+> = {
+  TC1: { zh: "TC1｜开阔水面/极平坦", en: "TC1 — open water / very flat" },
+  TC2: { zh: "TC2｜开阔草地/零星障碍（默认）", en: "TC2 — open grassland (default)" },
+  TC3: { zh: "TC3｜郊区/密集障碍", en: "TC3 — suburban / numerous obstructions" },
+  TC4: { zh: "TC4｜城市中心/高楼密集", en: "TC4 — city centres / tall buildings" },
+};
+export type AsTerrain = keyof typeof AS_TERRAIN;
+// Mz,cat 表 4.1（AS/NZS 1170.2），按高度线性插值
+const AS_MZ: Record<AsTerrain, [number, number][]> = {
+  TC1: [[3, 0.99], [5, 1.05], [10, 1.12], [15, 1.16], [20, 1.19], [30, 1.22], [50, 1.25], [75, 1.27], [100, 1.29], [200, 1.32]],
+  TC2: [[3, 0.91], [5, 0.91], [10, 1.0], [15, 1.05], [20, 1.08], [30, 1.12], [50, 1.18], [75, 1.22], [100, 1.24], [200, 1.29]],
+  TC3: [[3, 0.83], [5, 0.83], [10, 0.83], [15, 0.89], [20, 0.94], [30, 1.0], [50, 1.07], [75, 1.12], [100, 1.16], [200, 1.24]],
+  TC4: [[3, 0.75], [5, 0.75], [10, 0.75], [15, 0.75], [20, 0.75], [30, 0.8], [50, 0.9], [75, 0.98], [100, 1.03], [200, 1.16]],
+};
+export function asMz(cat: AsTerrain, z: number): number {
+  const t = AS_MZ[cat];
+  if (z <= t[0][0]) return t[0][1];
+  if (z >= t[t.length - 1][0]) return t[t.length - 1][1];
+  for (let i = 0; i < t.length - 1; i++) {
+    const [h0, m0] = t[i];
+    const [h1, m1] = t[i + 1];
+    if (z >= h0 && z <= h1) return m0 + ((m1 - m0) * (z - h0)) / (h1 - h0);
+  }
+  return t[t.length - 1][1];
+}
+// 区域基本风速 VR（m/s，重现期 500 年 ULS；实际按 AS/NZS 1170.2 表 3.1 与所在区取）
+export const AS_REGIONS: { key: string; zh: string; en: string; VR: number }[] = [
+  { key: "A", zh: "A 区（非气旋，V500≈45）", en: "Region A (non-cyclonic, V500≈45)", VR: 45 },
+  { key: "B", zh: "B 区（中间，V500≈57）", en: "Region B (intermediate, V500≈57)", VR: 57 },
+  { key: "C", zh: "C 区（气旋，V500≈66）", en: "Region C (cyclonic, V500≈66)", VR: 66 },
+  { key: "D", zh: "D 区（强气旋，V500≈80）", en: "Region D (severe cyclonic, V500≈80)", VR: 80 },
+];
+
 // 各标准围护结构"净压力系数"（含内压组合）代表绝对值：中间区 / 角部
-// ASCE: |GCp − GCpi|（GCpi=±0.18 封闭）；Eurocode: |cpe − cpi|（cpi=+0.2/−0.3）
+// ASCE |GCp−GCpi|（GCpi=±0.18）；EC |cpe−cpi|（cpi=+0.2/−0.3）；
+// NBCC 净 Cg·Cp（Cg=2.5 已含阵风，外 CgCp 约 1.5~2.1 + 内压）；AS/NZS 净 Cfig（Cp,e·Kl·Ka + Cp,i）
 export const NET_CP_PRESETS: {
   key: string;
   zh: string;
   en: string;
   asce: number;
   ec: number;
+  nbcc: number;
+  as: number;
 }[] = [
-  { key: "field", zh: "中间区", en: "Field / interior", asce: 1.3, ec: 1.3 },
-  { key: "corner", zh: "角部 / 边缘", en: "Corner / edge", asce: 1.6, ec: 1.6 },
+  { key: "field", zh: "中间区", en: "Field / interior", asce: 1.3, ec: 1.3, nbcc: 2.0, as: 1.2 },
+  { key: "corner", zh: "角部 / 边缘", en: "Corner / edge", asce: 1.6, ec: 1.6, nbcc: 2.5, as: 1.8 },
 ];
 
 export interface MemberInput {
@@ -339,6 +412,8 @@ export interface WindResult {
   gb?: { muz: number; bgz: number };
   asce?: { Kz: number; qz: number }; // qz kN/m²
   ec?: { ce: number; qp: number }; // qp kN/m²
+  nbcc?: { Ce: number; qh: number }; // qh = q·Ce, kN/m²
+  as?: { Mz: number; Vdes: number }; // Vdes m/s
 }
 
 /** 共享框料校核：强度用 pDesign、挠度用 pService（简支梁均布风压） */
@@ -431,5 +506,40 @@ export function computeEC(inp: ECInput): WindResult {
   return {
     ...checkMember(we, 1.5 * we, inp),
     ec: { ce, qp: qp / 1000 },
+  };
+}
+
+// ---- 加拿大 NBCC 2020 ----
+// q 为 1/50 年参考速压(kPa=kN/m²)；指定压力 pSpec 为使用级 → 强度用 1.4W(ULS)
+export interface NBCCInput extends MemberInput {
+  q: number; // kPa
+  exp: NbccExposure;
+  z: number;
+  cgcp: number; // 净 |Cg·Cp|
+}
+export function computeNBCC(inp: NBCCInput): WindResult {
+  const Ce = nbccCe(inp.exp, inp.z);
+  const pSpec = inp.q * Ce * inp.cgcp; // kN/m² 指定/使用级（Iw=Ct=1）
+  return {
+    ...checkMember(pSpec, 1.4 * pSpec, inp),
+    nbcc: { Ce, qh: inp.q * Ce },
+  };
+}
+
+// ---- 澳大利亚/新西兰 AS/NZS 1170.2 ----
+// VR 为 1/500 年 ULS 风速 → pUlt 强度级；挠度用 0.7·pUlt（≈使用级 Vsls²/Vuls²）
+export interface ASInput extends MemberInput {
+  VR: number; // m/s
+  cat: AsTerrain;
+  z: number;
+  cfig: number; // 净 Cfig
+}
+export function computeAS(inp: ASInput): WindResult {
+  const Mz = asMz(inp.cat, inp.z);
+  const Vdes = inp.VR * Mz; // Md=Ms=Mt=1
+  const pUlt = (0.5 * 1.2 * Vdes * Vdes * inp.cfig) / 1000; // kN/m² 极限级
+  return {
+    ...checkMember(0.7 * pUlt, pUlt, inp),
+    as: { Mz, Vdes },
   };
 }
