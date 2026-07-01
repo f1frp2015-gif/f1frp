@@ -157,6 +157,14 @@ export const MATERIALS: {
   verify?: boolean;
 }[] = [
   {
+    key: "frp40",
+    zh: "复材 FRP 拉挤型材（E40 高模量 · 桥梁级）",
+    en: "Pultruded FRP (E40 high-modulus · bridge-grade)",
+    E: 40000,
+    f: 120,
+    verify: true,
+  },
+  {
     key: "frp23",
     zh: "复材 FRP 拉挤型材（EN 13706 E23）",
     en: "Pultruded FRP (EN 13706 E23)",
