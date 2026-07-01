@@ -11,6 +11,7 @@ export async function GET() {
       id: me.id,
       name: me.name,
       phone: me.phone,
+      email: me.email,
       avatarUrl: me.avatarUrl,
       role: me.role,
       enterpriseId: me.enterpriseId,

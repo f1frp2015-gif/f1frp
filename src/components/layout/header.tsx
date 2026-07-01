@@ -15,10 +15,11 @@ import { LanguageSwitcher } from "@/components/layout/language-switcher";
 
 type NavDropdownItem = { href: string; label: string; isNew?: boolean };
 
-function userInitial(user: { name: string | null; phone: string | null }): string {
+function userInitial(user: { name: string | null; phone: string | null; email: string | null }): string {
   if (user.name?.trim()) return user.name.trim()[0].toUpperCase();
-  if (user.phone) return user.phone.slice(-2, -1) || "用";
-  return "用";
+  if (user.email?.trim()) return user.email.trim()[0].toUpperCase();
+  if (user.phone) return user.phone.slice(-2, -1) || "U";
+  return "U";
 }
 
 function AuthButtons() {
@@ -33,7 +34,7 @@ function AuthButtons() {
             {t("dashboard")}
           </Button>
         </Link>
-        <Link href="/dashboard/profile" title={user.name ?? user.phone ?? ""}>
+        <Link href="/dashboard/profile" title={user.name ?? user.email ?? user.phone ?? ""}>
           {user.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -189,8 +190,8 @@ export function Header() {
   const locale = useLocale();
   const showSourcing = locale === "en";
   const showOverseas = locale === "zh";
-  // getfrp（en）侧不再有会员/收费体系：海外买家全程匿名，RFQ 直接走 /rfq + Doris
-  const showAuth = locale !== "en";
+  // 认证两侧启用:getfrp（en）邮箱 OTP,f1frp.com（zh）手机号 / 微信。
+  const showAuth = true;
   // 供应库（工厂目录）仅国内 f1frp.com 展示；getfrp.com（en）海外侧不在导航暴露具体供应商，避免去中介化
   const showSupplyLib = locale !== "en";
 

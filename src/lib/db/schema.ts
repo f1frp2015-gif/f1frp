@@ -122,6 +122,8 @@ export const users = pgTable(
     uniqueIndex("users_wechat_union_uniq")
       .on(table.wechatUnionId)
       .where(sql`wechat_union_id is not null`),
+    // email 作为海外(getfrp/en)自建认证的唯一身份锚点(部分唯一索引 → 允许多个 NULL)。
+    uniqueIndex("users_email_uniq").on(table.email).where(sql`email is not null`),
     index("users_enterprise_idx").on(table.enterpriseId),
     index("users_stripe_customer_idx").on(table.stripeCustomerId),
   ]
@@ -1053,6 +1055,25 @@ export const phoneOtps = pgTable(
   (table) => [
     index("phone_otps_phone_idx").on(table.phone),
     index("phone_otps_created_idx").on(table.createdAt),
+  ]
+);
+
+// 邮箱验证码 —— getfrp.com(en/海外)自建邮箱 OTP 注册/登录,镜像 phone_otps。
+export const emailOtps = pgTable(
+  "email_otps",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: varchar("email", { length: 255 }).notNull(),
+    // sha256(code + email + AUTH_SESSION_SECRET) — 不落明文验证码
+    codeHash: varchar("code_hash", { length: 64 }).notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    consumedAt: timestamp("consumed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("email_otps_email_idx").on(table.email),
+    index("email_otps_created_idx").on(table.createdAt),
   ]
 );
 
