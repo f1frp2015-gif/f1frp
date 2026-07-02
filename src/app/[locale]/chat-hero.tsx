@@ -28,8 +28,23 @@ type UIMsg = {
   metadata?: { citations?: Citation[] };
 };
 
-export function ChatHero({ examples }: { examples: string[] }) {
+export type ExampleGroup = { category: string; prompts: string[] };
+
+export function ChatHero({
+  exampleGroups,
+  anonLimit,
+  isSignedIn,
+}: {
+  exampleGroups: ExampleGroup[];
+  anonLimit: number;
+  isSignedIn: boolean;
+}) {
   const [input, setInput] = useState("");
+  const [activeCategory, setActiveCategory] = useState(0);
+  // Server echoes the remaining anon-free-question count on every response
+  // via X-Anon-Remaining (see /api/chat/route.ts). null = unknown yet
+  // (nothing asked, or signed-in user who never gets the header).
+  const [anonRemaining, setAnonRemaining] = useState<number | null>(null);
   const lastUserRef = useRef<string>("");
 
   const transport = useMemo(
@@ -37,6 +52,12 @@ export function ChatHero({ examples }: { examples: string[] }) {
       new DefaultChatTransport({
         api: "/api/chat",
         body: { locale: "en" },
+        fetch: async (input, init) => {
+          const res = await fetch(input, init);
+          const header = res.headers.get("X-Anon-Remaining");
+          if (header !== null) setAnonRemaining(Number(header));
+          return res;
+        },
       }),
     [],
   );
@@ -114,8 +135,27 @@ export function ChatHero({ examples }: { examples: string[] }) {
           <div className="mb-3 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
             Try asking
           </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {examples.map((ex) => (
+
+          {/* Category pills — pick a lens, then the prompt row below switches */}
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {exampleGroups.map((g, i) => (
+              <button
+                key={g.category}
+                type="button"
+                onClick={() => setActiveCategory(i)}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  i === activeCategory
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                }`}
+              >
+                {g.category}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {(exampleGroups[activeCategory]?.prompts ?? []).map((ex) => (
               <button
                 key={ex}
                 type="button"
@@ -127,6 +167,12 @@ export function ChatHero({ examples }: { examples: string[] }) {
               </button>
             ))}
           </div>
+
+          {!isSignedIn && (
+            <div className="mt-4 text-center text-[11px] text-muted-foreground">
+              Free — no signup needed for your first {anonLimit} questions.
+            </div>
+          )}
         </div>
       ) : (
         <div className="mt-6 space-y-6 text-left">
@@ -181,7 +227,13 @@ export function ChatHero({ examples }: { examples: string[] }) {
             </div>
           )}
 
-          <AuthRequiredNotice error={error} />
+          <AuthRequiredNotice error={error} remaining={isSignedIn ? undefined : anonRemaining} />
+
+          {!isSignedIn && !error && anonRemaining !== null && anonRemaining > 0 && !busy && (
+            <div className="text-center text-[11px] text-muted-foreground">
+              {anonRemaining} free question{anonRemaining === 1 ? "" : "s"} left before sign-up.
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-3 text-[12px] text-muted-foreground">
             <button

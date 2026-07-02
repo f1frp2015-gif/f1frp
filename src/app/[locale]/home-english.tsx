@@ -21,7 +21,9 @@ import {
   papers as papersTable,
 } from "@/lib/db/schema";
 import { JsonLd } from "@/components/json-ld";
-import { ChatHero } from "./chat-hero";
+import { getSessionUid } from "@/lib/auth/current-user";
+import { ANON_CHAT_LIMIT } from "@/lib/auth-gate";
+import { ChatHero, type ExampleGroup } from "./chat-hero";
 
 // 8 KB 是经验阈值: 超过此数字的内联 helper 抽到单独 module 才有意义。
 // 当前 helper 不大, 留在本文件里维持单一阅读路径。
@@ -103,14 +105,47 @@ async function loadFeatured() {
 // The full source-from-china directory is still reachable as a secondary
 // path for users who prefer browsing — it's just not the default UX.
 
-const EXAMPLE_PROMPTS = [
-  "Find a verified Chinese supplier for FRP gratings with CE marking, MOQ 200 m².",
-  "Compare GFRP vs CFRP for a 3 m marine spar — strength, weight, cost, suppliers.",
-  "Map my BOM to Chinese FRP suppliers — resin, fiber, profiles, lead times.",
-  "Which GB standard maps to ASTM D3039 for tensile properties?",
-  "Recommend a vinyl ester resin for 30% HCl service at 60 °C.",
-  "ISO 9001 + EN 13706 certified pultrusion suppliers in Jiangsu, ranked by scale.",
-] as const;
+// Grouped by job-to-be-done rather than one flat list — each group maps to a
+// capability actually wired into /api/chat's tool set (see route.ts), so every
+// example is something the assistant can genuinely execute, not a mocked demo.
+const EXAMPLE_GROUPS: ExampleGroup[] = [
+  {
+    category: "Suppliers",
+    prompts: [
+      "Find a verified Chinese supplier for FRP gratings with CE marking, MOQ 200 m².",
+      "ISO 9001 + EN 13706 certified pultrusion suppliers in Jiangsu, ranked by scale.",
+    ],
+  },
+  {
+    category: "Standards",
+    prompts: [
+      "Which GB standard maps to ASTM D3039 for tensile properties?",
+      "What EN 13706 grade do I need for a structural walkway?",
+    ],
+  },
+  {
+    category: "Materials",
+    prompts: [
+      "Recommend a vinyl ester resin for 30% HCl service at 60 °C.",
+      "Compare GFRP vs CFRP for a 3 m marine spar — strength, weight, cost, suppliers.",
+      "Map my BOM to Chinese FRP suppliers — resin, fiber, profiles, lead times.",
+    ],
+  },
+  {
+    category: "Engineering",
+    prompts: [
+      "Which pultruded profile fits a 4 m span carrying 2 kN/m, deflection limit L/180?",
+      "Check the U-value for a pultruded FRP window frame against JG/T 571.",
+    ],
+  },
+  {
+    category: "Cost & compliance",
+    prompts: [
+      "Estimate landed cost FOB Shanghai to Rotterdam for 20 tons of FRP profiles.",
+      "Any compliance flags importing FRP grating into the EU?",
+    ],
+  },
+];
 
 async function countOne(
   table: Parameters<typeof db.select>[0] extends infer _
@@ -140,13 +175,14 @@ async function countVerifiedSuppliersWithEn(): Promise<number> {
 }
 
 export async function HomePageEnglish() {
-  const [verifiedSupplierCount, materialsCount, standardsCount, papersCount, featured] =
+  const [verifiedSupplierCount, materialsCount, standardsCount, papersCount, featured, uid] =
     await Promise.all([
       countVerifiedSuppliersWithEn(),
       countOne(materialsTable),
       countOne(standardsTable),
       countOne(papersTable),
       loadFeatured(),
+      getSessionUid(),
     ]);
 
   return (
@@ -319,7 +355,11 @@ export async function HomePageEnglish() {
             </p>
           </div>
 
-          <ChatHero examples={[...EXAMPLE_PROMPTS]} />
+          <ChatHero
+            exampleGroups={EXAMPLE_GROUPS}
+            anonLimit={ANON_CHAT_LIMIT}
+            isSignedIn={!!uid}
+          />
 
           {/* Trust micro-strip directly under the chat input — proof-at-a-glance
               without forcing the user to scroll. Numbers are live. */}

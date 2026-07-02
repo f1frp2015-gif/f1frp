@@ -165,7 +165,10 @@ export async function POST(req: Request) {
 
   // 匿名访客超过免费额度后引导注册;登录用户跳过。
   // 只看会话 cookie 是否有效(不查 DB,membership 已 neuter 为全直通)。
+  // anonRemaining 随响应头(X-Anon-Remaining)回传给前端,用于在用完前就
+  // 显示"还剩几次免费"倒计时,而不是让用户在毫无预警的情况下撞上 401 墙。
   let anonCookieToSet: string | null = null;
+  let anonRemaining: number | null = null;
   try {
     const uid = await getSessionUid();
     if (!uid) {
@@ -174,6 +177,7 @@ export async function POST(req: Request) {
         return Response.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
       }
       anonCookieToSet = gate.cookieHeader;
+      anonRemaining = gate.remaining;
     }
   } catch {
     // auth() 偶发抖动不应 hard-fail 聊天 — 失败时降级为"按匿名处理",
@@ -183,6 +187,7 @@ export async function POST(req: Request) {
       return Response.json(ANON_LIMIT_RESPONSE_BODY, { status: 401 });
     }
     anonCookieToSet = gate.cookieHeader;
+    anonRemaining = gate.remaining;
   }
 
   try {
@@ -230,6 +235,7 @@ export async function POST(req: Request) {
         });
         const resp = createUIMessageStreamResponse({ stream });
         if (anonCookieToSet) resp.headers.append("Set-Cookie", anonCookieToSet);
+        if (anonRemaining !== null) resp.headers.set("X-Anon-Remaining", String(anonRemaining));
         return resp;
       }
       model = vision.model;
@@ -390,6 +396,9 @@ export async function POST(req: Request) {
     });
     if (anonCookieToSet) {
       streamResponse.headers.append("Set-Cookie", anonCookieToSet);
+    }
+    if (anonRemaining !== null) {
+      streamResponse.headers.set("X-Anon-Remaining", String(anonRemaining));
     }
     return streamResponse;
   } catch (e: unknown) {

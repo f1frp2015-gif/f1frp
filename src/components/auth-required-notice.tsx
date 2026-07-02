@@ -10,26 +10,35 @@ import { Link } from "@/i18n/navigation";
  * 服务端命中匿名 3 条上限时返回 401 + body{error:"AUTH_REQUIRED"} —
  * @ai-sdk/react 的 useChat 会把 401 body 序列化进 error.message。
  * 我们做关键字匹配最稳。
+ *
+ * `remaining` 是主动模式:服务端每次成功回复都通过 X-Anon-Remaining 头回传
+ * 剩余免费次数。remaining === 0 时,说明这条回答就是本次会话的最后一次免费
+ * 回答——此时主动提示注册,而不是等用户下一次提问才撞上 401 硬墙。
  */
 export function AuthRequiredNotice({
   error,
+  remaining,
   className = "",
 }: {
   error?: Error | unknown;
+  remaining?: number | null;
   className?: string;
 }) {
   const locale = useLocale();
   const isEn = locale === "en";
 
-  if (!error) return null;
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = error instanceof Error ? error.message : error ? String(error) : "";
   // 命中匿名上限。失败包含 "AUTH_REQUIRED" 或 "401" 都算 — 401 兜底覆盖
   // useChat 内部把 body 吞掉只留 status 的边角场景。
   const isAuthLimit =
     msg.includes("AUTH_REQUIRED") ||
     msg.includes("anon_chat_limit") ||
     msg.includes("401");
-  if (!isAuthLimit) {
+  const justRanOut = !error && remaining === 0;
+
+  if (!error && !justRanOut) return null;
+
+  if (error && !isAuthLimit) {
     // 通用错误 — 也轻量提示一下,避免用户以为系统坏了
     return (
       <div
@@ -47,9 +56,13 @@ export function AuthRequiredNotice({
       className={`rounded-md border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-900/60 dark:bg-amber-950/40 ${className}`}
     >
       <p className="font-medium text-amber-900 dark:text-amber-200">
-        {isEn
-          ? "Free anonymous queries used up."
-          : "匿名免费咨询已用完。"}
+        {justRanOut
+          ? isEn
+            ? "That was your last free question."
+            : "刚才是你本次的最后一次免费提问。"
+          : isEn
+            ? "Free anonymous queries used up."
+            : "匿名免费咨询已用完。"}
       </p>
       <p className="mt-1 text-[13px] leading-relaxed text-amber-900/85 dark:text-amber-200/80">
         {isEn
