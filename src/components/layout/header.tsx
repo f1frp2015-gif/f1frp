@@ -213,6 +213,11 @@ export function Header() {
     { href: "/tech/calculator", label: t("engCalc"), isNew: true },
     { href: "/tech/u-value-calculator", label: t("windowCalc"), isNew: true },
     { href: "/tech/wind-load-calculator", label: t("windLoadCalc"), isNew: true },
+    // EN-only tool (the page itself 404s on zh) — was live with zero nav
+    // entry point anywhere on the site.
+    ...(showSourcing
+      ? [{ href: "/tools/buy-america-frp-checker", label: t("buyAmericaCheck"), isNew: true }]
+      : []),
   ];
   const techActive = techItems.some((it) => isActive(it.href));
   const aiActive = aiItems.some((it) => isActive(it.href));

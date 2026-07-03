@@ -480,7 +480,10 @@ export default async function SourceFromChinaPage({
 
         <div className="grid gap-3 md:grid-cols-2">
           {exportReadinessCerts.map((c) => {
-            const n = certCount(c.id === "ccs" ? "CCS" : c.name);
+            // "CE marking" / "CCS / DNV / ABS / LR" are display labels — supplier
+            // records store the bare cert token ("CE", "CCS"), so a literal
+            // substring match against the full label always undercounts to 0.
+            const n = certCount(c.id === "ccs" ? "CCS" : c.id === "ce" ? "CE" : c.name);
             return (
               <div
                 key={c.id}
