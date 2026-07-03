@@ -2321,6 +2321,8 @@
     "live": {
       "eyebrow": "Live estimate",
       "basedOn": "(from section + formulation)",
+      "price": "Est. price",
+      "updating": "updating…",
       "weight": "Mass",
       "area": "Area",
       "density": "Density",

@@ -1,6 +1,6 @@
 // POST /api/quote/estimate
 //
-// 入参: { input: QuoteInput, source?: "nl_chat" | "form", locale?: "zh" | "en", rawUserText?: string }
+// 入参: { input: QuoteInput, source?: "nl_chat" | "form", locale?: "zh" | "en", rawUserText?: string, preview?: boolean }
 // 出参: { result: QuoteResult, explanation: string | null, logId: string }
 //
 // 流程:
@@ -11,6 +11,11 @@
 //
 // 战略口径:quote 是免费引流钩子,**不复用 chat 的 3 次匿名门**(详见 extract/route.ts
 // 头部注释)。本路由匿名完全开放;登录用户 quote_logs.userId 会写,匿名走 fingerprint。
+//
+// preview=true:表单每次改字段就会打一次这个接口(前端做了防抖),只为了让价格
+// 跟着输入实时跳动。这条路径必须便宜 —— 跳过 1.2 校准查询 / 2 AI 解释 / 3 日志写入,
+// 只留 1)+1.5) 纯同步计算,零 DB、零 AI 调用。正式报价("Get Quote"按钮)仍走完整
+// 流程拿校准 + AI 解释 + 落 quote_logs。
 
 import { NextResponse } from "next/server";
 import { isChatConfiguredForRequest } from "@/lib/ai/provider";
@@ -47,6 +52,7 @@ export async function POST(req: Request) {
     rawUserText?: string;
     extractConfidence?: number;
     extractMissing?: string[];
+    preview?: boolean;
   };
   try {
     body = await req.json();
@@ -66,6 +72,12 @@ export async function POST(req: Request) {
 
   // 1) 算价格 — 同步,毫秒级(引擎纯 CNY 基线)
   let result = estimate(input);
+
+  // preview 模式到此为止:只回 1)+1.5) 的确定性结果,不查库不调 AI不写日志。
+  if (body.preview) {
+    const previewDisplay = buildPriceDisplay(result, marketForLocale(locale));
+    return NextResponse.json({ result, display: previewDisplay });
+  }
 
   // 1.2) 数据校准 — 用历史 quote_logs(同截面+纤维, CNY/kg 口径)校准区间带宽并
   //      标记离群。引擎中点不动,只调 ±band 并在离群时加警告。DB 抖动不阻塞。

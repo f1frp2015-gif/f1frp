@@ -4,7 +4,7 @@
 // 双模式入口:NL 对话框 + 专业表单 tab 切换。NL 抽取出来后预填表单,
 // 用户确认 → 调 estimate。这样即使 AI 抽错,用户也能改。
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -240,6 +240,46 @@ export function QuoteTool() {
     };
   }
 
+  // 实时报价(参数改了价格就跟着动)— 打 /api/quote/estimate 的 preview 模式:
+  // 只算纯确定性引擎(无 AI、无 DB 校准、不落 quote_logs),防抖 350ms 避免每敲
+  // 一个字都打一次请求。加价 / 成本常数是商业敏感数据(见 prices.ts / display.ts
+  // 注释:"对买家是一口价、不在 breakdown 拆细"),所以这层算价必须留在服务端,
+  // 不能像 geometry livePreview 那样直接把公式 import 进客户端 bundle。
+  // "Get Quote" 按钮仍走完整流程(校准 + AI 解释 + 日志),这里只是即时预览。
+  const [livePrice, setLivePrice] = useState<PriceDisplay | null>(null);
+  const [livePriceLoading, setLivePriceLoading] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      const input = buildInput();
+      if ("error" in input) { setLivePrice(null); return; }
+      setLivePriceLoading(true);
+      try {
+        const res = await fetch("/api/quote/estimate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input, preview: true }),
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error("preview failed");
+        const data = await res.json();
+        setLivePrice(data.display ?? null);
+      } catch (e) {
+        if (!(e instanceof DOMException && e.name === "AbortError")) {
+          setLivePrice(null);
+        }
+      } finally {
+        setLivePriceLoading(false);
+      }
+    }, 350);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form]);
+
   async function handleEstimate() {
     const input = buildInput();
     if ("error" in input) { setError(input.error); return; }
@@ -331,7 +371,12 @@ export function QuoteTool() {
 
         <TabsContent value="form" className="mt-4">
           <FormSection form={form} set={set} t={t} />
-          <LivePreview preview={livePreview} t={t} />
+          <LivePreview
+            preview={livePreview}
+            price={livePrice}
+            priceLoading={livePriceLoading}
+            t={t}
+          />
           <Button className="mt-4" onClick={handleEstimate} disabled={estimating}>
             {estimating ? t("form.estimating") : t("form.estimate")}
           </Button>
@@ -577,9 +622,11 @@ function tryComputeLive(form: FormState): LivePreviewData | null {
 }
 
 function LivePreview({
-  preview, t,
+  preview, price, priceLoading, t,
 }: {
   preview: LivePreviewData | null;
+  price: PriceDisplay | null;
+  priceLoading: boolean;
   t: ReturnType<typeof useTranslations>;
 }) {
   return (
@@ -596,6 +643,15 @@ function LivePreview({
       </div>
       {preview ? (
         <div className="mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1">
+          {price && (
+            <div className={priceLoading ? "opacity-50 transition-opacity" : "transition-opacity"}>
+              <span className="text-muted-foreground">{t("live.price")}:</span>{" "}
+              <span className="font-mono text-lg font-semibold">
+                {price.symbol}{price.unit_price_low.toLocaleString()} – {price.symbol}{price.unit_price_high.toLocaleString()}
+              </span>
+              <span className="ml-1 text-muted-foreground">/ m</span>
+            </div>
+          )}
           <div>
             <span className="text-muted-foreground">{t("live.weight")}:</span>{" "}
             <span className="font-mono text-lg font-semibold">
@@ -603,7 +659,10 @@ function LivePreview({
             </span>
             <span className="ml-1 text-muted-foreground">kg/m</span>
           </div>
-          <div className="text-xs text-muted-foreground">
+          {!price && priceLoading && (
+            <div className="text-xs text-muted-foreground">{t("live.updating")}</div>
+          )}
+          <div className="w-full text-xs text-muted-foreground">
             {t("live.area")} {preview.area_mm2} mm² ·
             {" "}{t("live.density")} {preview.density_gcm3.toFixed(2)} g/cm³ ·
             {" "}{t("live.perim")} {preview.outer_perim_mm} mm

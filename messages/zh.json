@@ -2294,6 +2294,8 @@
     "live": {
       "eyebrow": "实时预估",
       "basedOn": "(基于截面 + 配方)",
+      "price": "预估单价",
+      "updating": "计算中…",
       "weight": "米重",
       "area": "截面积",
       "density": "密度",
