@@ -30,8 +30,10 @@ import {
   Telescope,
   ShieldCheck,
   PenLine,
+  Share2,
 } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { Link, getPathname } from "@/i18n/navigation";
+import { encodeSharedAnswer } from "@/lib/ai/share-link";
 import {
   AI_SKILLS,
   SKILL_CATEGORIES,
@@ -817,6 +819,7 @@ function AssistantAnswer({
 }) {
   const isEn = locale === "en";
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
 
   // Detect supplier intent from retrieved citations — surface a "Send to
   // Doris as RFQ" call to action when the assistant grounded its answer
@@ -831,6 +834,24 @@ function AssistantAnswer({
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard access denied — silent
+    }
+  }
+
+  // "Share this answer" — no DB row, no server round-trip: the Q/A/citations
+  // are base64url-encoded straight into the URL (see lib/ai/share-link.ts).
+  // /ai?q= re-asks the same question live and can drift to a different
+  // answer; this instead lets a buyer send a colleague the EXACT shortlist
+  // they're looking at right now.
+  async function share() {
+    try {
+      const encoded = encodeSharedAnswer({ q: question, a: text, c: citations });
+      const path = getPathname({ href: "/ai/shared", locale });
+      const url = `${window.location.origin}${path}?d=${encoded}`;
+      await navigator.clipboard.writeText(url);
+      setShared(true);
+      setTimeout(() => setShared(false), 1500);
     } catch {
       // clipboard access denied — silent
     }
@@ -884,6 +905,21 @@ function AssistantAnswer({
                 : isEn
                   ? "Copy answer"
                   : "复制回答"}
+            </button>
+
+            <button
+              type="button"
+              onClick={share}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+            >
+              {shared ? <Check size={12} /> : <Share2 size={12} />}
+              {shared
+                ? isEn
+                  ? "Link copied"
+                  : "链接已复制"
+                : isEn
+                  ? "Share"
+                  : "分享"}
             </button>
 
             {supplierHits.length > 0 && (
