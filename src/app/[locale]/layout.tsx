@@ -181,7 +181,10 @@ export default async function LocaleLayout({
                         "Chongqing Yaoyi Advanced Materials Technology Co., Ltd.",
                     }
                   : {}),
-                alternateName: ["f1frp", "getfrp", "F1 Composite", t("name")].filter(
+                // Platform brands only — never list seller brands (e.g. F1
+                // Composite) here: alternateName merges them into one entity
+                // and breaks the platform's brand-neutral positioning.
+                alternateName: ["f1frp", "getfrp", t("name")].filter(
                   (v, i, a) => v && a.indexOf(v) === i,
                 ),
                 url: siteUrl,
