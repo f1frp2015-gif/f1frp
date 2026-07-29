@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily f1frp.com TLS renewal check
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=30m
+Persistent=true
+Unit=f1frp-tls-renew.service
+
+[Install]
+WantedBy=timers.target

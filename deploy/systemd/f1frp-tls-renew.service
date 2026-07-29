@@ -1,0 +1,16 @@
+[Unit]
+Description=Renew and deploy the f1frp.com TLS certificate
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/f1frp-ensure-tls
+
+# Basic hardening. The service needs root filesystem access because Certbot,
+# Nginx certificates, and systemctl all live outside /var/www.
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

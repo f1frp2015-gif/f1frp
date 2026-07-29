@@ -191,13 +191,20 @@ sudo systemctl list-timers | grep f1frp
 
 每个 timer 会用 `Authorization: Bearer $CRON_SECRET` 调本机 `/api/cron/...`。
 
-### 8. ICP 备案后切 SSL + DNS
+### 8. SSL + DNS
 
-1. 阿里云控制台申请 f1frp.com 免费 SSL，下载 Nginx 格式
-2. 上传到 `/etc/nginx/ssl/f1frp.com.{pem,key}`
-3. 编辑 `/etc/nginx/conf.d/f1frp.conf`，取消 HTTPS 块注释 + HTTP→HTTPS 跳转
-4. `sudo nginx -t && sudo systemctl reload nginx`
-5. DNS：f1frp.com / www.f1frp.com A 记录 → `120.26.111.236`
+生产证书由 `deploy/ensure-tls.sh` 通过 Let's Encrypt / Certbot 管理。每次 ECS
+部署会检查一次，并安装 `f1frp-tls-renew.timer` 每日自动检查续期。Certbot 只在
+证书进入续期窗口时短暂停止 Nginx 完成 HTTP-01 验证；新证书会先校验域名、有效期
+和私钥匹配，再写入 `/etc/nginx/ssl/f1frp.com.{pem,key}` 并重载 Nginx。
+
+首次启用前仍需确认：
+
+1. DNS：f1frp.com / www.f1frp.com A 记录 → `120.26.111.236`
+2. 安全组已放行 TCP 80 和 443（HTTP-01 续期依赖 80）
+3. Nginx HTTPS 块引用 `/etc/nginx/ssl/f1frp.com.{pem,key}`
+4. 手动检查：`sudo /usr/local/sbin/f1frp-ensure-tls`
+5. 查看定时器：`systemctl status f1frp-tls-renew.timer`
 6. 工信部备案号填到 `NEXT_PUBLIC_ICP_BEIAN`，重新部署生效
 
 ### 9. 静态资源走 CDN（带宽 3 Mbps 撑不住直出，**Phase 2 必做**）
@@ -214,6 +221,8 @@ pm2 logs f1frp --lines 100        # 看日志
 pm2 reload f1frp                  # 零停机重启
 pm2 monit                         # 实时监控
 sudo nginx -t && sudo systemctl reload nginx   # Nginx 改完后
+sudo /usr/local/sbin/f1frp-ensure-tls           # 立即检查/续期 TLS
+systemctl status f1frp-tls-renew.timer          # 自动续期定时器
 
 # Cron 单跑测试
 curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/rss-news

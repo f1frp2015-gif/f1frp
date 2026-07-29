@@ -9,7 +9,8 @@
 #   2. pnpm build with BUILD_TARGET=ecs (standalone output)
 #   3. Assemble deploy/dist/
 #   4. rsync via SSH to ECS (preserves .env.production.local on the server)
-#   5. ssh ECS → pm2 reload
+#   5. issue/renew TLS certificate + install the daily renewal timer
+#   6. ssh ECS → pm2 reload
 #
 # Required GitHub Secrets (Settings → Secrets and variables → Actions):
 #   ECS_HOST            e.g. root@120.26.111.236   (user@host or just host)
@@ -140,6 +141,7 @@ jobs:
           cp deploy/nginx.conf "$TARGET/nginx.conf"
           cp deploy/.env.production.example "$TARGET/.env.production.example"
           mkdir -p "$TARGET/deploy"
+          cp deploy/ensure-tls.sh "$TARGET/deploy/ensure-tls.sh"
           cp -r deploy/systemd "$TARGET/deploy/systemd"
           cp deploy/README.md "$TARGET/deploy/README.md"
           du -sh "$TARGET"
@@ -168,6 +170,13 @@ jobs:
             --exclude=".env" \
             ./deploy/dist/ \
             "${{ secrets.ECS_HOST }}:${ECS_PATH}/"
+
+      - name: Ensure TLS certificate and automatic renewal
+        run: |
+          set -euo pipefail
+          ssh -p ${ECS_PORT} -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes \
+            "${{ secrets.ECS_HOST }}" \
+            "cd ${ECS_PATH} && chmod 0750 deploy/ensure-tls.sh && ./deploy/ensure-tls.sh"
 
       - name: PM2 reload on ECS
         run: |
