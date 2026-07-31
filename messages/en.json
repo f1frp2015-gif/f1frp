@@ -478,10 +478,10 @@
   "Suppliers": {
     "pageTitle": "Suppliers",
     "pageDirectoryTitle": "Supplier Directory",
-    "pageDescription": "67 verified composite supplier profiles — claimable and expandable.",
+    "pageDescription": "Public composite supplier directory — searchable by company, product, process and region.",
     "metaTitle": "China FRP suppliers — verified factories, ranked by scale",
-    "metaDescription": "Verified Chinese FRP suppliers — pultrusion, GFRP / CFRP / basalt manufacturers, resin and fiber makers. Ranked by scale; export-ready certifications on file.",
-    "subtitle": "Verified FRP composite companies — filter by type, region or keyword.",
+    "metaDescription": "Browse public Chinese FRP supplier profiles — pultrusion, GFRP / CFRP / basalt, resin and fiber makers. Search by company, product, process or region.",
+    "subtitle": "Browse all public FRP composite companies — filter by type, region or keyword.",
     "ctaFreeList": "List your company (free)",
     "ctaBoxTitle": "Get your company into the f1frp directory",
     "ctaBoxSub": "Showcase products, credentials, and get targeted buyer inquiries.",

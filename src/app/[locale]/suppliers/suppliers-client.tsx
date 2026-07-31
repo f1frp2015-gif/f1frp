@@ -15,7 +15,6 @@ import { SupplierClaimButton } from "@/components/supplier-claim-button";
 import { ProgressiveCollapse } from "@/components/progressive-collapse";
 import { provincesEn } from "@/lib/data/suppliers";
 import { ExternalLink, ArrowRight } from "lucide-react";
-import { Link } from "@/i18n/navigation";
 
 export type SerializedSupplier = {
   id: string;
@@ -148,7 +147,10 @@ export function SuppliersClient({
           </CardContent>
         </Card>
       ) : (
-        <ProgressiveCollapse className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" pageSize={50}>
+        <ProgressiveCollapse
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+          pageSize={suppliers.length}
+        >
           {filtered.map((s) => (
             <Card
               key={s.id}
@@ -257,13 +259,13 @@ export function SuppliersClient({
                 )}
 
                 {isEn && (
-                  <Link
-                    href={`/suppliers/${s.id}` as "/suppliers/[id]"}
+                  <a
+                    href={`/suppliers#${encodeURIComponent(s.id)}`}
                     className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
                   >
-                    View supplier profile
+                    View in public directory
                     <ArrowRight size={12} />
-                  </Link>
+                  </a>
                 )}
 
                 {(s.enterpriseId || !isEn) && (

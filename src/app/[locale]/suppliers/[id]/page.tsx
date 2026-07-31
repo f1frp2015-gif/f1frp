@@ -42,6 +42,9 @@ export function generateStaticParams() {
 
 type NetworkRow = {
   id: string;
+  name: string;
+  nameEn: string | null;
+  verified: boolean | null;
   province: string | null;
   category: string | null;
   productsEn: string[] | null;
@@ -59,6 +62,9 @@ async function loadCategoryNetwork(
     const rows = await db
       .select({
         id: supplierListings.id,
+        name: supplierListings.name,
+        nameEn: supplierListings.nameEn,
+        verified: supplierListings.verified,
         province: supplierListings.province,
         category: supplierListings.category,
         productsEn: supplierListings.productsEn,
@@ -69,8 +75,8 @@ async function loadCategoryNetwork(
         exportReady: supplierListings.exportReady,
       })
       .from(supplierListings)
-      .where(eq(supplierListings.verified, true))
       .orderBy(
+        desc(supplierListings.verified),
         desc(supplierListings.exportReady),
         desc(supplierListings.brandPriority),
         desc(supplierListings.viewCount),
@@ -229,6 +235,9 @@ async function loadRegionNetwork(region: SupplierRegionPage): Promise<NetworkRow
     return await db
       .select({
         id: supplierListings.id,
+        name: supplierListings.name,
+        nameEn: supplierListings.nameEn,
+        verified: supplierListings.verified,
         province: supplierListings.province,
         category: supplierListings.category,
         productsEn: supplierListings.productsEn,
@@ -241,11 +250,11 @@ async function loadRegionNetwork(region: SupplierRegionPage): Promise<NetworkRow
       .from(supplierListings)
       .where(
         and(
-          eq(supplierListings.verified, true),
           eq(supplierListings.province, region.provinceToken),
         ),
       )
       .orderBy(
+        desc(supplierListings.verified),
         desc(supplierListings.exportReady),
         desc(supplierListings.brandPriority),
         desc(supplierListings.viewCount),
@@ -324,7 +333,7 @@ async function renderRegionPage(region: SupplierRegionPage) {
             <div className="rounded-xl border border-border/70 bg-background p-5"><FileCheck2 size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{certCount || "RFQ"}</div><div className="mt-1 text-xs text-muted-foreground">Records with documents</div></div>
             <div className="rounded-xl border border-border/70 bg-background p-5"><ShieldCheck size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{exportReadyCount || "QA"}</div><div className="mt-1 text-xs text-muted-foreground">Export-ready matches</div></div>
           </div>
-          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Regional counts are a July 2026 verified-data snapshot. The live shortlist is rechecked against the requested product, certificate scope and destination before release.</p>
+          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Public regional records are searchable here. Verification status and certificate scope are rechecked against the requested product before release.</p>
         </div>
       </section>
 
@@ -347,7 +356,7 @@ async function renderRegionPage(region: SupplierRegionPage) {
               <Link key={focus.slug} href={`/suppliers/${focus.slug}` as "/suppliers/[id]"} className="rounded-xl border border-border/70 bg-background p-5 transition-colors hover:border-foreground/40">
                 <div className="flex items-center justify-between gap-2"><span className="font-semibold">{focus.label}</span><ArrowRight size={15} /></div>
                 <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">{focus.note}</p>
-                <span className="mt-4 inline-block text-xs underline underline-offset-4">View verified network</span>
+                <span className="mt-4 inline-block text-xs underline underline-offset-4">View public network</span>
               </Link>
             ))}
           </div>
@@ -361,19 +370,20 @@ async function renderRegionPage(region: SupplierRegionPage) {
 
       <section className="border-b border-border/80">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">ANONYMOUS NETWORK COMPOSITION</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">PUBLIC NETWORK COMPOSITION</div>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">Capability records in the {region.name} cluster</h2>
           {featured.length > 0 ? <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{featured.map((row, index) => {
             const products = [...(row.capabilities ?? []), ...(row.productsEn ?? [])].filter(Boolean).slice(0, 4);
             const certs = normalizedCerts(row).slice(0, 3);
             return <article key={row.id} className="rounded-xl border border-border/70 bg-background p-6">
-              <div className="flex items-center justify-between gap-3"><Badge variant="outline">Verified {region.slug.slice(0, 3).toUpperCase()}-{String(index + 1).padStart(3, "0")}</Badge>{row.exportReady && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Export-ready</span>}</div>
-              <div className="mt-5 flex items-center gap-2 text-sm font-medium"><MapPin size={14} />{region.name}, China</div>
+              <div className="flex items-center justify-between gap-3"><Badge variant="outline">{row.verified ? "Verified" : "Public"} {region.slug.slice(0, 3).toUpperCase()}-{String(index + 1).padStart(3, "0")}</Badge>{row.exportReady && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Export-ready</span>}</div>
+              <div className="mt-5 text-base font-semibold">{row.nameEn ?? row.name}</div>
+              <div className="mt-2 flex items-center gap-2 text-sm font-medium"><MapPin size={14} />{region.name}, China</div>
               <div className="mt-2 text-xs text-muted-foreground">{scaleLabel(row.scaleTier)}</div>
               {products.length > 0 && <div className="mt-4 flex flex-wrap gap-1.5">{products.map((product) => <span key={product} className="rounded-md bg-muted px-2 py-1 text-[11px] text-muted-foreground">{product}</span>)}</div>}
               <div className="mt-4 border-t border-border/60 pt-4 text-[12px] leading-relaxed text-muted-foreground">{certs.length > 0 ? `Documents on file: ${certs.join(" · ")}` : "Product evidence reviewed during RFQ matching."}</div>
             </article>;
-          })}</div> : <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">Live capability cards are refreshed against the current verified network when a specification is submitted. The regional snapshot above is retained for initial comparison.</p>}
+          })}</div> : <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">Live capability cards are refreshed against the public network when a specification is submitted.</p>}
         </div>
       </section>
 
@@ -445,8 +455,8 @@ export default async function SupplierCategoryPageRoute({
     },
     mainEntity: {
       "@type": "ItemList",
-      name: `Anonymous verified ${category.name} capability records`,
-      numberOfItems: category.snapshotCount,
+      name: `Public ${category.name} supplier records`,
+      numberOfItems: network.length || category.snapshotCount,
     },
   };
 
@@ -486,8 +496,8 @@ export default async function SupplierCategoryPageRoute({
           <div className="mt-9 grid grid-cols-2 gap-3 md:grid-cols-4">
             <div className="rounded-xl border border-border/70 bg-background p-5">
               <Factory size={18} strokeWidth={1.5} />
-              <div className="mt-4 text-3xl font-semibold">{category.snapshotCount}</div>
-              <div className="mt-1 text-xs text-muted-foreground">Verified network records</div>
+              <div className="mt-4 text-3xl font-semibold">{network.length || category.snapshotCount}</div>
+              <div className="mt-1 text-xs text-muted-foreground">Public supplier records</div>
             </div>
             <div className="rounded-xl border border-border/70 bg-background p-5">
               <MapPin size={18} strokeWidth={1.5} />
@@ -514,9 +524,9 @@ export default async function SupplierCategoryPageRoute({
             </div>
           </div>
           <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-            Network counts are a July 2026 verified-data snapshot. Certification
-            scope and validity are rechecked against the offered product before
-            each commercial shortlist.
+            Public records are searchable before an RFQ. Verification status,
+            certificate scope and validity are rechecked against the offered
+            product before each commercial shortlist.
           </p>
         </div>
       </section>
@@ -541,7 +551,7 @@ export default async function SupplierCategoryPageRoute({
               MATCHING PRINCIPLE
             </div>
             <h2 className="mt-2 text-lg font-semibold">
-              Capability first. Identity after fit.
+              Capability and identity, visible from the start.
             </h2>
             <ul className="mt-4 space-y-3 text-[13px] leading-relaxed text-muted-foreground">
               {[
@@ -618,12 +628,13 @@ export default async function SupplierCategoryPageRoute({
             NETWORK COMPOSITION
           </div>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-            Anonymous capability profiles from the verified network
+            Public supplier profiles from the composite network
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            These cards expose the evidence needed for a first-pass comparison,
-            while factory names and direct contact details remain protected until
-            the RFQ has been matched.
+            These cards expose supplier names, production location and capability
+            evidence for first-pass comparison. Verification status remains
+            visible so buyers can distinguish public records from records checked
+            by the sourcing team.
           </p>
 
           {featured.length > 0 ? (
@@ -641,7 +652,7 @@ export default async function SupplierCategoryPageRoute({
                   >
                     <div className="flex items-center justify-between gap-3">
                       <Badge variant="outline">
-                        Verified #{category.slug.slice(0, 3).toUpperCase()}-{String(index + 1).padStart(3, "0")}
+                        {row.verified ? "Verified" : "Public"} #{category.slug.slice(0, 3).toUpperCase()}-{String(index + 1).padStart(3, "0")}
                       </Badge>
                       {row.exportReady && (
                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -652,6 +663,9 @@ export default async function SupplierCategoryPageRoute({
                     <div className="mt-5 flex items-center gap-2 text-sm font-medium">
                       <MapPin size={14} />
                       {provincesEn[row.province ?? ""] ?? row.province ?? "China"}
+                    </div>
+                    <div className="mt-2 text-base font-semibold">
+                      {row.nameEn ?? row.name}
                     </div>
                     <div className="mt-2 text-xs text-muted-foreground">
                       {scaleLabel(row.scaleTier)}
@@ -676,8 +690,8 @@ export default async function SupplierCategoryPageRoute({
             </div>
           ) : (
             <div className="mt-8 rounded-xl border border-dashed border-border/70 bg-muted/20 p-6 text-sm leading-relaxed text-muted-foreground">
-              Live capability cards are being refreshed. The verified network
-              snapshot and sourcing specification above remain available; submit
+              Live capability cards are being refreshed. The public records and
+              sourcing specification above remain available; submit
               an RFQ to receive a current evidence-based shortlist.
             </div>
           )}
@@ -805,8 +819,8 @@ export default async function SupplierCategoryPageRoute({
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-background/75">
             Send the specification, quantity, destination and required
-            documentation. We compare the verified network, flag gaps and return
-            a shortlist without exposing your request to an open marketplace.
+            documentation. We compare the public supplier network, flag gaps and
+            return a shortlist without exposing your request to an open marketplace.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link
