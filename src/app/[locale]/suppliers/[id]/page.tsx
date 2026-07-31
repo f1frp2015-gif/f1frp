@@ -269,7 +269,7 @@ async function renderRegionPage(region: SupplierRegionPage) {
   const provinceCount = network.length || region.snapshotCount;
   const certCount = network.filter((row) => normalizedCerts(row).length > 0).length;
   const exportReadyCount = network.filter((row) => row.exportReady).length;
-  const featured = network.slice(0, 6);
+  const featured = network;
   const pageUrl = `${CURRENT_SITE_URL}/suppliers/${region.slug}`;
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -429,7 +429,7 @@ export default async function SupplierCategoryPageRoute({
   const liveIsoCount = network.filter((row) =>
     normalizedCerts(row).some((cert) => /iso\s*9001/i.test(cert)),
   ).length;
-  const featured = network.slice(0, 6);
+  const featured = network;
 
   const pageUrl = `${CURRENT_SITE_URL}/suppliers/${category.slug}`;
   const faqJsonLd = {
