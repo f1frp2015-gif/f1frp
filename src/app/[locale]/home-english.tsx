@@ -27,6 +27,7 @@ import { getSessionUid } from "@/lib/auth/current-user";
 import { ANON_CHAT_LIMIT } from "@/lib/auth-gate";
 import { ChatHero, type ExampleGroup } from "./chat-hero";
 import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
+import { SupplierCategoryCardImage } from "@/components/supplier-category-card-image";
 
 // 8 KB 是经验阈值: 超过此数字的内联 helper 抽到单独 module 才有意义。
 // 当前 helper 不大, 留在本文件里维持单一阅读路径。
@@ -415,24 +416,20 @@ export async function HomePageEnglish() {
               <Link
                 key={category.slug}
                 href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
-                className="group rounded-xl border border-border/70 border-t-2 border-t-[#00A6A6] bg-background p-5 transition-all hover:-translate-y-0.5 hover:border-[#00A6A6] hover:shadow-lg hover:shadow-[#00A6A6]/10"
+                className="group overflow-hidden rounded-xl border border-border/70 border-t-2 border-t-[#00A6A6] bg-background transition-all hover:-translate-y-0.5 hover:border-[#00A6A6] hover:shadow-lg hover:shadow-[#00A6A6]/10"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <Building2 size={18} strokeWidth={1.5} />
-                  <ArrowUpRight
-                    size={14}
-                    className="text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                  />
+                <SupplierCategoryCardImage slug={category.slug} />
+                <div className="p-5">
+                  <h3 className="font-semibold tracking-tight">
+                    {category.shortName}
+                  </h3>
+                  <p className="mt-1 text-[12px] text-muted-foreground">
+                    {category.snapshotCount} verified factories
+                    {category.certifiedSnapshot
+                      ? ` · ${category.certifiedSnapshot.count} ${category.certifiedSnapshot.label}`
+                      : ""}
+                  </p>
                 </div>
-                <h3 className="mt-5 font-semibold tracking-tight">
-                  {category.shortName}
-                </h3>
-                <p className="mt-1 text-[12px] text-muted-foreground">
-                  {category.snapshotCount} verified factories
-                  {category.certifiedSnapshot
-                    ? ` · ${category.certifiedSnapshot.count} ${category.certifiedSnapshot.label}`
-                    : ""}
-                </p>
               </Link>
             ))}
           </div>

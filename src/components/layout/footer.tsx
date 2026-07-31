@@ -174,6 +174,14 @@ export function Footer() {
               <Link href="/terms" className="transition-colors hover:text-foreground">
                 {t("terms")}
               </Link>
+              {isEn && (
+                <Link
+                  href={"/image-credits" as never}
+                  className="transition-colors hover:text-foreground"
+                >
+                  {t("imageCredits")}
+                </Link>
+              )}
             </div>
             {t("signature") && <div className="font-mono">{t("signature")}</div>}
           </div>
