@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Submit RFQ — China Composites Sourcing",
   description:
     "Tell us what you need to source from China — fibers, resins, equipment, molds, or finished composite parts. Our team responds within 24 hours.",
+  robots: { index: false, follow: false },
   alternates: alternates("/rfq"),
 };
 

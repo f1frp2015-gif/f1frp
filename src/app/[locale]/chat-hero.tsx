@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { ArrowUp, Sparkles, ExternalLink, Plus } from "lucide-react";
@@ -45,7 +45,7 @@ export function ChatHero({
   // via X-Anon-Remaining (see /api/chat/route.ts). null = unknown yet
   // (nothing asked, or signed-in user who never gets the header).
   const [anonRemaining, setAnonRemaining] = useState<number | null>(null);
-  const lastUserRef = useRef<string>("");
+  const [lastQuestion, setLastQuestion] = useState("");
 
   const transport = useMemo(
     () =>
@@ -71,7 +71,7 @@ export function ChatHero({
   function go(text: string) {
     const q = text.trim();
     if (!q || busy) return;
-    lastUserRef.current = q;
+    setLastQuestion(q);
     setInput("");
     sendMessage({ text: q });
   }
@@ -79,12 +79,12 @@ export function ChatHero({
   function newChat() {
     setMessages([]);
     setInput("");
-    lastUserRef.current = "";
+    setLastQuestion("");
   }
 
-  const continueHref = lastUserRef.current
-    ? (`/ai?q=${encodeURIComponent(lastUserRef.current)}` as const)
-    : ("/ai" as const);
+  const continueHref = lastQuestion
+    ? (`/ai/chat?q=${encodeURIComponent(lastQuestion)}` as const)
+    : ("/ai/chat" as const);
 
   return (
     <div className="mt-10">

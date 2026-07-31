@@ -23,7 +23,7 @@ export function AskAiButton({
   label?: string;
 }) {
   const text = label ?? "Ask AI about this";
-  const href = { pathname: "/ai" as const, query: { q: prompt } };
+  const href = { pathname: "/ai/chat" as const, query: { q: prompt } };
 
   if (variant === "block") {
     return (

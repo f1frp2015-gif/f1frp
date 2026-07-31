@@ -14,6 +14,7 @@ import { db } from "@/lib/db";
 import { articles } from "@/lib/db/schema";
 import { alternates } from "@/lib/seo";
 import { ProgressiveCollapse } from "@/components/progressive-collapse";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 
 export const revalidate = 600;
 
@@ -24,10 +25,32 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Articles" });
+  let articleCount = 0;
+  if (locale === "en") {
+    try {
+      const [row] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(articles)
+        .where(
+          and(
+            eq(articles.forEn, true),
+            isNotNull(articles.publishedAt),
+            isNotNull(articles.titleEn),
+            ne(articles.titleEn, ""),
+          ),
+        );
+      articleCount = row?.count ?? 0;
+    } catch {
+      articleCount = 0;
+    }
+  }
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
     alternates: alternates("/articles"),
+    ...(locale === "en" && articleCount < 3
+      ? { robots: { index: false, follow: true } }
+      : {}),
   };
 }
 
@@ -59,11 +82,17 @@ export default async function ArticlesPage({
       )
     : and(eq(articles.forZh, true), isNotNull(articles.publishedAt));
 
-  const rowsRaw = await db
-    .select()
-    .from(articles)
-    .where(filter)
-    .orderBy(desc(articles.publishedAt), desc(articles.createdAt));
+  const rowsRaw = await (async () => {
+    try {
+      return await db
+        .select()
+        .from(articles)
+        .where(filter)
+        .orderBy(desc(articles.publishedAt), desc(articles.createdAt));
+    } catch {
+      return [];
+    }
+  })();
 
   const rows = rowsRaw.map((a) => ({
     ...a,
@@ -82,11 +111,71 @@ export default async function ArticlesPage({
       </div>
 
       {rows.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center text-muted-foreground">
-            {t("noArticles")}
-          </CardContent>
-        </Card>
+        isEn ? (
+          <div className="max-w-4xl">
+            <div className="rounded-xl border border-border/70 bg-muted/20 p-6 sm:p-8">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                EDITORIAL DESK IN PREPARATION
+              </div>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+                Evidence-led FRP sourcing insights are coming soon.
+              </h2>
+              <div className="mt-5 space-y-4 text-[15px] leading-7 text-muted-foreground">
+                <p>
+                  getfrp is preparing an English editorial library for engineers,
+                  procurement leads and import teams sourcing fibre-reinforced
+                  polymer products from China. The first articles will focus on
+                  decisions that change a real RFQ: how to compare factory
+                  capability, how Chinese GB methods relate to ASTM, ISO and EN
+                  requirements, and how to identify documentation gaps before a
+                  sample or production order is placed.
+                </p>
+                <p>
+                  The library will not be a stream of generic composites news.
+                  Planned articles will connect standards, materials, factory
+                  clusters, inspection methods and trade exposure to specific
+                  sourcing tasks. Early topics include EN 13706 evidence for
+                  pultruded profiles, ACI 440 questions for FRP rebar, chemical
+                  compatibility for vinyl-ester systems, grating fire reports,
+                  pre-shipment inspection design and the difference between a
+                  certificate logo and a certificate whose scope actually covers
+                  the product being quoted.
+                </p>
+                <p>
+                  Every published article must have a clear buyer question,
+                  attributable sources and an editorial review date. Market or
+                  regulatory claims will be linked to current primary evidence
+                  where available. Technical comparisons will state when two test
+                  methods are analogous but not interchangeable. Supplier claims
+                  will remain anonymous until they belong inside a matched RFQ,
+                  preserving the same accountable-desk model used by the
+                  directory.
+                </p>
+                <p>
+                  We are keeping this page out of search results until at least
+                  three complete English articles are live. That threshold gives
+                  readers a useful starting set and prevents an empty archive
+                  from competing with the supplier, standards and material pages
+                  that already answer active search intent.
+                </p>
+                <p>
+                  Subscribe to receive the launch issue and the weekly FRP
+                  sourcing brief. It will cover newly verified capabilities,
+                  standards changes, practical QA checks and material or freight
+                  signals relevant to overseas buyers—one concise email, with no
+                  directory spam.
+                </p>
+              </div>
+            </div>
+            <NewsletterSignup topic="articles-launch" className="mt-8" />
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="py-16 text-center text-muted-foreground">
+              {t("noArticles")}
+            </CardContent>
+          </Card>
+        )
       ) : (
         <ProgressiveCollapse className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" pageSize={50}>
           {rows.map((a) => (

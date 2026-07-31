@@ -30,6 +30,8 @@ import { CURRENT_SITE_URL, ACTIVE_LOCALE, crossSiteUrls } from "@/lib/sites";
 import { sourcingTopicSlugs } from "@/lib/data/sourcing-topics";
 import { baikeTopicSlugs } from "@/lib/data/baike-topics";
 import { allComboSlugs } from "@/lib/data/matrix";
+import { GB_STANDARDS_EN } from "@/lib/data/gb-standards-en";
+import { SUPPLIER_CATEGORY_SLUGS } from "@/lib/data/supplier-category-pages";
 
 export type SitemapType =
   | "core"
@@ -87,13 +89,13 @@ type StaticRoute = {
 const staticRoutes: StaticRoute[] = [
   { path: "/", changeFrequency: "daily", priority: 1.0 },
   { path: "/materials", changeFrequency: "daily", priority: 0.9 },
-  { path: "/formulas", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/formulas", changeFrequency: "weekly", priority: 0.8, zhOnly: true },
   { path: "/standards", changeFrequency: "weekly", priority: 0.8 },
   { path: "/papers", changeFrequency: "daily", priority: 0.8 },
   { path: "/patents", changeFrequency: "weekly", priority: 0.7 },
   { path: "/suppliers", changeFrequency: "daily", priority: 0.9 },
   { path: "/tech", changeFrequency: "weekly", priority: 0.7 },
-  { path: "/articles", changeFrequency: "daily", priority: 0.8 },
+  { path: "/articles", changeFrequency: "daily", priority: 0.8, zhOnly: true },
   { path: "/fibers", changeFrequency: "monthly", priority: 0.7 },
   { path: "/matrix", changeFrequency: "monthly", priority: 0.6 },
   { path: "/ai", changeFrequency: "monthly", priority: 0.7 },
@@ -103,7 +105,6 @@ const staticRoutes: StaticRoute[] = [
   { path: "/about", changeFrequency: "monthly", priority: 0.5 },
   { path: "/overseas", changeFrequency: "weekly", priority: 0.9, zhOnly: true },
   { path: "/source-from-china", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/factories", changeFrequency: "weekly", priority: 0.7, zhOnly: true },
   { path: "/data/china-frp-trade-remedies", changeFrequency: "weekly", priority: 0.8, enOnly: true },
   { path: "/tools/buy-america-frp-checker", changeFrequency: "monthly", priority: 0.7, enOnly: true },
 ];
@@ -254,11 +255,19 @@ export async function buildSitemapEntries(
           .from(standards)
           .limit(MAX_PER_SITEMAP),
       )) as Array<{ id: string; titleEn: string | null; updatedAt: Date | null }>;
-      return rows
+      const entries = rows
         .filter((r) =>
           isEn ? isAsciiPath(r.id) && (r.titleEn ?? "").trim() !== "" : true,
         )
         .map((r) => toEntry(`/standards/${r.id}`, r.updatedAt, 0.7, now));
+      if (!isEn) return entries;
+      const seen = new Set(entries.map((entry) => entry.url));
+      return [
+        ...entries,
+        ...GB_STANDARDS_EN.map((standard) =>
+          toEntry(`/standards/${standard.id}`, now, 0.7, now),
+        ).filter((entry) => !seen.has(entry.url)),
+      ];
     }
 
     case "articles": {
@@ -266,9 +275,23 @@ export async function buildSitemapEntries(
         db
           .select({ slug: articles.slug, updatedAt: articles.updatedAt })
           .from(articles)
+          .where(
+            isEn
+              ? and(
+                  eq(articles.forEn, true),
+                  isNotNull(articles.publishedAt),
+                  isNotNull(articles.titleEn),
+                  ne(articles.titleEn, ""),
+                )
+              : and(
+                  eq(articles.forZh, true),
+                  isNotNull(articles.publishedAt),
+                ),
+          )
           .orderBy(desc(articles.publishedAt))
           .limit(MAX_PER_SITEMAP),
       )) as Array<{ slug: string; updatedAt: Date | null }>;
+      if (isEn && rows.length < 3) return [];
       return rows
         .filter((r) => (isEn ? isAsciiPath(r.slug) : true))
         .map((r) => toEntry(`/articles/${r.slug}`, r.updatedAt, 0.6, now));
@@ -280,7 +303,12 @@ export async function buildSitemapEntries(
       // (zh keeps its existing entries; those already 404 and are left as-is so
       // f1frp.com output is unchanged.) The anonymized /suppliers index page
       // itself stays in the core sitemap.
-      if (isEn) return [];
+      if (isEn) {
+        return SUPPLIER_CATEGORY_SLUGS.map((slug) => ({
+          ...toEntry(`/suppliers/${slug}`, now, 0.85, now),
+          changeFrequency: "weekly" as const,
+        }));
+      }
       // Mirror the /suppliers/[id] notFound() gate: verified + English name.
       const rows = (await safeFetch(() =>
         db

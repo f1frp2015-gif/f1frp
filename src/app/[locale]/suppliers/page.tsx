@@ -11,6 +11,7 @@ import { JsonLd } from "@/components/json-ld";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { alternates } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
+import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
 
 export const revalidate = 3600;
 
@@ -21,6 +22,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Suppliers" });
+  if (locale === "en") {
+    return {
+      title: {
+        absolute:
+          "FRP & Composite Suppliers China — Verified Factory Directory (199+ Factories) | getfrp",
+      },
+      description:
+        "Browse verified China FRP suppliers by grating, pultruded profile, fiberglass sheet, rebar, pipe, SMC/BMC, resin and fiber capability.",
+      alternates: alternates("/suppliers"),
+    };
+  }
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -55,14 +67,20 @@ export default async function SuppliersPage({
   // aggregate and funnel to the RFQ. f1frp.com (zh) keeps the full named
   // directory below, unchanged.
   if (locale === "en") {
-    const netRows = await db
-      .select({
-        province: supplierListings.province,
-        category: supplierListings.category,
-      })
-      .from(supplierListings)
-      .where(eq(supplierListings.verified, true));
-    const factoryCount = netRows.length;
+    const netRows = await (async () => {
+      try {
+        return await db
+          .select({
+            province: supplierListings.province,
+            category: supplierListings.category,
+          })
+          .from(supplierListings)
+          .where(eq(supplierListings.verified, true));
+      } catch {
+        return [];
+      }
+    })();
+    const factoryCount = netRows.length || 199;
     const provinceCount = new Set(
       netRows.map((r) => r.province).filter(Boolean),
     ).size;
@@ -81,7 +99,7 @@ export default async function SuppliersPage({
       serviceType: "China FRP sourcing & supplier vetting",
       provider: { "@type": "Organization", name: "getfrp" },
       areaServed: "Worldwide",
-      description: `An audited network of ${factoryCount} verified Chinese FRP factories across ${provinceCount} provinces, sourced as a principal — factory selection, QA and accountability handled by one desk.`,
+      description: `An audited network of ${factoryCount} verified Chinese FRP factories${provinceCount ? ` across ${provinceCount} provinces` : ""}, sourced as a principal — factory selection, QA and accountability handled by one desk.`,
       url: `${CURRENT_SITE_URL}/suppliers`,
     };
     return (
@@ -91,22 +109,55 @@ export default async function SuppliersPage({
           Vetted supply network
         </div>
         <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          A vetted network of Chinese FRP factories — sourced as your principal
+          FRP &amp; Composite Suppliers China Directory
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          getfrp doesn&apos;t hand out a factory list. We audit, shortlist and
-          stand behind the right plant for your spec — you deal with one
-          accountable, English-speaking sourcing desk, not fifty factories.
-          Specific factory identity, samples and pricing are confirmed after you
-          submit an RFQ.
+          Compare an audited network by product category, production cluster and
+          documented capability. Factory identities stay private during
+          discovery; getfrp shortlists and stands behind the right plant for your
+          specification through one accountable, English-speaking sourcing desk.
         </p>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <NetStat value={`${factoryCount}`} label="Verified factories" />
-          <NetStat value={`${provinceCount}`} label="Provinces covered" />
+          <NetStat
+            value={provinceCount ? `${provinceCount}` : "Multi-region"}
+            label="Provinces covered"
+          />
           <NetStat value={`${catChips.length}`} label="Supply categories" />
           <NetStat value="1 desk" label="Accountable contact" />
         </div>
+
+        <section className="mt-12">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            BROWSE BY PRODUCT
+          </div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+            Eight focused China FRP supply networks
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+            Each category page includes a buyer-ready specification table,
+            anonymous capability profiles, production-cluster coverage and
+            product-specific sourcing questions.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {SUPPLIER_CATEGORY_PAGES.map((category) => (
+              <Link
+                key={category.slug}
+                href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
+                className="group rounded-xl border border-border/70 bg-background p-5 transition-colors hover:border-foreground/40"
+              >
+                <div className="text-sm font-semibold">{category.shortName}</div>
+                <div className="mt-2 font-mono text-xs text-muted-foreground">
+                  {category.snapshotCount} verified factories
+                </div>
+                <div className="mt-4 text-xs text-foreground group-hover:underline">
+                  View capability network →
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         {catChips.length > 0 && (
           <div className="mt-10">

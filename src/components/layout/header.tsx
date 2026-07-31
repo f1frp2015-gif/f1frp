@@ -192,8 +192,9 @@ export function Header() {
   const showOverseas = locale === "zh";
   // 认证两侧启用:getfrp（en）邮箱 OTP,f1frp.com（zh）手机号 / 微信。
   const showAuth = true;
-  // 供应库（工厂目录）仅国内 f1frp.com 展示；getfrp.com（en）海外侧不在导航暴露具体供应商，避免去中介化
-  const showSupplyLib = locale !== "en";
+  // EN 侧展示匿名品类目录；具体工厂身份仍不公开。
+  const showSupplyLib = true;
+  const showArticles = locale !== "en";
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -208,7 +209,7 @@ export function Header() {
     { href: "/patents", label: t("patents") },
   ];
   const aiItems: NavDropdownItem[] = [
-    { href: "/ai", label: t("aiAssistant") },
+    { href: "/ai/chat", label: t("aiAssistant") },
     { href: "/pultrusion/quote", label: t("quote"), isNew: true },
     { href: "/tech/calculator", label: t("engCalc"), isNew: true },
     { href: "/tech/u-value-calculator", label: t("windowCalc"), isNew: true },
@@ -240,12 +241,14 @@ export function Header() {
 
         <nav className="hidden items-center gap-px md:flex">
           {/* 资讯库 */}
-          <Link href="/articles" className={singleLinkClass(isActive("/articles"))}>
-            {t("infoLib")}
-            {isActive("/articles") && (
-              <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
-            )}
-          </Link>
+          {showArticles && (
+            <Link href="/articles" className={singleLinkClass(isActive("/articles"))}>
+              {t("infoLib")}
+              {isActive("/articles") && (
+                <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
+              )}
+            </Link>
+          )}
 
           {/* 供应库（仅国内侧；getfrp.com 海外侧隐藏） */}
           {showSupplyLib && (
@@ -322,13 +325,15 @@ export function Header() {
           <SheetContent side="right" className="w-64 p-0">
             <nav className="flex flex-col p-4 pt-12">
               {/* 资讯库 */}
-              <Link
-                href="/articles"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span>{t("infoLib")}</span>
-              </Link>
+              {showArticles && (
+                <Link
+                  href="/articles"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-between gap-2 border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <span>{t("infoLib")}</span>
+                </Link>
+              )}
 
               {/* 供应库（仅国内侧；getfrp.com 海外侧隐藏） */}
               {showSupplyLib && (

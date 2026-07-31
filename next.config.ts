@@ -105,10 +105,10 @@ const nextConfig: NextConfig = {
         destination: "/:locale/materials",
         statusCode: 301,
       },
-      { source: "/factories", destination: "/", statusCode: 301 },
+      { source: "/factories", destination: "/suppliers", statusCode: 301 },
       {
         source: "/:locale(zh|en)/factories",
-        destination: "/:locale",
+        destination: "/:locale/suppliers",
         statusCode: 301,
       },
       // 旧的 /pultrusion/calc(短暂上线)已整合进既有 /tech/calculator

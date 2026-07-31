@@ -11,6 +11,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { AiChatWidget } from "@/components/ai-chat";
 import { CookieBanner } from "@/components/cookie-banner";
+import { ConsentedGoogleAnalytics } from "@/components/consented-google-analytics";
 
 // Vercel client tracking 请求 vitals.vercel-insights.com，国内 ECS 上会被墙拖慢首屏 →
 // 仅在 AI_PROFILE !== 'domestic'（即海外 Vercel 侧）启用
@@ -241,6 +242,11 @@ export default async function LocaleLayout({
         </NextIntlClientProvider>
         {!isDomestic && <SpeedInsights />}
         {!isDomestic && <Analytics />}
+        {!isDomestic && (
+          <ConsentedGoogleAnalytics
+            measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+          />
+        )}
         {locale === "zh" && (
           <Script id="baidu-push" strategy="afterInteractive">
             {`(function(){

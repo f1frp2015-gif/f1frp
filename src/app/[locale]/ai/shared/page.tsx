@@ -52,7 +52,7 @@ export default async function SharedAnswerPage({
     );
   }
 
-  const continueHref = `/ai?q=${encodeURIComponent(payload.q)}` as const;
+  const continueHref = `/ai/chat?q=${encodeURIComponent(payload.q)}` as const;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">

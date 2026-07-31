@@ -1,12 +1,23 @@
 import type { MetadataRoute } from "next";
 import { ACTIVE_LOCALE, CURRENT_SITE_URL } from "@/lib/sites";
 
-const baseDisallow = ["/api/", "/dashboard/", "/sign-in", "/sign-up"];
+const baseDisallow = [
+  "/api/",
+  "/dashboard/",
+  "/sign-in",
+  "/sign-up",
+  "/search",
+];
 
 // 海外侧(getfrp.com)屏蔽 zh-only 路径,即便 sitemap 不收录,也禁止爬虫从内部
 // 链接 / 历史外链抓到这些路径。/pricing 已 redirect /overseas,但仍然显式
 // disallow 防止 Google 跟踪重定向链消耗抓取预算。
-const enExtraDisallow = ["/pricing", "/overseas", "/factories", "/dashboard"];
+const enExtraDisallow = [
+  "/pricing",
+  "/overseas",
+  "/formulas",
+  "/articles",
+];
 
 // Western search + AI crawlers — primary audience for getfrp.com.
 const WESTERN_AGENTS = [

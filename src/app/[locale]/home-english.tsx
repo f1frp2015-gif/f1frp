@@ -21,9 +21,11 @@ import {
   papers as papersTable,
 } from "@/lib/db/schema";
 import { JsonLd } from "@/components/json-ld";
+import { Badge } from "@/components/ui/badge";
 import { getSessionUid } from "@/lib/auth/current-user";
 import { ANON_CHAT_LIMIT } from "@/lib/auth-gate";
 import { ChatHero, type ExampleGroup } from "./chat-hero";
+import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
 
 // 8 KB 是经验阈值: 超过此数字的内联 helper 抽到单独 module 才有意义。
 // 当前 helper 不大, 留在本文件里维持单一阅读路径。
@@ -35,7 +37,7 @@ async function loadFeatured() {
       return [] as unknown as T;
     }
   };
-  const [topStandards, topPapers, topSuppliers] = await Promise.all([
+  const [topStandards, topPapers] = await Promise.all([
     safe(
       db
         .select({
@@ -68,23 +70,8 @@ async function loadFeatured() {
         .orderBy(desc(papersTable.citationCount), desc(papersTable.year))
         .limit(6),
     ),
-    safe(
-      db
-        .select({
-          id: supplierListings.id,
-          nameEn: supplierListings.nameEn,
-          locationEn: supplierListings.locationEn,
-          category: supplierListings.category,
-        })
-        .from(supplierListings)
-        .where(
-          and(eq(supplierListings.verified, true), isNotNull(supplierListings.nameEn)),
-        )
-        .orderBy(desc(supplierListings.brandPriority), desc(supplierListings.viewCount))
-        .limit(6),
-    ),
   ]);
-  return { topStandards, topPapers, topSuppliers };
+  return { topStandards, topPapers };
 }
 
 // English-side homepage — AI-Concierge first.
@@ -148,9 +135,7 @@ const EXAMPLE_GROUPS: ExampleGroup[] = [
 ];
 
 async function countOne(
-  table: Parameters<typeof db.select>[0] extends infer _
-    ? Parameters<ReturnType<typeof db.select>["from"]>[0]
-    : never,
+  table: Parameters<ReturnType<typeof db.select>["from"]>[0],
 ): Promise<number> {
   try {
     const rows = await db.select({ c: sql<number>`count(*)::int` }).from(table);
@@ -195,10 +180,10 @@ export async function HomePageEnglish() {
               "@type": "WebPage",
               "@id": "https://getfrp.com/#webpage",
               url: "https://getfrp.com/",
-              name: "China's FRP supply chain, AI-native and export-ready | getfrp",
+              name: "FRP & Composite Suppliers China — Verified Factory Directory",
               inLanguage: "en",
               description:
-                "China's entire FRP supply chain in one AI-native workspace: 200+ on-the-ground-audited factories, raw materials to finished pultrusions, GB ⇄ ASTM ⇄ EN standards mapped. Ask in English; our China desk runs the RFQ and ships.",
+                "A verified China FRP and composite factory directory organized by product category, certification and production cluster, with AI-assisted RFQ matching and one accountable export desk.",
               primaryImageOfPage: { "@id": "https://getfrp.com/og-icon.png" },
               about: [
                 { "@type": "Thing", name: "FRP sourcing" },
@@ -336,22 +321,21 @@ export async function HomePageEnglish() {
               AI-NATIVE · CHINA&apos;S FRP SUPPLY CHAIN, EXPORTED
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-5xl lg:text-[56px]">
-              China&apos;s entire FRP supply chain.
+              FRP &amp; Composite Suppliers
               <br />
               <span className="text-muted-foreground">
-                Queried by AI. Exported by us.
+                China Directory
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
-              Most of the world&apos;s FRP is made in China — but that supply
-              chain is opaque, Chinese-only, and hard to audit from overseas. We
-              turned it into one AI-native workspace —{" "}
-              <strong className="font-semibold text-foreground">200+ factories
-              audited on the ground since 2022</strong>, GB ⇄ ASTM ⇄ EN mapped —
-              backed by one accountable desk: we find the right factory for your
-              spec, control quality with pre-shipment QA, and ship to your port
-              as principal. Your contract is with us, not a factory you&apos;ve
-              never met.
+              Browse a verified China FRP factory network by product category,
+              certification and production cluster. Then ask the AI sourcing
+              desk to compare your specification against{" "}
+              <strong className="font-semibold text-foreground">
+                {verifiedSupplierCount.toLocaleString()} audited plants
+              </strong>{" "}
+              — with GB ⇄ ASTM ⇄ EN mapping, pre-shipment QA and one accountable
+              export desk.
             </p>
           </div>
 
@@ -387,6 +371,111 @@ export async function HomePageEnglish() {
               </strong>{" "}
               materials indexed
             </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────── Supplier data layer ─────────── */}
+      <section className="border-b border-border/80 bg-muted/15">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                TOP CATEGORIES
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Start with the product, not a generic factory list.
+              </h2>
+              <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
+                Eight focused supply networks, each with category-specific
+                specifications, standards questions and anonymous factory
+                capability profiles.
+              </p>
+            </div>
+            <Link
+              href="/suppliers"
+              className="inline-flex items-center gap-1 text-sm font-medium hover:underline"
+            >
+              View directory overview <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {SUPPLIER_CATEGORY_PAGES.map((category) => (
+              <Link
+                key={category.slug}
+                href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
+                className="group rounded-xl border border-border/70 bg-background p-5 transition-colors hover:border-foreground/40"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <Building2 size={18} strokeWidth={1.5} />
+                  <ArrowUpRight
+                    size={14}
+                    className="text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  />
+                </div>
+                <h3 className="mt-5 font-semibold tracking-tight">
+                  {category.shortName}
+                </h3>
+                <p className="mt-1 text-[12px] text-muted-foreground">
+                  {category.snapshotCount} verified factories
+                  {category.certifiedSnapshot
+                    ? ` · ${category.certifiedSnapshot.count} ${category.certifiedSnapshot.label}`
+                    : ""}
+                </p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-12">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              FEATURED NETWORK CAPABILITIES
+            </div>
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              {[
+                {
+                  code: "GR-001",
+                  region: "Jiangsu cluster",
+                  scope: "Molded + pultruded grating",
+                  evidence: "CE / ISO 9001 / EN 13706 evidence screened",
+                  href: "/suppliers/frp-grating",
+                },
+                {
+                  code: "PP-001",
+                  region: "Shandong cluster",
+                  scope: "Structural profiles + secondary fabrication",
+                  evidence: "Export documentation and scale tier reviewed",
+                  href: "/suppliers/pultruded-profiles",
+                },
+                {
+                  code: "RP-001",
+                  region: "Hebei cluster",
+                  scope: "Filament-wound pipe + fittings",
+                  evidence: "ASTM / ISO / GB capability mapped",
+                  href: "/suppliers/frp-pipe",
+                },
+              ].map((profile) => (
+                <Link
+                  key={profile.code}
+                  href={profile.href as "/suppliers/[id]"}
+                  className="rounded-xl border border-border/70 bg-background p-5 transition-colors hover:border-foreground/40"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <Badge variant="outline">Verified network {profile.code}</Badge>
+                    <ShieldCheck size={15} className="text-foreground/70" />
+                  </div>
+                  <h3 className="mt-4 text-sm font-semibold">{profile.region}</h3>
+                  <p className="mt-2 text-[13px] text-foreground/85">{profile.scope}</p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+                    {profile.evidence}
+                  </p>
+                </Link>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+              Capability profiles are anonymous by design. Factory identity and
+              current document copies are released only after an RFQ is matched.
+            </p>
           </div>
         </div>
       </section>
@@ -604,7 +693,7 @@ export async function HomePageEnglish() {
             </p>
           </div>
 
-          {(featured.topStandards.length || featured.topPapers.length || featured.topSuppliers.length) > 0 && (
+          {(featured.topStandards.length || featured.topPapers.length) > 0 && (
             <div className="mt-10 grid gap-6 md:grid-cols-3">
               {/* Standards */}
               <div className="rounded-xl border border-border/70 bg-background p-6">
@@ -670,30 +759,30 @@ export async function HomePageEnglish() {
                 </ul>
               </div>
 
-              {/* Suppliers */}
+              {/* Supplier categories */}
               <div className="rounded-xl border border-border/70 bg-background p-6">
                 <div className="flex items-center justify-between">
                   <Building2 size={18} strokeWidth={1.5} className="text-foreground" />
                   <Link
-                    href={"/suppliers?verified=1" as never}
+                    href={"/suppliers" as never}
                     className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
                   >
                     Browse all →
                   </Link>
                 </div>
                 <h3 className="mt-4 text-sm font-semibold tracking-tight">
-                  Verified Chinese suppliers
+                  Verified supply categories
                 </h3>
                 <ul className="mt-3 space-y-2 text-[13px]">
-                  {featured.topSuppliers.map((s) => (
-                    <li key={s.id}>
+                  {SUPPLIER_CATEGORY_PAGES.slice(0, 6).map((category) => (
+                    <li key={category.slug}>
                       <Link
-                        href={`/suppliers/${s.id}` as "/suppliers/[id]"}
+                        href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
                         className="block leading-snug text-foreground/90 hover:text-foreground hover:underline"
                       >
-                        <span className="line-clamp-1">{s.nameEn}</span>
+                        <span className="line-clamp-1">{category.shortName}</span>
                         <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                          {[s.category, s.locationEn].filter(Boolean).join(" · ")}
+                          {category.snapshotCount} verified factory records
                         </span>
                       </Link>
                     </li>

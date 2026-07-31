@@ -56,9 +56,12 @@ export async function generateMetadata({
   if (locale !== "en") return base;
   return {
     ...base,
-    title: "Source FRP from China — verified suppliers, QA & accountable desk",
+    title: {
+      absolute:
+        "FRP & Composite Suppliers China — Verified Factory Directory (199+ Factories) | getfrp",
+    },
     description:
-      "Verified Chinese FRP factories, GB ⇄ ASTM ⇄ EN conformity mapped, pre-shipment QA, and one accountable desk that ships FOB/CIF as principal — AD/CVD & Section 301 duty exposure flagged before you commit.",
+      "Compare 199+ verified FRP and composite factories in China by product category, certification and production cluster, then submit one RFQ for an evidence-based shortlist.",
   };
 }
 
@@ -82,9 +85,7 @@ const FIBERS = [
   { key: "bio", en: "Bio-based", statKey: "bioStat" },
 ] as const;
 
-type CountTable = Parameters<typeof db.select>[0] extends infer _
-  ? Parameters<ReturnType<typeof db.select>["from"]>[0]
-  : never;
+type CountTable = Parameters<ReturnType<typeof db.select>["from"]>[0];
 
 async function countOne(table: CountTable): Promise<number> {
   try {

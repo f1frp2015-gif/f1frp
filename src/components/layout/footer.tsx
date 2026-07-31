@@ -84,7 +84,7 @@ export function Footer() {
   const resourceLinks = [
     { label: tn("ai"), href: "/ai" },
     { label: tn("supplyLib"), href: "/suppliers" },
-    { label: tn("infoLib"), href: "/articles" },
+    ...(!isEn ? [{ label: tn("infoLib"), href: "/articles" }] : []),
   ];
 
   return (
