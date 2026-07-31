@@ -12,6 +12,7 @@ import {
   FileBadge,
   BookOpen,
 } from "lucide-react";
+import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/lib/db";
 import {
@@ -309,25 +310,34 @@ export async function HomePageEnglish() {
       />
 
       {/* ─────────── Chat hero ─────────── */}
-      <section className="relative overflow-hidden border-b border-border/80">
+      <section className="relative overflow-hidden border-b border-[#163247] bg-[#071A2B] text-white">
+        <Image
+          src="/images/getfrp-supply-chain-hero.png"
+          alt="FRP and composite materials supply chain capabilities"
+          fill
+          priority
+          sizes="100vw"
+          className="pointer-events-none object-cover object-right opacity-35"
+        />
         <div
           aria-hidden
-          className="absolute inset-0 bg-grid-sm opacity-[0.4] [mask-image:radial-gradient(ellipse_at_center,black_25%,transparent_75%)]"
+          className="absolute inset-0 bg-grid-sm opacity-[0.16] [mask-image:radial-gradient(ellipse_at_center,black_25%,transparent_75%)]"
         />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071A2B] via-[#071A2B]/95 to-[#071A2B]/45" />
         <div className="relative mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-28">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#2a5268] bg-white/[0.06] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[#9fc2ce] backdrop-blur">
               <Sparkles size={11} />
               AI-NATIVE · CHINA&apos;S FRP SUPPLY CHAIN, EXPORTED
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-5xl lg:text-[56px]">
               FRP &amp; Composite Suppliers
               <br />
-              <span className="text-muted-foreground">
+              <span className="text-[#7ed4d3]">
                 China Directory
               </span>
             </h1>
-            <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-muted-foreground">
+            <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-[#c3d4da]">
               Browse a verified China FRP factory network by product category,
               certification and production cluster. Then ask the AI sourcing
               desk to compare your specification against{" "}
@@ -347,26 +357,26 @@ export async function HomePageEnglish() {
 
           {/* Trust micro-strip directly under the chat input — proof-at-a-glance
               without forcing the user to scroll. Numbers are live. */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12px] text-muted-foreground">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12px] text-[#a9c0c8]">
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck size={13} className="text-foreground/70" />
-              <strong className="text-foreground">
+              <ShieldCheck size={13} className="text-[#5fd0bd]" />
+              <strong className="text-white">
                 {verifiedSupplierCount.toLocaleString()}
               </strong>{" "}
               plants audited on the ground
             </span>
             <span className="hidden sm:inline text-muted-foreground/40">·</span>
             <span className="inline-flex items-center gap-1.5">
-              <FileBadge size={13} className="text-foreground/70" />
-              <strong className="text-foreground">
+              <FileBadge size={13} className="text-[#f0bd5b]" />
+              <strong className="text-white">
                 {standardsCount.toLocaleString()}
               </strong>{" "}
               GB / ASTM / ISO / EN mapped
             </span>
             <span className="hidden sm:inline text-muted-foreground/40">·</span>
             <span className="inline-flex items-center gap-1.5">
-              <Database size={13} className="text-foreground/70" />
-              <strong className="text-foreground">
+              <Database size={13} className="text-[#76bcd0]" />
+              <strong className="text-white">
                 {materialsCount.toLocaleString()}
               </strong>{" "}
               materials indexed
@@ -405,7 +415,7 @@ export async function HomePageEnglish() {
               <Link
                 key={category.slug}
                 href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
-                className="group rounded-xl border border-border/70 bg-background p-5 transition-colors hover:border-foreground/40"
+                className="group rounded-xl border border-border/70 border-t-2 border-t-[#00A6A6] bg-background p-5 transition-all hover:-translate-y-0.5 hover:border-[#00A6A6] hover:shadow-lg hover:shadow-[#00A6A6]/10"
               >
                 <div className="flex items-start justify-between gap-3">
                   <Building2 size={18} strokeWidth={1.5} />
@@ -458,7 +468,7 @@ export async function HomePageEnglish() {
                 <Link
                   key={profile.code}
                   href={profile.href as "/suppliers/[id]"}
-                  className="rounded-xl border border-border/70 bg-background p-5 transition-colors hover:border-foreground/40"
+                  className="rounded-xl border border-border/70 border-l-2 border-l-[#E7A93B] bg-background p-5 transition-all hover:-translate-y-0.5 hover:border-[#E7A93B] hover:shadow-lg hover:shadow-[#E7A93B]/10"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <Badge variant="outline">Verified network {profile.code}</Badge>

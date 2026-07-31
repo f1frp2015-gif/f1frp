@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { desc, asc, eq, isNotNull, sql } from "drizzle-orm";
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -43,9 +44,9 @@ export async function generateMetadata({
 
 function NetStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-lg border border-border/70 bg-background p-4 text-center">
-      <div className="text-2xl font-bold tracking-tight">{value}</div>
-      <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+    <div className="rounded-xl border border-[#d9e3e8] bg-white p-4 text-center shadow-sm">
+      <div className="text-2xl font-bold tracking-tight text-[#071A2B]">{value}</div>
+      <div className="mt-1 text-[11px] uppercase tracking-wider text-[#58717d]">
         {label}
       </div>
     </div>
@@ -104,15 +105,25 @@ export default async function SuppliersPage({
       url: `${CURRENT_SITE_URL}/suppliers`,
     };
     return (
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
         <JsonLd data={networkJsonLd} />
-        <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+        <section className="relative overflow-hidden rounded-2xl bg-[#071A2B] px-6 py-10 text-white shadow-xl shadow-[#071A2B]/10 sm:px-10 sm:py-12">
+        <Image
+          src="/images/getfrp-supply-chain-hero.png"
+          alt="Composite materials and FRP supplier network"
+          fill
+          sizes="(max-width: 1024px) 100vw, 1100px"
+          className="pointer-events-none object-cover object-right opacity-30"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071A2B] via-[#071A2B]/95 to-[#071A2B]/45" />
+        <div className="relative">
+        <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#9fc2ce]">
           Vetted supply network
         </div>
         <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
           China Composite Materials Suppliers Directory
         </h1>
-        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-[#c3d4da]">
           Browse an audited China composite materials directory organized by
           product category, production cluster and documented capability. Factory
           identities stay private during discovery; getfrp shortlists and stands
@@ -129,6 +140,8 @@ export default async function SuppliersPage({
           <NetStat value={`${catChips.length}`} label="Supply categories" />
           <NetStat value="1 desk" label="Accountable contact" />
         </div>
+        </div>
+        </section>
 
         <section className="mt-12">
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -147,9 +160,12 @@ export default async function SuppliersPage({
               <Link
                 key={category.slug}
                 href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
-                className="group rounded-xl border border-border/70 bg-background p-5 transition-colors hover:border-foreground/40"
+                className="group rounded-xl border border-[#d9e3e8] border-t-2 border-t-[#00A6A6] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[#00A6A6] hover:shadow-lg hover:shadow-[#00A6A6]/10"
               >
-                <div className="text-sm font-semibold">{category.shortName}</div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-[#071A2B]">{category.shortName}</div>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#00A6A6]">FRP</span>
+                </div>
                 <div className="mt-2 font-mono text-xs text-muted-foreground">
                   {category.snapshotCount} verified factories
                 </div>
@@ -209,7 +225,7 @@ export default async function SuppliersPage({
               <Link
                 key={region.slug}
                 href={`/suppliers/${region.slug}` as "/suppliers/[id]"}
-                className="rounded-xl border border-border/70 bg-muted/20 p-4 transition-colors hover:border-foreground/40"
+                className="rounded-xl border border-[#d9e3e8] bg-[#f4f7f8] p-4 transition-all hover:-translate-y-0.5 hover:border-[#E7A93B] hover:bg-white"
               >
                 <div className="font-semibold">{region.name}</div>
                 <div className="mt-2 font-mono text-xs text-muted-foreground">
