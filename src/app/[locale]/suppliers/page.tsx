@@ -14,6 +14,7 @@ import { alternates } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
 import { SUPPLIER_REGION_PAGES } from "@/lib/data/supplier-region-pages";
+import { SupplierCategoryCardImage } from "@/components/supplier-category-card-image";
 
 export const revalidate = 3600;
 
@@ -160,17 +161,24 @@ export default async function SuppliersPage({
               <Link
                 key={category.slug}
                 href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
-                className="group rounded-xl border border-[#d9e3e8] border-t-2 border-t-[#00A6A6] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-[#00A6A6] hover:shadow-lg hover:shadow-[#00A6A6]/10"
+                className="group overflow-hidden rounded-xl border border-[#d9e3e8] border-t-2 border-t-[#00A6A6] bg-white transition-all hover:-translate-y-0.5 hover:border-[#00A6A6] hover:shadow-lg hover:shadow-[#00A6A6]/10"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-semibold text-[#071A2B]">{category.shortName}</div>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#00A6A6]">FRP</span>
-                </div>
-                <div className="mt-2 font-mono text-xs text-muted-foreground">
-                  {category.snapshotCount} verified factories
-                </div>
-                <div className="mt-4 text-xs text-foreground group-hover:underline">
-                  View capability network →
+                <SupplierCategoryCardImage slug={category.slug} />
+                <div className="p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm font-semibold text-[#071A2B]">
+                      {category.shortName}
+                    </div>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#00A6A6]">
+                      FRP
+                    </span>
+                  </div>
+                  <div className="mt-2 font-mono text-xs text-muted-foreground">
+                    {category.snapshotCount} verified factories
+                  </div>
+                  <div className="mt-4 text-xs text-foreground group-hover:underline">
+                    View capability network →
+                  </div>
                 </div>
               </Link>
             ))}
