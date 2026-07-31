@@ -92,15 +92,21 @@ export default async function SourceFromChinaPage({
   // Aggregate-only query — the page presents the audited network in aggregate
   // (counts by category / province / cert / tier), NEVER named suppliers. No
   // factory identity reaches the client; getfrp sources as a principal.
-  const verified: VerifiedRow[] = await db
-    .select({
-      category: supplierListings.category,
-      province: supplierListings.province,
-      certificationsEn: supplierListings.certificationsEn,
-      scaleTier: supplierListings.scaleTier,
-    })
-    .from(supplierListings)
-    .where(eq(supplierListings.verified, true));
+  const verified: VerifiedRow[] = await (async () => {
+    try {
+      return await db
+        .select({
+          category: supplierListings.category,
+          province: supplierListings.province,
+          certificationsEn: supplierListings.certificationsEn,
+          scaleTier: supplierListings.scaleTier,
+        })
+        .from(supplierListings)
+        .where(eq(supplierListings.verified, true));
+    } catch {
+      return [];
+    }
+  })();
 
   const total = verified.length;
 

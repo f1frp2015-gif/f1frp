@@ -598,6 +598,58 @@ export async function HomePageEnglish() {
         </div>
       </section>
 
+      {/* ─────────── Certification verification ─────────── */}
+      <section className="border-b border-border/80 bg-muted/15">
+        <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
+          <div className="max-w-3xl">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              HOW WE VERIFY
+            </div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              How we verify FRP factory certifications in China
+            </h2>
+            <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
+              A certificate logo is not a supplier qualification. getfrp checks
+              the legal entity, manufacturing scope and product evidence before a
+              factory enters a matched shortlist. The review is designed around
+              the question an overseas buyer actually needs answered: can this
+              plant make the requested FRP product to the required standard, and
+              can the evidence be tied to the shipment?
+            </p>
+          </div>
+          <div className="mt-9 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                step: "01",
+                title: "Identify the issuing scope",
+                body: "We compare the certificate holder, unified social credit code, site address, issuing body, validity date and scope. A parent-company document is not silently treated as proof for a different production site.",
+              },
+              {
+                step: "02",
+                title: "Match product and process",
+                body: "We check whether the document covers the offered resin, reinforcement, geometry, process and market requirement. EN, ASTM, ISO and GB references are reviewed against the actual test method rather than a keyword alone.",
+              },
+              {
+                step: "03",
+                title: "Recheck before release",
+                body: "Documents are refreshed against the live RFQ, samples are tied to an agreed specification, and the inspection plan carries the same certificate and traceability requirements through pre-shipment QA.",
+              },
+            ].map((item) => (
+              <div key={item.step} className="rounded-xl border border-border/70 bg-background p-6">
+                <div className="font-mono text-xs text-muted-foreground">STEP {item.step}</div>
+                <h3 className="mt-4 text-base font-semibold tracking-tight">{item.title}</h3>
+                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{item.body}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-7 flex flex-wrap gap-3 text-sm">
+            <Link href="/standards" className="rounded-md border border-border px-4 py-2 hover:bg-background">Review the standards crosswalk →</Link>
+            <Link href="/source-from-china" className="rounded-md border border-border px-4 py-2 hover:bg-background">Read the sourcing method →</Link>
+            <Link href="/rfq" className="rounded-md bg-foreground px-4 py-2 text-background hover:bg-foreground/90">Submit a verification-led RFQ →</Link>
+          </div>
+        </div>
+      </section>
+
       {/* ─────────── What the desk handles — honest scope (today vs roadmap) ───────────
           Western B2B buyers read a clear scope as credibility, not weakness.
           Lead with what every order includes today (FOB/CIF as principal, QA,

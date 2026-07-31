@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull, ne } from "drizzle-orm";
 import {
   ArrowRight,
   CheckCircle2,
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { JsonLd } from "@/components/json-ld";
 import { db } from "@/lib/db";
-import { supplierListings } from "@/lib/db/schema";
+import { materials as materialsTable, supplierListings } from "@/lib/db/schema";
 import {
   getSupplierCategoryPage,
   SUPPLIER_CATEGORY_SLUGS,
@@ -26,12 +26,18 @@ import {
 import { provincesEn } from "@/lib/data/suppliers";
 import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
+import {
+  getSupplierRegionByName,
+  getSupplierRegionPage,
+  SUPPLIER_REGION_SLUGS,
+  type SupplierRegionPage,
+} from "@/lib/data/supplier-region-pages";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
 
 export function generateStaticParams() {
-  return SUPPLIER_CATEGORY_SLUGS.map((id) => ({ id }));
+  return [...SUPPLIER_CATEGORY_SLUGS, ...SUPPLIER_REGION_SLUGS].map((id) => ({ id }));
 }
 
 type NetworkRow = {
@@ -100,6 +106,88 @@ function scaleLabel(tier: string | null): string {
   }
 }
 
+const CATEGORY_SEO_TITLES: Record<string, string> = {
+  "frp-grating": "FRP Grating Suppliers China — 38 Verified Factories | getfrp",
+  "pultruded-profiles": "Pultruded FRP Profiles Suppliers China — 29 Verified Factories | getfrp",
+  "fiberglass-sheet": "Fiberglass Sheet Suppliers China — 19 Verified Factories | getfrp",
+  "frp-rebar": "FRP Rebar Suppliers China — Verified Fiberglass Rebar Factories | getfrp",
+  "frp-pipe": "FRP Pipe Suppliers China — Verified Fiberglass Pipe Factories | getfrp",
+  "smc-bmc": "SMC BMC Manufacturers China — Verified Composite Molders | getfrp",
+  "resin-gelcoat": "FRP Resin & Gelcoat Manufacturers China — Verified Suppliers | getfrp",
+  "fiber-glass": "Fiberglass Fiber Suppliers China — Verified E-Glass Producers | getfrp",
+};
+
+const CATEGORY_STANDARD_LINKS: Record<string, Array<{ id: string; label: string }>> = {
+  "frp-grating": [
+    { id: "cn-002", label: "GB/T 1447 — tensile properties of FRP" },
+    { id: "cn-004", label: "GB/T 1449 — flexural properties of FRP" },
+  ],
+  "pultruded-profiles": [
+    { id: "cn-006", label: "GB/T 1451 — short-beam strength" },
+    { id: "cn-009", label: "GB/T 3354 — tensile properties of carbon fibre" },
+  ],
+  "fiberglass-sheet": [
+    { id: "cn-002", label: "GB/T 1447 — tensile properties of FRP" },
+    { id: "cn-004", label: "GB/T 1449 — flexural properties of FRP" },
+  ],
+  "frp-rebar": [
+    { id: "cn-002", label: "GB/T 1447 — tensile properties of FRP" },
+    { id: "cn-005", label: "GB/T 1450.1 — shear strength" },
+  ],
+  "frp-pipe": [
+    { id: "cn-003", label: "GB/T 1448 — compression properties of FRP" },
+    { id: "cn-006", label: "GB/T 1451 — short-beam strength" },
+  ],
+  "smc-bmc": [
+    { id: "cn-002", label: "GB/T 1447 — tensile properties of FRP" },
+    { id: "cn-004", label: "GB/T 1449 — flexural properties of FRP" },
+  ],
+  "resin-gelcoat": [
+    { id: "cn-001", label: "GB/T 1446 — general test methods" },
+    { id: "cn-010", label: "GB/T 3355 — compressive properties of carbon fibre" },
+  ],
+  "fiber-glass": [
+    { id: "cn-007", label: "GB/T 1458 — winding-tube tensile test" },
+    { id: "cn-009", label: "GB/T 3354 — tensile properties of carbon fibre" },
+  ],
+};
+
+type RelatedMaterial = { id: string; name: string; category: string | null };
+
+async function loadRelatedMaterials(category: SupplierCategoryPage): Promise<RelatedMaterial[]> {
+  try {
+    const rows = await db
+      .select({
+        id: materialsTable.id,
+        name: materialsTable.nameEn,
+        category: materialsTable.category,
+      })
+      .from(materialsTable)
+      .where(
+        and(
+          eq(materialsTable.status, "verified"),
+          isNotNull(materialsTable.nameEn),
+          ne(materialsTable.nameEn, ""),
+        ),
+      )
+      .limit(400);
+    const terms = category.match.keywords.map((term) => term.toLowerCase());
+    return rows
+      .filter((row) => {
+        const haystack = `${row.name ?? ""} ${row.category ?? ""}`.toLowerCase();
+        return terms.some((term) => haystack.includes(term));
+      })
+      .slice(0, 6)
+      .map((row) => ({
+        id: row.id,
+        name: row.name ?? row.id,
+        category: row.category,
+      }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -107,13 +195,24 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, id } = await params;
   const category = getSupplierCategoryPage(id);
+  const region = getSupplierRegionPage(id);
+  if (locale === "en" && region) {
+    const title = `FRP & Composite Manufacturers in ${region.name}, China — Verified Directory | getfrp`;
+    return {
+      title: { absolute: title },
+      description: region.summary,
+      alternates: alternates(`/suppliers/${region.slug}`),
+      openGraph: og(`/suppliers/${region.slug}`, { title, description: region.summary }),
+    };
+  }
   if (locale !== "en" || !category) {
     return {
       robots: { index: false, follow: false },
       alternates: alternates(`/suppliers/${id}`),
     };
   }
-  const title = `${category.name} Suppliers China — ${category.snapshotCount} Verified Factories | getfrp`;
+  const title = CATEGORY_SEO_TITLES[category.slug] ??
+    `${category.name} Suppliers China — ${category.snapshotCount} Verified Factories | getfrp`;
   return {
     title: { absolute: title },
     description: category.summary,
@@ -125,6 +224,171 @@ export async function generateMetadata({
   };
 }
 
+async function loadRegionNetwork(region: SupplierRegionPage): Promise<NetworkRow[]> {
+  try {
+    return await db
+      .select({
+        id: supplierListings.id,
+        province: supplierListings.province,
+        category: supplierListings.category,
+        productsEn: supplierListings.productsEn,
+        capabilities: supplierListings.capabilities,
+        processListEn: supplierListings.processListEn,
+        certificationsEn: supplierListings.certificationsEn,
+        scaleTier: supplierListings.scaleTier,
+        exportReady: supplierListings.exportReady,
+      })
+      .from(supplierListings)
+      .where(
+        and(
+          eq(supplierListings.verified, true),
+          eq(supplierListings.province, region.provinceToken),
+        ),
+      )
+      .orderBy(
+        desc(supplierListings.exportReady),
+        desc(supplierListings.brandPriority),
+        desc(supplierListings.viewCount),
+      );
+  } catch {
+    return [];
+  }
+}
+
+async function renderRegionPage(region: SupplierRegionPage) {
+  const network = await loadRegionNetwork(region);
+  const provinceCount = network.length || region.snapshotCount;
+  const certCount = network.filter((row) => normalizedCerts(row).length > 0).length;
+  const exportReadyCount = network.filter((row) => row.exportReady).length;
+  const featured = network.slice(0, 6);
+  const pageUrl = `${CURRENT_SITE_URL}/suppliers/${region.slug}`;
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: region.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  };
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `FRP & Composite Manufacturers in ${region.name}, China`,
+    description: region.summary,
+    url: pageUrl,
+    inLanguage: "en",
+    isPartOf: { "@id": `${CURRENT_SITE_URL}/#website` },
+    about: { "@type": "Place", name: `${region.name}, China` },
+    mainEntity: {
+      "@type": "ItemList",
+      name: `Verified FRP capability records in ${region.name}`,
+      numberOfItems: provinceCount,
+    },
+  };
+
+  return (
+    <main>
+      <JsonLd data={collectionJsonLd} />
+      <JsonLd data={faqJsonLd} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: `${CURRENT_SITE_URL}/` },
+          { name: "Suppliers", url: `${CURRENT_SITE_URL}/suppliers` },
+          { name: region.name, url: pageUrl },
+        ]}
+      />
+      <section className="border-b border-border/80">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+          <nav className="text-xs text-muted-foreground" aria-label="Breadcrumb">
+            <Link href="/" className="hover:text-foreground">Home</Link>
+            <span className="mx-2">›</span>
+            <Link href="/suppliers" className="hover:text-foreground">Suppliers</Link>
+            <span className="mx-2">›</span>
+            <span>{region.name}</span>
+          </nav>
+          <div className="mt-6 max-w-4xl">
+            <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              VERIFIED REGIONAL CLUSTER
+            </div>
+            <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-[-0.03em] sm:text-5xl">
+              FRP &amp; Composite Manufacturers in {region.name}, China
+            </h1>
+            <p className="mt-5 max-w-3xl text-[16px] leading-7 text-muted-foreground">
+              {region.summary}
+            </p>
+          </div>
+          <div className="mt-9 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="rounded-xl border border-border/70 bg-background p-5"><Factory size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{provinceCount}</div><div className="mt-1 text-xs text-muted-foreground">Verified regional records</div></div>
+            <div className="rounded-xl border border-border/70 bg-background p-5"><MapPin size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{region.categoryFocus.length}+</div><div className="mt-1 text-xs text-muted-foreground">Priority categories</div></div>
+            <div className="rounded-xl border border-border/70 bg-background p-5"><FileCheck2 size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{certCount || "RFQ"}</div><div className="mt-1 text-xs text-muted-foreground">Records with documents</div></div>
+            <div className="rounded-xl border border-border/70 bg-background p-5"><ShieldCheck size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{exportReadyCount || "QA"}</div><div className="mt-1 text-xs text-muted-foreground">Export-ready matches</div></div>
+          </div>
+          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Regional counts are a July 2026 verified-data snapshot. The live shortlist is rechecked against the requested product, certificate scope and destination before release.</p>
+        </div>
+      </section>
+
+      <section className="border-b border-border/80">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">REGIONAL CAPABILITY OVERVIEW</div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">How to use the {region.name} cluster</h2>
+          <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-7 text-muted-foreground">
+            {region.overview.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-border/80 bg-muted/15">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">PRIORITY CATEGORIES</div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">Move from province to product specification</h2>
+          <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {region.categoryFocus.map((focus) => (
+              <Link key={focus.slug} href={`/suppliers/${focus.slug}` as "/suppliers/[id]"} className="rounded-xl border border-border/70 bg-background p-5 transition-colors hover:border-foreground/40">
+                <div className="flex items-center justify-between gap-2"><span className="font-semibold">{focus.label}</span><ArrowRight size={15} /></div>
+                <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">{focus.note}</p>
+                <span className="mt-4 inline-block text-xs underline underline-offset-4">View verified network</span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3 text-sm">
+            <Link href="/standards" className="rounded-md border border-border px-4 py-2 hover:bg-background">GB ↔ ASTM ↔ ISO ↔ EN crosswalk</Link>
+            <Link href="/source-from-china" className="rounded-md border border-border px-4 py-2 hover:bg-background">China sourcing playbook</Link>
+            <Link href="/materials" className="rounded-md border border-border px-4 py-2 hover:bg-background">Browse material specifications</Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-border/80">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">ANONYMOUS NETWORK COMPOSITION</div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">Capability records in the {region.name} cluster</h2>
+          {featured.length > 0 ? <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{featured.map((row, index) => {
+            const products = [...(row.capabilities ?? []), ...(row.productsEn ?? [])].filter(Boolean).slice(0, 4);
+            const certs = normalizedCerts(row).slice(0, 3);
+            return <article key={row.id} className="rounded-xl border border-border/70 bg-background p-6">
+              <div className="flex items-center justify-between gap-3"><Badge variant="outline">Verified {region.slug.slice(0, 3).toUpperCase()}-{String(index + 1).padStart(3, "0")}</Badge>{row.exportReady && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Export-ready</span>}</div>
+              <div className="mt-5 flex items-center gap-2 text-sm font-medium"><MapPin size={14} />{region.name}, China</div>
+              <div className="mt-2 text-xs text-muted-foreground">{scaleLabel(row.scaleTier)}</div>
+              {products.length > 0 && <div className="mt-4 flex flex-wrap gap-1.5">{products.map((product) => <span key={product} className="rounded-md bg-muted px-2 py-1 text-[11px] text-muted-foreground">{product}</span>)}</div>}
+              <div className="mt-4 border-t border-border/60 pt-4 text-[12px] leading-relaxed text-muted-foreground">{certs.length > 0 ? `Documents on file: ${certs.join(" · ")}` : "Product evidence reviewed during RFQ matching."}</div>
+            </article>;
+          })}</div> : <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">Live capability cards are refreshed against the current verified network when a specification is submitted. The regional snapshot above is retained for initial comparison.</p>}
+        </div>
+      </section>
+
+      <section className="border-b border-border/80">
+        <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">REGIONAL FAQ</div>
+          <div className="mt-7 divide-y divide-border/70 border-y border-border/70">{region.faqs.map((faq) => <article key={faq.question} className="py-6"><h3 className="text-base font-semibold">{faq.question}</h3><p className="mt-2 text-[14px] leading-7 text-muted-foreground">{faq.answer}</p></article>)}</div>
+        </div>
+      </section>
+
+      <section className="bg-foreground py-14 text-background"><div className="mx-auto max-w-3xl px-4 text-center sm:px-6"><div className="font-mono text-[10px] uppercase tracking-[0.18em] text-background/65">MATCHED WITHIN 24 HOURS</div><h2 className="mt-3 text-3xl font-semibold tracking-tight">Need a {region.name} capability checked?</h2><p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-background/75">Send the product, standards, quantity, destination and evidence requirements. We compare the regional cluster with the wider verified network and return a controlled shortlist.</p><div className="mt-7 flex flex-wrap justify-center gap-3"><Link href="/rfq" className={buttonVariants({ size: "lg", variant: "secondary" })}>Submit RFQ <ArrowRight size={15} /></Link><Link href="/suppliers" className="inline-flex items-center rounded-md border border-background/30 px-5 py-2.5 text-sm hover:bg-background/10">Browse all suppliers</Link></div></div></section>
+    </main>
+  );
+}
+
 export default async function SupplierCategoryPageRoute({
   params,
 }: {
@@ -133,9 +397,13 @@ export default async function SupplierCategoryPageRoute({
   const { locale, id } = await params;
   setRequestLocale(locale);
   const category = getSupplierCategoryPage(id);
-  if (locale !== "en" || !category) notFound();
+  const region = getSupplierRegionPage(id);
+  if (locale !== "en") notFound();
+  if (region) return renderRegionPage(region);
+  if (!category) notFound();
 
   const network = await loadCategoryNetwork(category);
+  const relatedMaterials = await loadRelatedMaterials(category);
   const provinceCounts = new Map<string, number>();
   for (const row of network) {
     if (!row.province) continue;
@@ -428,7 +696,16 @@ export default async function SupplierCategoryPageRoute({
             {Object.entries(category.provinceNotes).map(([province, note]) => (
               <article key={province} className="rounded-xl border border-border/70 bg-background p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="font-semibold">{province}</h3>
+                  {getSupplierRegionByName(province) ? (
+                    <Link
+                      href={`/suppliers/${getSupplierRegionByName(province)!.slug}` as "/suppliers/[id]"}
+                      className="font-semibold hover:underline"
+                    >
+                      {province} cluster
+                    </Link>
+                  ) : (
+                    <h3 className="font-semibold">{province}</h3>
+                  )}
                   {provinceCounts.has(province) && (
                     <span className="font-mono text-xs text-muted-foreground">
                       {provinceCounts.get(province)} matched
@@ -438,6 +715,63 @@ export default async function SupplierCategoryPageRoute({
                 <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{note}</p>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-border/80 bg-muted/15">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            RELATED EVIDENCE
+          </div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+            Materials and standards to check with this category
+          </h2>
+          <div className="mt-7 grid gap-8 lg:grid-cols-2">
+            <div>
+              <h3 className="text-base font-semibold">Material specifications</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Move from a supplier capability to a defined material or grade
+                before asking for a price. These verified material records are
+                the specification layer used during matching.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {relatedMaterials.map((material) => (
+                  <Link
+                    key={material.id}
+                    href={`/materials/${encodeURIComponent(material.id)}` as never}
+                    className="rounded-md border border-border bg-background px-3 py-2 text-xs hover:border-foreground/50"
+                  >
+                    {material.name}
+                  </Link>
+                ))}
+                <Link href="/materials" className="rounded-md border border-border bg-background px-3 py-2 text-xs hover:border-foreground/50">
+                  Browse all materials →
+                </Link>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-base font-semibold">Standards cross-reference</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Confirm the test method and certificate scope before treating a
+                factory claim as a compliance result. Start with the relevant
+                GB records, then compare the project’s ASTM, ISO or EN call-up.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {(CATEGORY_STANDARD_LINKS[category.slug] ?? []).map((standard) => (
+                  <Link
+                    key={standard.id}
+                    href={`/standards/${standard.id}` as never}
+                    className="rounded-md border border-border bg-background px-3 py-2 text-xs hover:border-foreground/50"
+                  >
+                    {standard.label}
+                  </Link>
+                ))}
+                <Link href="/standards" className="rounded-md border border-border bg-background px-3 py-2 text-xs hover:border-foreground/50">
+                  Open standards crosswalk →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

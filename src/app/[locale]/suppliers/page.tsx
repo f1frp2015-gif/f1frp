@@ -12,6 +12,7 @@ import { AskAiButton } from "@/components/ask-ai-button";
 import { alternates } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
+import { SUPPLIER_REGION_PAGES } from "@/lib/data/supplier-region-pages";
 
 export const revalidate = 3600;
 
@@ -109,13 +110,14 @@ export default async function SuppliersPage({
           Vetted supply network
         </div>
         <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-          FRP &amp; Composite Suppliers China Directory
+          China Composite Materials Suppliers Directory
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          Compare an audited network by product category, production cluster and
-          documented capability. Factory identities stay private during
-          discovery; getfrp shortlists and stands behind the right plant for your
-          specification through one accountable, English-speaking sourcing desk.
+          Browse an audited China composite materials directory organized by
+          product category, production cluster and documented capability. Factory
+          identities stay private during discovery; getfrp shortlists and stands
+          behind the right plant for your specification through one accountable,
+          English-speaking sourcing desk.
         </p>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -156,6 +158,84 @@ export default async function SuppliersPage({
                 </div>
               </Link>
             ))}
+          </div>
+        </section>
+
+        <section className="mt-14 border-t border-border/70 pt-12">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            CHINA COMPOSITE MATERIALS DIRECTORY
+          </div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+            A sourcing map organized around the way RFQs are actually written
+          </h2>
+          <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-7 text-muted-foreground">
+            <p>
+              A useful composite materials directory should do more than return a
+              long list of company names. It should show which factories work with
+              the requested process, resin, reinforcement, geometry, standard and
+              destination documentation. getfrp organizes the China supply base
+              into eight product networks so a buyer can begin with a real
+              requirement—FRP grating, pultruded profiles, fiberglass sheet, FRP
+              rebar, pipe, SMC/BMC, resin and gelcoat, or fiber and glass—then move
+              to the specification and evidence that control the purchase.
+            </p>
+            <p>
+              The directory is deliberately capability-led. During initial
+              discovery, anonymous records expose province, process, scale tier,
+              certifications on file and export-readiness signals without turning
+              the site into an open marketplace that strips away accountability.
+              Once the specification is stable, the sourcing desk rechecks the
+              legal entity, certificate scope, current documents, sample route and
+              inspection criteria before releasing a matched commercial shortlist.
+              This distinction matters because a certificate logo or a broad
+              catalogue does not prove that the quoted plant can make the exact
+              product under the required conditions.
+            </p>
+            <p>
+              Use the regional pages to understand production clusters, not to
+              treat geography as a quality grade. Jiangsu is useful for resin,
+              pultrusion and downstream grating; Shandong for reinforcement,
+              industrial FRP and pipe; Zhejiang for flexible engineered profiles,
+              sheets and fibre conversion; Guangdong for electrical, automotive,
+              marine and moulded applications; Hebei for wound pipe, tanks and
+              anti-corrosion systems. Every route still ends with the same
+              controlled RFQ: drawing or grade, quantity, standards, tolerances,
+              packaging, destination and acceptance evidence.
+            </p>
+          </div>
+          <h3 className="mt-10 text-lg font-semibold">Browse by production cluster</h3>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {SUPPLIER_REGION_PAGES.map((region) => (
+              <Link
+                key={region.slug}
+                href={`/suppliers/${region.slug}` as "/suppliers/[id]"}
+                className="rounded-xl border border-border/70 bg-muted/20 p-4 transition-colors hover:border-foreground/40"
+              >
+                <div className="font-semibold">{region.name}</div>
+                <div className="mt-2 font-mono text-xs text-muted-foreground">
+                  {region.snapshotCount} verified records
+                </div>
+                <div className="mt-3 text-xs underline underline-offset-4">View cluster →</div>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            {[
+              ["01", "Choose a capability", "Start with the category page and state the process, material, geometry and destination standard."],
+              ["02", "Check evidence", "Use the standards and material links to compare test methods, certificate scope and documentation gaps."],
+              ["03", "Submit one controlled RFQ", "We match the specification to the verified network and reply with a focused shortlist within 24 hours."],
+            ].map(([step, title, body]) => (
+              <div key={step} className="rounded-xl border border-border/70 bg-background p-5">
+                <div className="font-mono text-xs text-muted-foreground">{step}</div>
+                <h3 className="mt-3 text-sm font-semibold">{title}</h3>
+                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{body}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3 text-sm">
+            <Link href="/source-from-china" className="rounded-md border border-border px-4 py-2 hover:bg-muted">How to source FRP from China →</Link>
+            <Link href="/standards" className="rounded-md border border-border px-4 py-2 hover:bg-muted">GB ↔ ASTM ↔ ISO ↔ EN standards →</Link>
+            <Link href="/rfq" className="rounded-md bg-foreground px-4 py-2 text-background hover:bg-foreground/90">Submit RFQ →</Link>
           </div>
         </section>
 

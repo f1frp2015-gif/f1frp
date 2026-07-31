@@ -14,6 +14,7 @@ import { alternates, og } from "@/lib/seo";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 import { getGbStandardEn } from "@/lib/data/gb-standards-en";
+import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
 
 export const revalidate = 3600;
 
@@ -197,6 +198,55 @@ export default async function StandardDetailPage({
         />
       </div>
       <StandardDetailClient standard={payload} />
+      {isEn && (
+        <section className="mx-auto mt-10 max-w-5xl border-t border-border/70 pt-10">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            PROCUREMENT CONTEXT
+          </div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+            How to use {code} in an FRP sourcing specification
+          </h2>
+          <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-7 text-muted-foreground">
+            <p>
+              A standards reference is useful only when the quoted product,
+              specimen and report are tied to the same requirement. Before
+              accepting a factory certificate, record the edition of {code}, the
+              property or test method it covers, specimen geometry, conditioning,
+              loading rate, failure mode, laboratory identity and whether the
+              reported value is typical, minimum or characteristic. Ask the
+              supplier to identify the legal entity and production site named on
+              the report, then confirm that the document covers the offered resin,
+              reinforcement, profile, panel, bar or pipe—not merely a related
+              product family.
+            </p>
+            <p>
+              GB methods can be technically comparable to ASTM, ISO or EN methods
+              without being interchangeable. Use the cross-reference as a review
+              prompt, then write the governing project standard and acceptance
+              value into the RFQ. For safety-critical or regulated work, request a
+              current report from an accepted laboratory and define retesting,
+              traceability and pre-shipment inspection before production starts.
+              The getfrp supplier network links this evidence review to the
+              category and material being purchased.
+            </p>
+          </div>
+          <h3 className="mt-8 text-base font-semibold">Browse related FRP supply categories</h3>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {SUPPLIER_CATEGORY_PAGES.map((category) => (
+              <Link
+                key={category.slug}
+                href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
+                className="rounded-md border border-border px-3 py-2 text-xs hover:bg-muted"
+              >
+                {category.shortName} suppliers
+              </Link>
+            ))}
+            <Link href="/source-from-china" className="rounded-md border border-border px-3 py-2 text-xs hover:bg-muted">
+              China sourcing guide →
+            </Link>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

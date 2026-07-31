@@ -32,6 +32,7 @@ import { baikeTopicSlugs } from "@/lib/data/baike-topics";
 import { allComboSlugs } from "@/lib/data/matrix";
 import { GB_STANDARDS_EN } from "@/lib/data/gb-standards-en";
 import { SUPPLIER_CATEGORY_SLUGS } from "@/lib/data/supplier-category-pages";
+import { SUPPLIER_REGION_SLUGS } from "@/lib/data/supplier-region-pages";
 
 export type SitemapType =
   | "core"
@@ -78,6 +79,13 @@ function alternatesFor(
   return { languages: { zh, "zh-CN": zh, en, "x-default": en } };
 }
 
+function enOnlyAlternatesFor(
+  path: string,
+): MetadataRoute.Sitemap[number]["alternates"] {
+  const en = urlFor(path);
+  return { languages: { en, "x-default": en } };
+}
+
 type StaticRoute = {
   path: string;
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
@@ -104,7 +112,7 @@ const staticRoutes: StaticRoute[] = [
   { path: "/trade", changeFrequency: "weekly", priority: 0.6 },
   { path: "/about", changeFrequency: "monthly", priority: 0.5 },
   { path: "/overseas", changeFrequency: "weekly", priority: 0.9, zhOnly: true },
-  { path: "/source-from-china", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/source-from-china", changeFrequency: "weekly", priority: 0.8, enOnly: true },
   { path: "/data/china-frp-trade-remedies", changeFrequency: "weekly", priority: 0.8, enOnly: true },
   { path: "/tools/buy-america-frp-checker", changeFrequency: "monthly", priority: 0.7, enOnly: true },
 ];
@@ -136,7 +144,9 @@ function coreEntries(now: Date): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: r.changeFrequency,
       priority: r.priority,
-      alternates: alternatesFor(r.path, r.zhOnly),
+      alternates: r.enOnly
+        ? enOnlyAlternatesFor(r.path)
+        : alternatesFor(r.path, r.zhOnly),
     }));
 
   // /matrix/[combo] — 55 canonical fiber×resin pages, bilingual (both deploys).
@@ -304,8 +314,9 @@ export async function buildSitemapEntries(
       // f1frp.com output is unchanged.) The anonymized /suppliers index page
       // itself stays in the core sitemap.
       if (isEn) {
-        return SUPPLIER_CATEGORY_SLUGS.map((slug) => ({
+        return [...SUPPLIER_CATEGORY_SLUGS, ...SUPPLIER_REGION_SLUGS].map((slug) => ({
           ...toEntry(`/suppliers/${slug}`, now, 0.85, now),
+          alternates: enOnlyAlternatesFor(`/suppliers/${slug}`),
           changeFrequency: "weekly" as const,
         }));
       }
@@ -337,6 +348,7 @@ export async function buildSitemapEntries(
       if (!isEn) return [];
       return sourcingTopicSlugs.map((slug) => ({
         ...toEntry(`/sourcing/${slug}`, now, 0.75, now),
+        alternates: enOnlyAlternatesFor(`/sourcing/${slug}`),
         changeFrequency: "weekly" as const,
       }));
     }

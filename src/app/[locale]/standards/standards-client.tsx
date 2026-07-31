@@ -120,7 +120,9 @@ export function StandardsClient({
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{t("h1")}</h1>
+        <h1 className="text-3xl font-bold">
+          {isEn ? "FRP & Composite Standards Cross Reference" : t("h1")}
+        </h1>
         <p className="mt-2 text-muted-foreground">{t("subtitle")}</p>
       </div>
 
