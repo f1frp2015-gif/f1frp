@@ -5,13 +5,17 @@
 // (Baidu / Google / Bing / Sogou / 360) here.
 
 import { CURRENT_SITE_URL } from "@/lib/sites";
-import { childSitemapTypes, renderSitemapIndex } from "@/lib/sitemap-data";
+import {
+  indexedChildSitemapTypes,
+  renderSitemapIndex,
+} from "@/lib/sitemap-data";
 
 export const revalidate = 3600;
 
 export async function GET() {
   const lastmod = new Date().toISOString();
-  const children = childSitemapTypes().map((type) => ({
+  const types = await indexedChildSitemapTypes();
+  const children = types.map((type) => ({
     loc: `${CURRENT_SITE_URL}/sitemaps/${type}.xml`,
     lastmod,
   }));

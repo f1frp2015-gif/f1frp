@@ -36,6 +36,7 @@ import { SUPPLIER_REGION_SLUGS } from "@/lib/data/supplier-region-pages";
 
 export type SitemapType =
   | "core"
+  | "formulas"
   | "materials"
   | "papers"
   | "patents"
@@ -97,13 +98,11 @@ type StaticRoute = {
 const staticRoutes: StaticRoute[] = [
   { path: "/", changeFrequency: "daily", priority: 1.0 },
   { path: "/materials", changeFrequency: "daily", priority: 0.9 },
-  { path: "/formulas", changeFrequency: "weekly", priority: 0.8, zhOnly: true },
   { path: "/standards", changeFrequency: "weekly", priority: 0.8 },
   { path: "/papers", changeFrequency: "daily", priority: 0.8 },
   { path: "/patents", changeFrequency: "weekly", priority: 0.7 },
   { path: "/suppliers", changeFrequency: "daily", priority: 0.9 },
   { path: "/tech", changeFrequency: "weekly", priority: 0.7 },
-  { path: "/articles", changeFrequency: "daily", priority: 0.8, zhOnly: true },
   { path: "/fibers", changeFrequency: "monthly", priority: 0.7 },
   { path: "/matrix", changeFrequency: "monthly", priority: 0.6 },
   { path: "/ai", changeFrequency: "monthly", priority: 0.7 },
@@ -171,6 +170,17 @@ export async function buildSitemapEntries(
   switch (type) {
     case "core":
       return coreEntries(now);
+
+    case "formulas":
+      return [
+        {
+          url: urlFor("/formulas"),
+          lastModified: now,
+          changeFrequency: "weekly",
+          priority: 0.8,
+          alternates: alternatesFor("/formulas"),
+        },
+      ];
 
     case "materials": {
       const rows = (await safeFetch(() =>
@@ -301,10 +311,25 @@ export async function buildSitemapEntries(
           .orderBy(desc(articles.publishedAt))
           .limit(MAX_PER_SITEMAP),
       )) as Array<{ slug: string; updatedAt: Date | null }>;
-      if (isEn && rows.length < 3) return [];
-      return rows
+      // The EN archive intentionally remains noindex until three complete
+      // articles are live. Do not leak that noindex hub through core.xml.
+      // Once the publishing threshold is met, put the hub and detail URLs in
+      // this child sitemap together. A completely empty ZH archive is omitted
+      // by the same rule.
+      if (rows.length === 0 || (isEn && rows.length < 3)) return [];
+      const articleEntries = rows
         .filter((r) => (isEn ? isAsciiPath(r.slug) : true))
         .map((r) => toEntry(`/articles/${r.slug}`, r.updatedAt, 0.6, now));
+      return [
+        {
+          url: urlFor("/articles"),
+          lastModified: rows[0]?.updatedAt ?? now,
+          changeFrequency: "daily",
+          priority: 0.8,
+          alternates: alternatesFor("/articles"),
+        },
+        ...articleEntries,
+      ];
     }
 
     case "suppliers": {
@@ -375,6 +400,7 @@ export async function buildSitemapEntries(
 export function childSitemapTypes(): SitemapType[] {
   const base: SitemapType[] = [
     "core",
+    "formulas",
     "materials",
     "papers",
     "patents",
@@ -383,6 +409,26 @@ export function childSitemapTypes(): SitemapType[] {
     "suppliers",
   ];
   return ACTIVE_LOCALE === "en" ? [...base, "sourcing"] : [...base, "baike"];
+}
+
+// Empty XML files waste crawl budget and create misleading Search Console
+// coverage reports. Articles and patents are content-gated on the EN deploy,
+// so omit their child sitemap from the INDEX until at least one indexable URL
+// exists. Keep the child routes themselves available: once content qualifies,
+// the next sitemap-index revalidation adds them back automatically.
+export async function indexedChildSitemapTypes(): Promise<SitemapType[]> {
+  const configured = childSitemapTypes();
+  const conditional: SitemapType[] = ["articles", "patents"];
+  const availability = await Promise.all(
+    conditional.map(async (type) => ({
+      type,
+      hasEntries: (await buildSitemapEntries(type)).length > 0,
+    })),
+  );
+  const empty = new Set(
+    availability.filter(({ hasEntries }) => !hasEntries).map(({ type }) => type),
+  );
+  return configured.filter((type) => !empty.has(type));
 }
 
 // ── XML serializers (Next can't emit <sitemapindex>; match its <urlset>) ───

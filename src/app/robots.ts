@@ -9,14 +9,12 @@ const baseDisallow = [
   "/search",
 ];
 
-// 海外侧(getfrp.com)屏蔽 zh-only 路径,即便 sitemap 不收录,也禁止爬虫从内部
-// 链接 / 历史外链抓到这些路径。/pricing 已 redirect /overseas,但仍然显式
-// disallow 防止 Google 跟踪重定向链消耗抓取预算。
+// 海外侧(getfrp.com)仅屏蔽不存在的中文业务路径。/formulas 有完整
+// 英文页面；/articles 在内容不足时会自行输出 noindex。两者都必须允许
+// 搜索引擎抓取，否则无法读取页面级索引指令。
 const enExtraDisallow = [
   "/pricing",
   "/overseas",
-  "/formulas",
-  "/articles",
 ];
 
 // Western search + AI crawlers — primary audience for getfrp.com.
