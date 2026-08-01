@@ -39,6 +39,13 @@ const PAGE_SIZE = 20;
 const PRODUCT_PREVIEW_LIMIT = 4;
 const PROCESS_PREVIEW_LIMIT = 3;
 const CERTIFICATION_PREVIEW_LIMIT = 2;
+const CERTIFICATION_FILTERS = [
+  { id: "iso-9001", label: "ISO 9001", pattern: /iso\s*9001/i },
+  { id: "iso-14001", label: "ISO 14001", pattern: /iso\s*14001/i },
+  { id: "iatf-16949", label: "IATF 16949", pattern: /iatf\s*16949/i },
+  { id: "ce", label: "CE", pattern: /(^|\W)ce($|\W)/i },
+  { id: "ul", label: "UL", pattern: /(^|\W)ul($|\W)/i },
+] as const;
 
 type PaginationItem = number | "start-ellipsis" | "end-ellipsis";
 
@@ -84,6 +91,8 @@ export function SuppliersClient({
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("all");
   const [region, setRegion] = useState<string>(ALL_REGIONS_TOKEN);
+  const [certification, setCertification] = useState("all");
+  const [profileStatus, setProfileStatus] = useState("all");
   const [page, setPage] = useState(1);
   const listTopRef = useRef<HTMLDivElement>(null);
 
@@ -101,9 +110,19 @@ export function SuppliersClient({
       const hitRegion =
         region === ALL_REGIONS_TOKEN ||
         (s.location && s.location.includes(region));
-      return hitSearch && hitCat && hitRegion;
+      const certRule = CERTIFICATION_FILTERS.find(
+        (item) => item.id === certification,
+      );
+      const hitCertification =
+        !certRule ||
+        s.certifications.some((item) => certRule.pattern.test(item));
+      const hitProfileStatus =
+        profileStatus === "all" ||
+        (profileStatus === "published" && s.profilePublished) ||
+        (profileStatus === "verified" && s.verified);
+      return hitSearch && hitCat && hitRegion && hitCertification && hitProfileStatus;
     });
-  }, [suppliers, search, cat, region]);
+  }, [suppliers, search, cat, region, certification, profileStatus]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -201,6 +220,39 @@ export function SuppliersClient({
               {isEn ? (provincesEn[p] ?? p) : p}
             </Badge>
           ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            {isEn ? "Certification" : "认证"}
+            <select
+              value={certification}
+              onChange={(event) => {
+                setCertification(event.target.value);
+                setPage(1);
+              }}
+              className="rounded-md border border-border bg-background px-2.5 py-1.5 text-sm font-normal"
+            >
+              <option value="all">{isEn ? "Any certification" : "全部认证"}</option>
+              {CERTIFICATION_FILTERS.map((item) => (
+                <option key={item.id} value={item.id}>{item.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-sm font-medium">
+            {isEn ? "Profile status" : "档案状态"}
+            <select
+              value={profileStatus}
+              onChange={(event) => {
+                setProfileStatus(event.target.value);
+                setPage(1);
+              }}
+              className="rounded-md border border-border bg-background px-2.5 py-1.5 text-sm font-normal"
+            >
+              <option value="all">{isEn ? "All records" : "全部档案"}</option>
+              <option value="published">{isEn ? "Company profile available" : "有企业主页"}</option>
+              <option value="verified">{isEn ? "Verified business" : "已认证企业"}</option>
+            </select>
+          </label>
         </div>
       </div>
 

@@ -194,9 +194,8 @@ export function Header() {
   const locale = useLocale();
   const showSourcing = locale === "en";
   const showOverseas = locale === "zh";
-  // 认证两侧启用:getfrp（en）邮箱 OTP,f1frp.com（zh）手机号 / 微信。
-  const showAuth = true;
-  // EN 侧展示匿名品类目录；具体工厂身份仍不公开。
+  // getfrp is an open buyer journey; accounts remain a China-side factory tool.
+  const showAuth = locale === "zh";
   const showSupplyLib = true;
   const showArticles = locale !== "en";
 
@@ -248,7 +247,7 @@ export function Header() {
             <>
               {[
                 { href: "/suppliers", label: "Suppliers" },
-                { href: "/materials", label: "Materials" },
+                { href: "/suppliers#product-categories", label: "Products" },
                 { href: "/standards", label: "Standards" },
                 { href: "/source-from-china", label: "Sourcing process" },
                 { href: "/ai", label: "Ask AI" },
@@ -374,7 +373,7 @@ export function Header() {
               {showSourcing ? (
                 <>
                   {[
-                    { href: "/materials", label: "Materials" },
+                    { href: "/suppliers#product-categories", label: "Products" },
                     { href: "/standards", label: "Standards" },
                     { href: "/ai", label: "Ask AI" },
                   ].map((item) => (

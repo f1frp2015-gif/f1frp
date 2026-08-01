@@ -287,6 +287,35 @@ export function MaterialsClient({
         {t("rowHint", { shown: filtered.length, total: materials.length })}
       </div>
 
+      {isEn && (
+        <section className="mt-10 rounded-xl border border-border/70 bg-muted/20 p-6 sm:p-8">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            FROM DATA TO SUPPLIER
+          </div>
+          <div className="mt-3 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">
+                A datasheet is a starting specification, not supplier qualification.
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                Confirm the offered grade, current certificate of analysis, production site and test basis with the manufacturer before approval.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href={"/suppliers/resin-gelcoat" as never} className={buttonVariants({ variant: "outline" })}>
+                Resin suppliers
+              </Link>
+              <Link href={"/suppliers/fiber-glass" as never} className={buttonVariants({ variant: "outline" })}>
+                Fiber suppliers
+              </Link>
+              <Link href={"/rfq?category=raw" as never} className={buttonVariants()}>
+                Submit material RFQ
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {selectedIds.length > 0 && (
         <div className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 rounded-full border bg-background/95 px-4 py-2 shadow-lg backdrop-blur">
           <div className="flex items-center gap-3 text-sm">

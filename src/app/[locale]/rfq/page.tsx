@@ -19,10 +19,14 @@ export default async function RfqPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ supplier?: string }>;
+  searchParams: Promise<{ supplier?: string; product?: string; category?: string }>;
 }) {
   const { locale } = await params;
-  const { supplier: requestedSupplierId } = await searchParams;
+  const {
+    supplier: requestedSupplierId,
+    product: initialProduct,
+    category: initialCategory,
+  } = await searchParams;
   setRequestLocale(locale);
 
   const [targetSupplier] = requestedSupplierId
@@ -68,6 +72,8 @@ export default async function RfqPage({
           targetSupplierId={targetSupplier?.id}
           targetSupplierName={targetSupplier?.name ?? undefined}
           targetSupplierVerified={Boolean(targetSupplier?.verified && targetSupplier?.enterpriseId)}
+          initialProduct={initialProduct}
+          initialCategory={initialCategory}
         />
       </div>
 

@@ -88,6 +88,9 @@ export function Footer() {
               <Link href="/standards" className="transition-colors hover:text-[#0b8179]">
                 Standards
               </Link>
+              <Link href="/materials" className="transition-colors hover:text-[#0b8179]">
+                Specs &amp; data
+              </Link>
               <Link href="/source-from-china" className="transition-colors hover:text-[#0b8179]">
                 Sourcing process
               </Link>
