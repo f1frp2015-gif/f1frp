@@ -476,6 +476,7 @@
     "products": "主营产品",
     "processes": "生产工艺",
     "certifications": "资质认证",
+    "moreItems": "另有 {count} 项",
     "claimed": "✓ 已被企业认领",
     "areYouOwner": "您是这家企业？",
     "claim": "认领此企业"

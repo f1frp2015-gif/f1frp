@@ -36,6 +36,9 @@ type Opt = { id: string; name: string; nameEn?: string };
 
 const ALL_REGIONS_TOKEN = "__all__";
 const PAGE_SIZE = 20;
+const PRODUCT_PREVIEW_LIMIT = 4;
+const PROCESS_PREVIEW_LIMIT = 3;
+const CERTIFICATION_PREVIEW_LIMIT = 2;
 
 type PaginationItem = number | "start-ellipsis" | "end-ellipsis";
 
@@ -221,139 +224,224 @@ export function SuppliersClient({
               <Card
                 key={s.id}
                 id={s.id}
-                className="flex flex-col transition-colors hover:border-primary/50"
+                className="h-[34rem] transition-colors hover:border-primary/50"
               >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{s.name}</CardTitle>
-                  {s.verified && (
-                    <Badge
-                      variant="outline"
-                      className="shrink-0 border-green-500 text-[10px] text-green-600"
-                    >
-                      {t("verified")}
-                    </Badge>
-                  )}
-                </div>
-                <CardDescription className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-[10px]">
-                    {getCatName(s.category)}
-                  </Badge>
-                  <span>{s.location}</span>
-                  {s.established && (
-                    <>
-                      <span>·</span>
-                      <span>{t("established", { year: s.established })}</span>
-                    </>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 space-y-3">
-                {s.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {s.description}
-                  </p>
-                )}
-
-                {s.products.length > 0 && (
-                  <div>
-                    <div className="mb-1 text-xs font-medium text-muted-foreground">
-                      {t("products")}
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {s.products.map((p) => (
-                        <Badge
-                          key={p}
-                          variant="outline"
-                          className="text-[10px]"
-                        >
-                          {p}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {s.processList.length > 0 && (
-                  <div>
-                    <div className="mb-1 text-xs font-medium text-muted-foreground">
-                      {t("processes")}
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {s.processList.map((p) => (
-                        <Badge
-                          key={p}
-                          variant="secondary"
-                          className="text-[10px]"
-                        >
-                          {p}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {s.certifications.length > 0 && (
-                  <div>
-                    <div className="mb-1 text-xs font-medium text-muted-foreground">
-                      {t("certifications")}
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {s.certifications.map((c) => (
-                        <Badge
-                          key={c}
-                          variant="outline"
-                          className="border-amber-400 text-[10px] text-amber-600"
-                        >
-                          {c}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {s.website && (
-                  <a
-                    href={s.website}
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                  >
-                    <ExternalLink size={12} />
-                    {s.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                  </a>
-                )}
-
-                {isEn && s.profilePublished && (
-                  <a
-                    href={`/suppliers/${encodeURIComponent(s.id)}`}
-                    className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
-                  >
-                    {s.verified ? "View verified company profile" : "View public company profile"}
-                    <ArrowRight size={12} />
-                  </a>
-                )}
-
-                {(s.enterpriseId || !isEn) && (
-                  <div className="flex items-center justify-between border-t pt-3">
-                    {s.enterpriseId ? (
-                      <Badge variant="secondary" className="text-[10px]">
-                        {t("claimed")}
+                <CardHeader className="shrink-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="min-w-0 line-clamp-2 text-base">
+                      {s.name}
+                    </CardTitle>
+                    {s.verified && (
+                      <Badge
+                        variant="outline"
+                        className="shrink-0 border-green-500 text-[10px] text-green-600"
+                      >
+                        {t("verified")}
                       </Badge>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">
-                        {t("areYouOwner")}
-                      </span>
-                    )}
-                    {!s.enterpriseId && !isEn && (
-                      <SupplierClaimButton
-                        supplierId={s.id}
-                        supplierName={s.name}
-                      />
                     )}
                   </div>
-                )}
-              </CardContent>
+                  <CardDescription className="flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary" className="max-w-full text-[10px]">
+                      {getCatName(s.category)}
+                    </Badge>
+                    <span>{s.location}</span>
+                    {s.established && (
+                      <>
+                        <span>·</span>
+                        <span>{t("established", { year: s.established })}</span>
+                      </>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="flex min-h-0 flex-1 flex-col">
+                  <div className="min-h-0 flex-1 space-y-3 overflow-hidden">
+                    {s.description && (
+                      <p
+                        title={s.description}
+                        className="line-clamp-3 text-sm leading-5 text-muted-foreground"
+                      >
+                        {s.description}
+                      </p>
+                    )}
+
+                    {s.products.length > 0 && (
+                      <div>
+                        <div className="mb-1 text-xs font-medium text-muted-foreground">
+                          {t("products")}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {s.products
+                            .slice(0, PRODUCT_PREVIEW_LIMIT)
+                            .map((product) => (
+                              <Badge
+                                key={product}
+                                title={product}
+                                variant="outline"
+                                className="max-w-full truncate text-[10px]"
+                              >
+                                {product}
+                              </Badge>
+                            ))}
+                          {s.products.length > PRODUCT_PREVIEW_LIMIT && (
+                            <Badge
+                              variant="outline"
+                              aria-label={t("moreItems", {
+                                count:
+                                  s.products.length - PRODUCT_PREVIEW_LIMIT,
+                              })}
+                              title={t("moreItems", {
+                                count:
+                                  s.products.length - PRODUCT_PREVIEW_LIMIT,
+                              })}
+                              className="text-[10px]"
+                            >
+                              +{s.products.length - PRODUCT_PREVIEW_LIMIT}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {s.processList.length > 0 && (
+                      <div>
+                        <div className="mb-1 text-xs font-medium text-muted-foreground">
+                          {t("processes")}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {s.processList
+                            .slice(0, PROCESS_PREVIEW_LIMIT)
+                            .map((process) => (
+                              <Badge
+                                key={process}
+                                title={process}
+                                variant="secondary"
+                                className="max-w-full truncate text-[10px]"
+                              >
+                                {process}
+                              </Badge>
+                            ))}
+                          {s.processList.length > PROCESS_PREVIEW_LIMIT && (
+                            <Badge
+                              variant="secondary"
+                              aria-label={t("moreItems", {
+                                count:
+                                  s.processList.length - PROCESS_PREVIEW_LIMIT,
+                              })}
+                              title={t("moreItems", {
+                                count:
+                                  s.processList.length - PROCESS_PREVIEW_LIMIT,
+                              })}
+                              className="text-[10px]"
+                            >
+                              +{s.processList.length - PROCESS_PREVIEW_LIMIT}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {s.certifications.length > 0 && (
+                      <div>
+                        <div className="mb-1 text-xs font-medium text-muted-foreground">
+                          {t("certifications")}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {s.certifications
+                            .slice(0, CERTIFICATION_PREVIEW_LIMIT)
+                            .map((certification) => (
+                              <Badge
+                                key={certification}
+                                title={certification}
+                                variant="outline"
+                                className="max-w-full truncate border-amber-400 text-[10px] text-amber-600"
+                              >
+                                {certification}
+                              </Badge>
+                            ))}
+                          {s.certifications.length >
+                            CERTIFICATION_PREVIEW_LIMIT && (
+                            <Badge
+                              variant="outline"
+                              aria-label={t("moreItems", {
+                                count:
+                                  s.certifications.length -
+                                  CERTIFICATION_PREVIEW_LIMIT,
+                              })}
+                              title={t("moreItems", {
+                                count:
+                                  s.certifications.length -
+                                  CERTIFICATION_PREVIEW_LIMIT,
+                              })}
+                              className="border-amber-400 text-[10px] text-amber-600"
+                            >
+                              +
+                              {s.certifications.length -
+                                CERTIFICATION_PREVIEW_LIMIT}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {(s.website ||
+                    (isEn && s.profilePublished) ||
+                    s.enterpriseId ||
+                    !isEn) && (
+                    <div className="mt-4 shrink-0 space-y-2 border-t pt-3">
+                      {s.website && (
+                        <a
+                          href={s.website}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          className="flex min-w-0 items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        >
+                          <ExternalLink size={12} className="shrink-0" />
+                          <span className="truncate">
+                            {s.website
+                              .replace(/^https?:\/\//, "")
+                              .replace(/\/$/, "")}
+                          </span>
+                        </a>
+                      )}
+
+                      {isEn && s.profilePublished && (
+                        <a
+                          href={`/suppliers/${encodeURIComponent(s.id)}`}
+                          className="flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
+                        >
+                          <span className="truncate">
+                            {s.verified
+                              ? "View verified company profile"
+                              : "View public company profile"}
+                          </span>
+                          <ArrowRight size={12} className="shrink-0" />
+                        </a>
+                      )}
+
+                      {(s.enterpriseId || !isEn) && (
+                        <div className="flex items-center justify-between gap-2">
+                          {s.enterpriseId ? (
+                            <Badge variant="secondary" className="text-[10px]">
+                              {t("claimed")}
+                            </Badge>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground">
+                              {t("areYouOwner")}
+                            </span>
+                          )}
+                          {!s.enterpriseId && !isEn && (
+                            <SupplierClaimButton
+                              supplierId={s.id}
+                              supplierName={s.name}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
               </Card>
             ))}
           </div>

@@ -503,6 +503,7 @@
     "products": "Products",
     "processes": "Processes",
     "certifications": "Certifications",
+    "moreItems": "{count} more items",
     "claimed": "✓ Claimed",
     "areYouOwner": "Is this your company?",
     "claim": "Claim this company"
