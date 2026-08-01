@@ -6,11 +6,11 @@ import { loadPublishedRemedies } from "@/lib/data/trade-remedy-db";
 
 // Sourcing Desk · step 3 — "Indicative Landed Cost (USD)".
 // Given a buyer's spec + destination, returns USD FOB / CIF / DDP RANGES via the
-// deterministic export cost ladder (ex-works ¥/kg → VAT rebate → 曜一 markup →
+// deterministic export cost ladder (ex-works ¥/kg → VAT rebate → handling →
 // FX → freight/insurance → import duty). Atomic data + explicit caveat (per
 // feedback_ai_tool_atomic_data): an INDICATIVE range to set buyer expectations,
-// NOT a quote — exact USD PI comes from the F1 Composite (曜一) team after spec
-// lock. The model never computes price itself; it calls this.
+// NOT a quote — exact pricing comes from the identified commercial counterparty
+// after spec lock. The model never computes price itself; it calls this.
 export function makeLandedCostTool() {
   return tool({
     description:

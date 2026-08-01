@@ -71,8 +71,8 @@ export const sourcingTopics: SourcingTopic[] = [
       "Mid-2026 FOB price benchmarks for ISO mesh and pultruded I-bar grating",
       "Which Chinese provinces actually produce grating at export scale (and which don't)",
     ],
-    byline: "F1 Composite editorial desk",
-    reviewedBy: "Reviewed by F1 Composite sourcing engineers (China-based, hands-on plant visits since 2022)",
+    byline: "getfrp editorial desk",
+    reviewedBy: "Reviewed by getfrp sourcing engineers",
     reviewedDate: "2026-05",
     sections: [
       {
@@ -163,8 +163,8 @@ export const sourcingTopics: SourcingTopic[] = [
       "Which Chinese plants test to ACI 440.6 + ASTM D7957 vs only GB/T",
       "Real FOB pricing benchmarks for #4/#5/#6 GFRP bar at 5+ ton volumes",
     ],
-    byline: "F1 Composite editorial desk",
-    reviewedBy: "Reviewed by F1 Composite sourcing engineers · cross-checked against ACI 440 design committee references",
+    byline: "getfrp editorial desk",
+    reviewedBy: "Reviewed by getfrp sourcing engineers · cross-checked against ACI 440 design committee references",
     reviewedDate: "2026-05",
     sections: [
       {
@@ -246,7 +246,7 @@ export const sourcingTopics: SourcingTopic[] = [
       "The measures that actually rewrite your FRP landed cost: AD / CVD on glass fibre + Section 301",
       "What documentation is genuinely worth requesting now (MTC, ISO 9001, REACH) vs the CBAM pack you don't need yet",
     ],
-    byline: "F1 Composite editorial desk",
+    byline: "getfrp editorial desk",
     reviewedBy: "Reviewed against the EU CBAM Regulation (EU) 2023/956 definitive-period scope and cross-checked with EUR-Lex / USTR trade-remedy notices",
     reviewedDate: "2026-06",
     sections: [
@@ -328,8 +328,8 @@ export const sourcingTopics: SourcingTopic[] = [
       "When pultruded profiles tested to GB/T 31539 also satisfy EN 13706",
       "Which CNAS-accredited labs in China can test to both systems on the same sample",
     ],
-    byline: "F1 Composite editorial desk",
-    reviewedBy: "Reviewed by F1 Composite engineering team · cross-referenced against ASTM D30 Committee 2025 digest and GB/T National Standards 2023 revisions",
+    byline: "getfrp editorial desk",
+    reviewedBy: "Reviewed by getfrp engineering team · cross-referenced against ASTM D30 Committee 2025 digest and GB/T National Standards 2023 revisions",
     reviewedDate: "2026-05",
     sections: [
       {
@@ -419,7 +419,7 @@ export const sourcingTopics: SourcingTopic[] = [
       "What the 2026-11-10 Section 301 exclusion expiry means for US-bound FRP",
       "Where CBAM, Buy America and ICC-ES quietly block or tax an order before tariffs even apply",
     ],
-    byline: "F1 Composite editorial desk",
+    byline: "getfrp editorial desk",
     reviewedBy:
       "Cross-checked against EUR-Lex, the US Federal Register and USTR notices. Trade-remedy figures are ceilings, not quotes — verify HS classification and country of origin per shipment.",
     reviewedDate: "2026-06",
@@ -516,7 +516,7 @@ export const sourcingTopics: SourcingTopic[] = [
       "Resin system selection: isophthalic polyester vs vinyl ester vs phenolic, by corrosion and fire exposure",
       "The tolerance, straightness and surface-veil checks that separate structural-grade from commodity pultrusion",
     ],
-    byline: "F1 Composite editorial desk",
+    byline: "getfrp editorial desk",
     reviewedBy:
       "Reviewed against EN 13706 (structural pultruded profiles) and ASTM pultrusion test methods; tolerances cross-checked with verified plant data sheets",
     reviewedDate: "2026-06",
@@ -598,7 +598,7 @@ export const sourcingTopics: SourcingTopic[] = [
       "Resin and fire selection for chemical, coastal, offshore and tunnel installations",
       "Why FRP tray wins over galvanised and stainless on corrosion total cost",
     ],
-    byline: "F1 Composite editorial desk",
+    byline: "getfrp editorial desk",
     reviewedBy:
       "Reviewed against NEMA FG-1 and IEC 61537 cable-tray classifications; load and span figures cross-checked with verified plant data",
     reviewedDate: "2026-06",
@@ -680,7 +680,7 @@ export const sourcingTopics: SourcingTopic[] = [
       "Where imported (including Chinese) FRP is excluded, and the waiver routes that exist",
       "How to tell early whether your scope is federally funded or private / commercial",
     ],
-    byline: "F1 Composite editorial desk",
+    byline: "getfrp editorial desk",
     reviewedBy:
       "Reviewed against the Build America, Buy America Act (IIJA 2021) and OMB BABA guidance; classification points flagged for project-counsel confirmation",
     reviewedDate: "2026-06",
@@ -762,7 +762,7 @@ export const sourcingTopics: SourcingTopic[] = [
       "Corrosion barrier: resin-rich liner + surfacing veil — the single biggest determinant of tank life",
       "Resin selection (iso polyester / vinyl ester / dual-laminate) by chemical service",
     ],
-    byline: "F1 Composite editorial desk",
+    byline: "getfrp editorial desk",
     reviewedBy:
       "Reviewed against ASME RTP-1, EN 13121, BS 4994 and ASTM D3299 / D4097; corrosion-barrier guidance cross-checked with resin-supplier chemical-resistance tables",
     reviewedDate: "2026-06",
@@ -844,7 +844,7 @@ export const sourcingTopics: SourcingTopic[] = [
       "Pressure class (PN) × stiffness class (SN) — how FRP pipe is actually rated and ordered",
       "Jointing systems (bell-and-spigot, adhesive, butt-and-wrap, flanged) and their trade-offs",
     ],
-    byline: "F1 Composite editorial desk",
+    byline: "getfrp editorial desk",
     reviewedBy:
       "Reviewed against AWWA C950, ASTM D3517 / D2996, ISO 14692 and API 15HR / 15LR; rating and jointing guidance cross-checked with manufacturer design manuals",
     reviewedDate: "2026-06",
@@ -925,7 +925,7 @@ export const sourcingTopics: SourcingTopic[] = [
       "First-article vs production: proving the sample and the shipment are the same thing",
       "The acceptance certificates that matter per market (CE / EN 13706, ICC-ES, classification reports)",
     ],
-    byline: "F1 Composite editorial desk",
+    byline: "getfrp editorial desk",
     reviewedBy:
       "Reviewed against ASTM, EN and ISO FRP test methods and CNAS / ILAC accreditation practice; acceptance routes cross-checked per market",
     reviewedDate: "2026-06",

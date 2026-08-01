@@ -290,7 +290,7 @@ export const PRICE_TABLE_VERSION = "2026-05-30-r7";
 // 展示层(display.ts)换算:
 //   海外 USD 报价 = 国内 CNY 基线 × (1 + OVERSEAS_MARKUP) ÷ USD_CNY_RATE
 //
-// 加成 = 曜一作为出口代理的服务 + margin(报关 / 物流编排 / 账期 / 质保兜底 /
+// 加成 = sourcing/export handling + margin(报关 / 物流编排 / 账期 / 质保兜底 /
 // 汇率缓冲),对买家是一口价、不在 breakdown 里拆细。
 // ≥50% 是底线(用户口径 2026-06-14);要更高直接调大这个数。
 export const OVERSEAS_MARKUP = 0.5; // +50%(底线)

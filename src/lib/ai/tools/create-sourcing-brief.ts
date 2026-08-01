@@ -5,16 +5,16 @@ import { createSourcingBrief } from "@/lib/sourcing/brief";
 
 // Sourcing Desk · step 5 — Human Handoff. Call ONLY when the buyer explicitly
 // wants to proceed ("get this sourced" / "have your team contact me") AND has
-// given at least an email. Persists a structured brief + emails the F1 Composite
-// (曜一) ops inbox; returns a ticket id. NEVER closes a deal itself — high-value
+// given at least an email. Persists a structured brief + emails the getfrp
+// ops inbox; returns a ticket id. NEVER closes a deal itself — high-value
 // orders always go to a human (per the P0 spec "不做 AI 直接成交").
 export function makeCreateSourcingBriefTool(host?: string | null, locale?: string) {
   return tool({
     description:
-      "Hand off the buyer to the F1 Composite (曜一) sourcing team by creating a Sourcing Brief. " +
+      "Hand off the buyer to the getfrp sourcing team by creating a Sourcing Brief. " +
       "Call this ONLY when the buyer clearly wants to proceed (e.g. 'get this sourced', 'send me a quote', 'have your team contact me') AND you have collected at least their email (ask for name + email + company first if missing). " +
       "Pass everything gathered so far: buyer contact, the product spec, and short notes summarizing the feasibility / landed-cost / compliance results from earlier tool calls. " +
-      "Returns a ticketId + confirmation. After calling, tell the buyer the F1 Composite team will contact them within 24h with a formal quote (PI). Do NOT promise pricing or commit an order — this is a handoff, not a sale.",
+      "Returns a ticketId + confirmation. After calling, tell the buyer the getfrp team will contact them within 24h about the next sourcing step. Do NOT promise pricing or commit an order — this is a handoff, not a sale.",
     inputSchema: z.object({
       buyerEmail: z.string().describe("Buyer email — REQUIRED for handoff. Ask for it before calling if not yet given."),
       buyerName: z.string().optional().describe("Buyer contact name."),
@@ -53,8 +53,8 @@ export function makeCreateSourcingBriefTool(host?: string | null, locale?: strin
         ticketId: r.ticketId,
         opsNotified: r.notified,
         message: r.ticketId
-          ? `Sourcing brief ${r.ticketId} created. The F1 Composite (曜一) team will contact ${a.buyerEmail} within 24h with a formal quote. Tell the buyer this and that no order is committed yet.`
-          : "Brief could not be stored, but the F1 Composite team has been notified of this lead — confirm to the buyer that the team will reach out within 24h.",
+          ? `Sourcing brief ${r.ticketId} created. The getfrp team will contact ${a.buyerEmail} within 24h about the next sourcing step. Tell the buyer this and that no order is committed yet.`
+          : "Brief could not be stored, but the getfrp team has been notified of this lead — confirm to the buyer that the team will reach out within 24h.",
       };
     },
   });

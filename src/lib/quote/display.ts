@@ -6,7 +6,7 @@
 // 引擎保持纯 CNY(便于审计 / 回放 / quote_logs);加成与汇率只活在这一层,
 // 改加价 / 汇率只动 prices.ts 的两个常数即可。
 //
-// 加成是曜一出口代理的服务 + margin,对买家是一口价、不在 breakdown 拆细
+// 加成是 sourcing/export handling + margin, 对买家是一口价、不在 breakdown 拆细
 // (breakdown 在 UI 里只显示百分比,加成是均匀缩放 → 占比不变,买家看不到加价)。
 
 import { OVERSEAS_MARKUP, USD_CNY_RATE } from "./prices";

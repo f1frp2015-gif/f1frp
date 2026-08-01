@@ -178,7 +178,7 @@ export function lookupTradeRemedy(args: {
       `⚠️ 贸易救济敞口（${destination}）：` +
       bits.join("；") +
       `。涉及措施：${authoritativeNames.join("、")}。` +
-      `实际是否适用、税率多少取决于逐单 HS 归类 + 原产地裁定 —— 承诺前必由曜一团队核税，本值为指示性上限，非报价。`;
+      `实际是否适用、税率多少取决于逐单 HS 归类 + 原产地裁定 —— 承诺前须由合格的海关与贸易合规专业人士复核，本值为指示性上限，非报价。`;
   }
 
   return { measures, exposureMinPct: 0, exposureMaxPct, hasUncertain, warning, authoritativeNames };

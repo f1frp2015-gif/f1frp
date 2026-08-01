@@ -174,35 +174,31 @@ export default async function LocaleLayout({
                 "@type": "Organization",
                 "@id": `${siteUrl}/#organization`,
                 name: brand,
-                // legalName (operating entity) is disclosed on the overseas
-                // side only; the domestic site keeps the platform brand neutral.
-                ...(locale === "en"
-                  ? {
-                      legalName:
-                        "Chongqing Yaoyi Advanced Materials Technology Co., Ltd.",
-                    }
-                  : {}),
-                // Platform brands only — never list seller brands (e.g. F1
-                // Composite) here: alternateName merges them into one entity
-                // and breaks the platform's brand-neutral positioning.
-                alternateName: ["f1frp", "getfrp", t("name")].filter(
-                  (v, i, a) => v && a.indexOf(v) === i,
-                ),
+                // Keep the two platform identities separate. getfrp is run by
+                // the getfrp team and has no Yaoyi legal-entity affiliation.
+                alternateName:
+                  locale === "en" ? ["getfrp"] : ["f1frp", t("name")],
                 url: siteUrl,
                 logo: `${siteUrl}/og-icon.png`,
                 description,
-                foundingDate: "2015",
-                address: {
-                  "@type": "PostalAddress",
-                  addressCountry: "CN",
-                  addressRegion: "Chongqing",
-                },
+                ...(locale === "zh"
+                  ? {
+                      foundingDate: "2015",
+                      address: {
+                        "@type": "PostalAddress",
+                        addressCountry: "CN",
+                        addressRegion: "Chongqing",
+                      },
+                    }
+                  : {}),
                 // sameAs: real, verifiable profiles about the org. Only entries
                 // that actually resolve are emitted — dead/bogus links read as
                 // schema spam and hurt. Add stronger commercial-authority profiles
                 // here as they're created (each must point to a live page about
                 // this org): 知乎机构号 / 百度百科词条 / 1688 店铺 / LinkedIn.
-                sameAs: ["https://github.com/f1frp2015-gif"],
+                ...(locale === "zh"
+                  ? { sameAs: ["https://github.com/f1frp2015-gif"] }
+                  : {}),
                 // Single contact: technical service hotline. Same on both
                 // deploys. Buyers who want a human go through /rfq first.
                 contactPoint: {

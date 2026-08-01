@@ -41,11 +41,9 @@ export const revalidate = 60;
 
 // Path-aware canonical + hreflang for the homepage. Layout no longer sets
 // these (would have made every page point at root), so each route declares
-// its own. The EN deploy (getfrp.com) additionally gets an intent-led
-// <title> + description rather than inheriting the layout's brand-first
-// default — "getfrp" is not a search term, so leading with buyer intent
-// (and the v3 differentiators: verified, conformity, QA, accountable
-// principal) lifts SERP CTR. zh keeps the layout default.
+// its own. The EN deploy leads with the supply-chain buying intent and the
+// operational differentiators: verified factories, QA and export control.
+// zh keeps the layout default.
 export async function generateMetadata({
   params,
 }: {
@@ -58,10 +56,10 @@ export async function generateMetadata({
     ...base,
     title: {
       absolute:
-        "FRP & Composite Suppliers China — Verified Factory Directory (199+ Factories) | getfrp",
+        "China FRP Supply Chain — Verified Factories, QA & Export | getfrp",
     },
     description:
-      "Compare 199+ verified FRP and composite factories in China by product category, certification and production cluster, then submit one RFQ for an evidence-based shortlist.",
+      "Source FRP materials, profiles and finished composite parts through a verified China factory network with standards mapping, pre-shipment QA and one accountable export desk.",
   };
 }
 

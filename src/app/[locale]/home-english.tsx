@@ -1,140 +1,160 @@
-import { sql, isNotNull, ne, eq, and, desc, asc } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull, ne, sql } from "drizzle-orm";
 import {
-  Sparkles,
-  Check,
-  Bot,
-  ShieldCheck,
-  Building2,
   ArrowRight,
   ArrowUpRight,
-  MessagesSquare,
+  Bot,
+  Boxes,
+  Building2,
+  Check,
+  CheckCircle2,
+  ClipboardCheck,
   Database,
+  Factory,
   FileBadge,
-  BookOpen,
+  FlaskConical,
+  MapPin,
+  PackageSearch,
+  Search,
+  ShieldCheck,
+  Ship,
 } from "lucide-react";
 import Image from "next/image";
+
+import { JsonLd } from "@/components/json-ld";
+import { SupplierCategoryCardImage } from "@/components/supplier-category-card-image";
 import { Link } from "@/i18n/navigation";
+import { ANON_CHAT_LIMIT } from "@/lib/auth-gate";
+import { getSessionUid } from "@/lib/auth/current-user";
+import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
 import { db } from "@/lib/db";
 import {
-  supplierListings,
   materials as materialsTable,
-  standards as standardsTable,
   papers as papersTable,
+  standards as standardsTable,
+  supplierListings,
 } from "@/lib/db/schema";
-import { JsonLd } from "@/components/json-ld";
-import { Badge } from "@/components/ui/badge";
-import { getSessionUid } from "@/lib/auth/current-user";
-import { ANON_CHAT_LIMIT } from "@/lib/auth-gate";
+
 import { ChatHero, type ExampleGroup } from "./chat-hero";
-import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
-import { SupplierCategoryCardImage } from "@/components/supplier-category-card-image";
 
-// 8 KB 是经验阈值: 超过此数字的内联 helper 抽到单独 module 才有意义。
-// 当前 helper 不大, 留在本文件里维持单一阅读路径。
-async function loadFeatured() {
-  const safe = async <T,>(p: Promise<T>): Promise<T | []> => {
-    try {
-      return await p;
-    } catch {
-      return [] as unknown as T;
-    }
-  };
-  const [topStandards, topPapers] = await Promise.all([
-    safe(
-      db
-        .select({
-          id: standardsTable.id,
-          code: standardsTable.code,
-          titleEn: standardsTable.titleEn,
-        })
-        .from(standardsTable)
-        .where(and(isNotNull(standardsTable.titleEn), ne(standardsTable.titleEn, "")))
-        .orderBy(asc(standardsTable.code))
-        .limit(6),
-    ),
-    safe(
-      db
-        .select({
-          id: papersTable.id,
-          slug: papersTable.slug,
-          titleEn: papersTable.titleEn,
-          year: papersTable.year,
-        })
-        .from(papersTable)
-        .where(
-          and(
-            isNotNull(papersTable.titleEn),
-            ne(papersTable.titleEn, ""),
-            // 仅展示 abstract 已翻译的 paper, 与 sitemap 一致
-            sql`length(coalesce(${papersTable.abstractEn}, '')) >= 80`,
-          ),
-        )
-        .orderBy(desc(papersTable.citationCount), desc(papersTable.year))
-        .limit(6),
-    ),
-  ]);
-  return { topStandards, topPapers };
-}
-
-// English-side homepage — AI-Concierge first.
-//
-// Premise: 2026-era overseas FRP engineers and procurement increasingly
-// land via ChatGPT / Perplexity-style flows rather than database browsing.
-// getfrp's defensible edge isn't the SKU count (that's a fight against
-// Alibaba / MIC we can't win) — it's a curated bilingual knowledge graph
-// behind a chat interface, with Doris as the human escalation path.
-//
-// Information architecture:
-//   1. Chat input dominates the hero (Perplexity-style, single focal point)
-//   2. Six example prompts inline as starting points
-//   3. Tiny trust strip ("plants audited · standards mapped · materials indexed")
-//   4. Three-step "how it works": Ask → AI cites verified data → Human if needed
-//   5. Below-fold: small browse links + Doris escalation
-//
-// The full source-from-china directory is still reachable as a secondary
-// path for users who prefer browsing — it's just not the default UX.
-
-// Grouped by job-to-be-done rather than one flat list — each group maps to a
-// capability actually wired into /api/chat's tool set (see route.ts), so every
-// example is something the assistant can genuinely execute, not a mocked demo.
 const EXAMPLE_GROUPS: ExampleGroup[] = [
   {
-    category: "Suppliers",
+    category: "Find a factory",
     prompts: [
       "Find a verified Chinese supplier for FRP gratings with CE marking, MOQ 200 m².",
-      "ISO 9001 + EN 13706 certified pultrusion suppliers in Jiangsu, ranked by scale.",
+      "Shortlist pultrusion factories with ISO 9001 and EN 13706 capability.",
     ],
   },
   {
-    category: "Standards",
+    category: "Check a spec",
     prompts: [
       "Which GB standard maps to ASTM D3039 for tensile properties?",
       "What EN 13706 grade do I need for a structural walkway?",
     ],
   },
   {
-    category: "Materials",
+    category: "Select materials",
     prompts: [
       "Recommend a vinyl ester resin for 30% HCl service at 60 °C.",
-      "Compare GFRP vs CFRP for a 3 m marine spar — strength, weight, cost, suppliers.",
-      "Map my BOM to Chinese FRP suppliers — resin, fiber, profiles, lead times.",
-    ],
-  },
-  {
-    category: "Engineering",
-    prompts: [
-      "Which pultruded profile fits a 4 m span carrying 2 kN/m, deflection limit L/180?",
-      "Check the U-value for a pultruded FRP window frame against JG/T 571.",
+      "Compare GFRP vs CFRP for a 3 m marine spar.",
     ],
   },
   {
     category: "Cost & compliance",
     prompts: [
-      "Estimate landed cost FOB Shanghai to Rotterdam for 20 tons of FRP profiles.",
-      "Any compliance flags importing FRP grating into the EU?",
+      "Estimate FOB Shanghai cost for 20 tons of FRP profiles.",
+      "Flag import compliance risks for FRP grating entering the EU.",
     ],
   },
 ];
+
+const CATEGORY_META = {
+  "frp-grating": {
+    code: "GRT",
+    description: "Molded · pultruded · stair treads",
+  },
+  "pultruded-profiles": {
+    code: "PLT",
+    description: "Standard sections · custom profiles",
+  },
+  "fiberglass-sheet": {
+    code: "SHT",
+    description: "Panels · laminates · insulation sheet",
+  },
+  "frp-rebar": {
+    code: "RBR",
+    description: "GFRP · BFRP · sand-coated bar",
+  },
+  "frp-pipe": {
+    code: "PIP",
+    description: "Pipe · fittings · process equipment",
+  },
+  "smc-bmc": {
+    code: "SMC",
+    description: "Compounds · molded components",
+  },
+  "resin-gelcoat": {
+    code: "RSN",
+    description: "Polyester · vinyl ester · gelcoat",
+  },
+  "fiber-glass": {
+    code: "FBR",
+    description: "Roving · mat · fabric · chopped strand",
+  },
+} as const;
+
+const CHAIN_STEPS = [
+  {
+    number: "01",
+    title: "Define",
+    body: "Drawing, resin, performance, volume and destination normalized into one RFQ pack.",
+    Icon: PackageSearch,
+  },
+  {
+    number: "02",
+    title: "Match",
+    body: "Factories filtered by process, scale, certification scope and current capacity.",
+    Icon: Factory,
+  },
+  {
+    number: "03",
+    title: "Verify",
+    body: "Samples, material evidence and production controls checked against the frozen spec.",
+    Icon: ClipboardCheck,
+  },
+  {
+    number: "04",
+    title: "Export",
+    body: "One commercial route for QA, documents, packing and FOB/CIF shipment.",
+    Icon: Ship,
+  },
+] as const;
+
+const CLUSTERS = [
+  {
+    province: "Jiangsu",
+    cities: "Nantong · Nanjing · Changzhou",
+    focus: "Pultrusion · grating · resin systems",
+    code: "CN-JS",
+  },
+  {
+    province: "Shandong",
+    cities: "Weihai · Dezhou · Qingdao",
+    focus: "Carbon fiber · profiles · volume production",
+    code: "CN-SD",
+  },
+  {
+    province: "Hebei",
+    cities: "Hengshui · Zaoqiang",
+    focus: "Pipe · tanks · anti-corrosion equipment",
+    code: "CN-HE",
+  },
+  {
+    province: "Zhejiang",
+    cities: "Jiaxing · Hangzhou · Ningbo",
+    focus: "Precision profiles · panels · fabrication",
+    code: "CN-ZJ",
+  },
+] as const;
 
 async function countOne(
   table: Parameters<ReturnType<typeof db.select>["from"]>[0],
@@ -161,8 +181,89 @@ async function countVerifiedSuppliersWithEn(): Promise<number> {
   }
 }
 
+async function loadFeatured() {
+  const safe = async <T,>(promise: Promise<T>): Promise<T | []> => {
+    try {
+      return await promise;
+    } catch {
+      return [] as unknown as T;
+    }
+  };
+
+  const [topStandards, topPapers] = await Promise.all([
+    safe(
+      db
+        .select({
+          id: standardsTable.id,
+          code: standardsTable.code,
+          titleEn: standardsTable.titleEn,
+        })
+        .from(standardsTable)
+        .where(and(isNotNull(standardsTable.titleEn), ne(standardsTable.titleEn, "")))
+        .orderBy(asc(standardsTable.code))
+        .limit(4),
+    ),
+    safe(
+      db
+        .select({
+          id: papersTable.id,
+          slug: papersTable.slug,
+          titleEn: papersTable.titleEn,
+          year: papersTable.year,
+        })
+        .from(papersTable)
+        .where(
+          and(
+            isNotNull(papersTable.titleEn),
+            ne(papersTable.titleEn, ""),
+            sql`length(coalesce(${papersTable.abstractEn}, '')) >= 80`,
+          ),
+        )
+        .orderBy(desc(papersTable.citationCount), desc(papersTable.year))
+        .limit(4),
+    ),
+  ]);
+
+  return { topStandards, topPapers };
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  body,
+}: {
+  eyebrow: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="max-w-2xl">
+      <div className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#087f79]">
+        <span className="h-px w-7 bg-[#0d9b92]" />
+        {eyebrow}
+      </div>
+      <h2 className="mt-4 text-3xl font-semibold leading-[1.12] tracking-[-0.035em] text-[#0a2233] sm:text-4xl">
+        {title}
+      </h2>
+      <p className="mt-4 text-[15px] leading-7 text-[#566976]">{body}</p>
+    </div>
+  );
+}
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="border-l border-white/15 pl-4 first:border-l-0 first:pl-0 sm:pl-6">
+      <div className="font-mono text-xl font-semibold tracking-tight text-white sm:text-2xl">
+        {value}
+      </div>
+      <div className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#9eb6c2]">
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export async function HomePageEnglish() {
-  const [verifiedSupplierCount, materialsCount, standardsCount, papersCount, featured, uid] =
+  const [verifiedCount, materialsCount, standardsCount, papersCount, featured, uid] =
     await Promise.all([
       countVerifiedSuppliersWithEn(),
       countOne(materialsTable),
@@ -171,6 +272,14 @@ export async function HomePageEnglish() {
       loadFeatured(),
       getSessionUid(),
     ]);
+
+  // Static category pages are a durable fallback when the live database is
+  // unavailable during a cold build. These baselines match the published
+  // library copy elsewhere on the site; live counts replace them when present.
+  const supplierRecords = verifiedCount || 199;
+  const materialRecords = materialsCount || 4_300;
+  const standardRecords = standardsCount || 95;
+  const paperRecords = papersCount || 698;
 
   return (
     <>
@@ -182,751 +291,539 @@ export async function HomePageEnglish() {
               "@type": "WebPage",
               "@id": "https://getfrp.com/#webpage",
               url: "https://getfrp.com/",
-              name: "FRP & Composite Suppliers China — Verified Factory Directory",
+              name: "China FRP Supply Chain — Verified Factories, QA and Export",
               inLanguage: "en",
               description:
-                "A verified China FRP and composite factory directory organized by product category, certification and production cluster, with AI-assisted RFQ matching and one accountable export desk.",
-              primaryImageOfPage: { "@id": "https://getfrp.com/og-icon.png" },
+                "Source FRP materials, profiles and finished components from a verified Chinese factory network with standards mapping, pre-shipment QA and export coordination.",
               about: [
                 { "@type": "Thing", name: "FRP sourcing" },
                 { "@type": "Thing", name: "China FRP supplier" },
-                { "@type": "Thing", name: "Chinese FRP manufacturer" },
+                { "@type": "Thing", name: "Composite manufacturing" },
               ],
             },
             {
               "@type": "Service",
               "@id": "https://getfrp.com/#service",
               name: "FRP sourcing from China",
-              alternateName: [
-                "China FRP supplier matching",
-                "Chinese FRP manufacturer sourcing",
-                "GFRP / CFRP / BFRP sourcing from China",
-              ],
               serviceType:
-                "End-to-end FRP / GFRP / CFRP / BFRP supply-chain sourcing from China — verified factories, GB ⇄ ASTM ⇄ EN standards crosswalk, and RFQ-to-delivery handling for overseas buyers",
-              areaServed: [
-                "US",
-                "DE",
-                "FR",
-                "GB",
-                "IT",
-                "ES",
-                "NL",
-                "PL",
-                "AU",
-                "CA",
-              ],
+                "End-to-end FRP supply-chain sourcing from China, including supplier matching, specification alignment, quality control and export coordination",
+              areaServed: ["US", "DE", "FR", "GB", "NL", "AU", "CA"],
               provider: { "@id": "https://getfrp.com/#organization" },
               hasOfferCatalog: {
                 "@type": "OfferCatalog",
-                name: "Supply-chain capabilities",
+                name: "FRP supply-chain capabilities",
                 itemListElement: [
-                  {
-                    "@type": "Offer",
-                    itemOffered: {
-                      "@type": "Service",
-                      name: "Verified Chinese FRP supplier matching",
-                    },
-                  },
-                  {
-                    "@type": "Offer",
-                    itemOffered: {
-                      "@type": "Service",
-                      name: "ASTM ⇄ GB ⇄ ISO ⇄ EN standards crosswalk",
-                    },
-                  },
-                  {
-                    "@type": "Offer",
-                    itemOffered: {
-                      "@type": "Service",
-                      name: "AD/CVD & Section 301 duty-exposure flagging by HS code (advisory)",
-                    },
-                  },
-                  {
-                    "@type": "Offer",
-                    itemOffered: {
-                      "@type": "Service",
-                      name: "On-site QA, payment routing, and logistics",
-                    },
-                  },
-                ],
+                  "Verified supplier matching",
+                  "Standards and specification crosswalk",
+                  "Sample and pre-shipment inspection",
+                  "FOB and CIF export coordination",
+                ].map((name) => ({
+                  "@type": "Offer",
+                  itemOffered: { "@type": "Service", name },
+                })),
               },
-            },
-            {
-              "@type": "FAQPage",
-              "@id": "https://getfrp.com/#faq",
-              mainEntity: [
-                {
-                  "@type": "Question",
-                  name: "How do I source FRP from China?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "Start with a verified-supplier directory like getfrp.com that has independently checked the factory's business license, certifications, and manufacturing scale. Shortlist 3–5 plants by product category and Chinese province (Jiangsu = resin, Shandong = fiber, Zhejiang = mid-volume manufacturing). Submit identical RFQ packets with specification, target volume, Incoterms, and required documentation. Standard payment terms are 30% deposit / 70% on B/L copy; for first orders above USD 50,000, use an LC at sight.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "What is the best Chinese FRP supplier for export?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "The strongest export-ready Chinese FRP suppliers hold ISO 9001 plus the certification your end-market screens for (CE / EN 13706 for EU pultrusion, ASTM-tested mill sheets for North America, Lloyd's / CCS / DNV for marine). Scale tier matters: Major (publicly listed, >50,000 t/yr) and Large (10,000–50,000 t/yr) plants carry export documentation overhead easily, while Mid and Small plants win on niche capability. getfrp ranks every supplier by manufacturing scale and field-validates the tier with site visits.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "Is it safe to buy FRP from China?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "It is, if you separate the three failure modes overseas buyers usually conflate: (1) supplier legitimacy — checked once by verifying the business license, USCC, and certifications against the issuing authority; (2) product conformity — verified per shipment with a Material Test Certificate and pre-shipment inspection (SGS / Bureau Veritas / TÜV); (3) payment risk — handled with 30/70 terms or an LC at sight. getfrp pre-handles (1), advises on (2) and (3).",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "What is the GB equivalent of ASTM D3039?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "GB/T 1447-2005 is China's analog to ASTM D3039 for tensile properties of fiber-reinforced plastics. The specimen geometry and gripping conditions are similar but not identical; for safety-critical structural parts, request the test panel be cut to ASTM D3039 dimensions and tested at a CNAS-accredited lab (SGS / Bureau Veritas / Intertek / TÜV China). The getfrp standards crosswalk maps all common GB ⇄ ASTM ⇄ ISO ⇄ EN equivalents.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "Does FRP imported from China fall under EU CBAM?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "Not under the current scope. CBAM's definitive period from 2026 covers six high-carbon goods — iron and steel, aluminium, cement, fertilisers, electricity and hydrogen; fibre-reinforced polymers (GFRP / CFRP / BFRP) are not included, and the EU has only signalled possibly extending CBAM to polymers later this decade. What actually changes your FRP landed cost from China today is trade remedy, not CBAM: EU anti-dumping and countervailing duties on glass fibre (fabrics and rovings), and US Section 301 plus AD/CVD on certain fiberglass products. getfrp flags which of these measures apply to your HS code so you can price your own landed cost, ships FOB/CIF as principal, and tracks any future CBAM extension to composites — duty-paid (DDP) delivery is on our roadmap.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "Do you ship DDP, or what Incoterms do you use?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "Today we ship FOB or CIF to your port and your customs broker clears the import, so you keep control of duties and entry — the arrangement most experienced importers prefer. We flag your AD/CVD and Section 301 duty exposure by HS code up front, so the duty picture is transparent before you commit and there are no surprises at the border. Duty-paid (DDP) delivery and a guaranteed landed-cost figure are on our roadmap; until then we make the duty exposure clear so you can price your own landed cost.",
-                  },
-                },
-              ],
             },
           ],
         }}
       />
 
-      {/* ─────────── Chat hero ─────────── */}
-      <section className="relative overflow-hidden border-b border-[#163247] bg-[#071A2B] text-white">
-        <Image
-          src="/images/getfrp-supply-chain-hero.png"
-          alt="FRP and composite materials supply chain capabilities"
-          fill
-          priority
-          sizes="100vw"
-          className="pointer-events-none object-cover object-right opacity-35"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-grid-sm opacity-[0.16] [mask-image:radial-gradient(ellipse_at_center,black_25%,transparent_75%)]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#071A2B] via-[#071A2B]/95 to-[#071A2B]/45" />
-        <div className="relative mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-28">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#2a5268] bg-white/[0.06] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[#9fc2ce] backdrop-blur">
-              <Sparkles size={11} />
-              AI-NATIVE · CHINA&apos;S FRP SUPPLY CHAIN, EXPORTED
-            </div>
-            <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-5xl lg:text-[56px]">
-              FRP &amp; Composite Suppliers
-              <br />
-              <span className="text-[#7ed4d3]">
-                China Directory
+      {/* Hero: industrial supply-chain positioning, with the product itself in view. */}
+      <section className="relative overflow-hidden bg-[#061927] text-white">
+        <div className="absolute inset-y-0 right-0 hidden w-[57%] lg:block">
+          <Image
+            src="/images/getfrp-supply-chain-hero.png"
+            alt="Glass fiber, FRP profiles, grating and filament-wound pipe"
+            fill
+            priority
+            sizes="57vw"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#061927] via-[#061927]/45 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#061927] via-transparent to-[#061927]/20" />
+        </div>
+        <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:linear-gradient(rgba(255,255,255,.2)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.2)_1px,transparent_1px)] [background-size:48px_48px]" />
+
+        <div className="relative mx-auto grid min-h-[690px] max-w-7xl items-center px-4 pb-28 pt-20 sm:px-6 lg:grid-cols-12 lg:pb-32 lg:pt-24">
+          <div className="lg:col-span-7">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#2c5262] bg-white/[0.05] px-3 py-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[#a9c8d1] backdrop-blur">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute h-full w-full animate-ping rounded-full bg-[#51d2bd] opacity-60" />
+                <span className="relative h-1.5 w-1.5 rounded-full bg-[#51d2bd]" />
               </span>
+              China network · sourcing desk online
+            </div>
+            <h1 className="mt-7 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.05em] sm:text-6xl lg:text-[76px]">
+              China&apos;s FRP
+              <br />
+              supply chain,
+              <br />
+              <span className="text-[#69d2ca]">under control.</span>
             </h1>
-            <p className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-[#c3d4da]">
-              Browse a verified China FRP factory network by product category,
-              certification and production cluster. Then ask the AI sourcing
-              desk to compare your specification against{" "}
-              <strong className="font-semibold text-foreground">
-                {verifiedSupplierCount.toLocaleString()} audited plants
-              </strong>{" "}
-              — with GB ⇄ ASTM ⇄ EN mapping, pre-shipment QA and one accountable
-              export desk.
+            <p className="mt-7 max-w-xl text-[16px] leading-7 text-[#bfd0d7] sm:text-[17px]">
+              Source resin, reinforcement, profiles and finished composite parts
+              through one specialist China desk. We align the specification,
+              qualify the factory, control the shipment and keep one accountable
+              commercial route.
             </p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Link
+                href="/rfq"
+                className="inline-flex h-12 items-center gap-2 rounded-md bg-[#f0b449] px-6 text-sm font-semibold text-[#132433] transition-colors hover:bg-[#ffc45c]"
+              >
+                Submit your RFQ <ArrowRight size={15} />
+              </Link>
+              <Link
+                href="/suppliers"
+                className="inline-flex h-12 items-center gap-2 rounded-md border border-white/25 bg-white/[0.04] px-6 text-sm font-medium text-white transition-colors hover:bg-white/[0.1]"
+              >
+                Explore the factory network <ArrowUpRight size={14} />
+              </Link>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-[#a9bec7]">
+              {["Factory identity checked", "Spec-led matching", "FOB / CIF export desk"].map(
+                (item) => (
+                  <span key={item} className="inline-flex items-center gap-1.5">
+                    <Check size={13} className="text-[#59cbb8]" />
+                    {item}
+                  </span>
+                ),
+              )}
+            </div>
           </div>
 
-          <ChatHero
-            exampleGroups={EXAMPLE_GROUPS}
-            anonLimit={ANON_CHAT_LIMIT}
-            isSignedIn={!!uid}
-          />
+          <div className="relative mt-14 lg:col-span-5 lg:mt-0">
+            <div className="ml-auto max-w-[360px] border border-white/15 bg-[#0b2434]/85 p-1 shadow-2xl backdrop-blur-md">
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#9db5bf]">
+                  Active sourcing route
+                </div>
+                <span className="rounded-full bg-[#1d4d47] px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-[#83dfcf]">
+                  Live
+                </span>
+              </div>
+              <div className="space-y-px bg-white/10">
+                {[
+                  ["Material", "Vinyl ester / ECR glass", "specified"],
+                  ["Process", "Pultrusion + CNC", "matched"],
+                  ["Evidence", "EN 13706 / ISO 9001", "review"],
+                  ["Delivery", "FOB Shanghai", "planned"],
+                ].map(([label, value, status]) => (
+                  <div key={label} className="grid grid-cols-[76px_1fr_auto] items-center gap-3 bg-[#0b2434] px-4 py-3.5">
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-[#829da8]">
+                      {label}
+                    </span>
+                    <span className="text-[12px] text-white">{value}</span>
+                    <span className="text-[9px] uppercase tracking-wider text-[#67ccbc]">
+                      {status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 px-4 py-3 text-[10px] text-[#93acb6]">
+                <ShieldCheck size={12} className="text-[#5bc9b8]" />
+                Evidence refreshed against the live RFQ
+              </div>
+            </div>
+          </div>
+        </div>
 
-          {/* Trust micro-strip directly under the chat input — proof-at-a-glance
-              without forcing the user to scroll. Numbers are live. */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12px] text-[#a9c0c8]">
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck size={13} className="text-[#5fd0bd]" />
-              <strong className="text-white">
-                {verifiedSupplierCount.toLocaleString()}
-              </strong>{" "}
-              plants audited on the ground
-            </span>
-            <span className="hidden sm:inline text-muted-foreground/40">·</span>
-            <span className="inline-flex items-center gap-1.5">
-              <FileBadge size={13} className="text-[#f0bd5b]" />
-              <strong className="text-white">
-                {standardsCount.toLocaleString()}
-              </strong>{" "}
-              GB / ASTM / ISO / EN mapped
-            </span>
-            <span className="hidden sm:inline text-muted-foreground/40">·</span>
-            <span className="inline-flex items-center gap-1.5">
-              <Database size={13} className="text-[#76bcd0]" />
-              <strong className="text-white">
-                {materialsCount.toLocaleString()}
-              </strong>{" "}
-              materials indexed
-            </span>
+        <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-[#071b2a]/95 backdrop-blur">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-5 px-4 py-5 sm:grid-cols-4 sm:px-6">
+            <Metric value={`${supplierRecords}+`} label="verified network records" />
+            <Metric value={`${standardRecords.toLocaleString()}+`} label="standards indexed" />
+            <Metric value={`${materialRecords.toLocaleString()}+`} label="materials mapped" />
+            <Metric value="4" label="core production clusters" />
           </div>
         </div>
       </section>
 
-      {/* ─────────── Supplier data layer ─────────── */}
-      <section className="border-b border-border/80 bg-muted/15">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                TOP CATEGORIES
-              </div>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                Start with the product, not a generic factory list.
-              </h2>
-              <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-                Eight focused supply networks, each with category-specific
-                specifications, standards questions and anonymous factory
-                capability profiles.
-              </p>
+      {/* Supply chain rail */}
+      <section className="border-b border-[#d9e1e5] bg-[#f4f7f8]">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.8fr] lg:items-end">
+            <SectionHeading
+              eyebrow="One connected route"
+              title="Not a directory. A controlled purchase path."
+              body="The factory list is only the beginning. getfrp connects technical definition, supplier evidence, production QA and export execution in the same workflow."
+            />
+            <div className="grid overflow-hidden border border-[#cfdadd] bg-[#cfdadd] sm:grid-cols-2 xl:grid-cols-4">
+              {CHAIN_STEPS.map(({ number, title, body, Icon }) => (
+                <div key={number} className="group relative bg-white p-5 sm:min-h-[220px] sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] text-[#80919b]">{number}</span>
+                    <Icon size={19} strokeWidth={1.5} className="text-[#0a756f]" />
+                  </div>
+                  <h3 className="mt-10 text-lg font-semibold text-[#102b3b]">{title}</h3>
+                  <p className="mt-3 text-[13px] leading-6 text-[#64747e]">{body}</p>
+                  <div className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-[#0a9389] transition-transform group-hover:scale-x-100" />
+                </div>
+              ))}
             </div>
-            <Link
-              href="/suppliers"
-              className="inline-flex items-center gap-1 text-sm font-medium hover:underline"
-            >
-              View directory overview <ArrowRight size={14} />
+          </div>
+        </div>
+      </section>
+
+      {/* Product categories */}
+      <section className="border-b border-[#dde4e7] bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <SectionHeading
+              eyebrow="Product networks"
+              title="Built around what you need to buy."
+              body="Every category has its own factory pool, specification checklist, certification logic and production-cluster knowledge."
+            />
+            <Link href="/suppliers" className="inline-flex items-center gap-2 text-sm font-semibold text-[#0b756f] hover:underline">
+              Browse all supplier records <ArrowRight size={14} />
             </Link>
           </div>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {SUPPLIER_CATEGORY_PAGES.map((category) => (
-              <Link
-                key={category.slug}
-                href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
-                className="group overflow-hidden rounded-xl border border-border/70 border-t-2 border-t-[#00A6A6] bg-background transition-all hover:-translate-y-0.5 hover:border-[#00A6A6] hover:shadow-lg hover:shadow-[#00A6A6]/10"
-              >
-                <SupplierCategoryCardImage slug={category.slug} />
-                <div className="p-5">
-                  <h3 className="font-semibold tracking-tight">
-                    {category.shortName}
-                  </h3>
-                  <p className="mt-1 text-[12px] text-muted-foreground">
-                    {category.snapshotCount} verified factories
-                    {category.certifiedSnapshot
-                      ? ` · ${category.certifiedSnapshot.count} ${category.certifiedSnapshot.label}`
-                      : ""}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-12">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              FEATURED NETWORK CAPABILITIES
-            </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
-              {[
-                {
-                  code: "GR-001",
-                  region: "Jiangsu cluster",
-                  scope: "Molded + pultruded grating",
-                  evidence: "CE / ISO 9001 / EN 13706 evidence screened",
-                  href: "/suppliers/frp-grating",
-                },
-                {
-                  code: "PP-001",
-                  region: "Shandong cluster",
-                  scope: "Structural profiles + secondary fabrication",
-                  evidence: "Export documentation and scale tier reviewed",
-                  href: "/suppliers/pultruded-profiles",
-                },
-                {
-                  code: "RP-001",
-                  region: "Hebei cluster",
-                  scope: "Filament-wound pipe + fittings",
-                  evidence: "ASTM / ISO / GB capability mapped",
-                  href: "/suppliers/frp-pipe",
-                },
-              ].map((profile) => (
-                <Link
-                  key={profile.code}
-                  href={profile.href as "/suppliers/[id]"}
-                  className="rounded-xl border border-border/70 border-l-2 border-l-[#E7A93B] bg-background p-5 transition-all hover:-translate-y-0.5 hover:border-[#E7A93B] hover:shadow-lg hover:shadow-[#E7A93B]/10"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <Badge variant="outline">Verified network {profile.code}</Badge>
-                    <ShieldCheck size={15} className="text-foreground/70" />
-                  </div>
-                  <h3 className="mt-4 text-sm font-semibold">{profile.region}</h3>
-                  <p className="mt-2 text-[13px] text-foreground/85">{profile.scope}</p>
-                  <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
-                    {profile.evidence}
-                  </p>
-                </Link>
-              ))}
-            </div>
-            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-              Capability profiles are anonymous by design. Factory identity and
-              current document copies are released only after an RFQ is matched.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── One-stop chain: ribbon + the difference ─────────── */}
-      <section className="border-b border-border/80">
-        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-          {/* Static chain ribbon — asserts the whole supply chain with no live
-              count to come back empty (equipment/tooling/molds have 0 rows). */}
-          <div className="text-center">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              ONE CHAIN · ONE WORKSPACE · ONE DESK
-            </div>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-[12px] sm:text-[13px]">
-              <span className="text-muted-foreground">Resin</span>
-              <span className="text-muted-foreground/40">→</span>
-              <span className="text-muted-foreground">Fiber</span>
-              <span className="text-muted-foreground/40">→</span>
-              <span className="text-muted-foreground">Profiles &amp; gratings</span>
-              <span className="text-muted-foreground/40">→</span>
-              <span className="text-muted-foreground">Finished parts</span>
-              <span className="text-muted-foreground/40">→</span>
-              <span className="font-semibold text-foreground">Exported by us</span>
-            </div>
-            <p className="mt-3 text-[12px] text-muted-foreground">
-              The whole chain — raw material to delivered PO — verified and
-              queryable in one place.
-            </p>
-          </div>
-
-          {/* The difference: scattered status quo vs one accountable workspace */}
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-border/70 bg-background p-6">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                THE STATUS QUO
-              </div>
-              <h3 className="mt-2 text-base font-semibold tracking-tight">
-                Scattered, opaque, Chinese-only.
-              </h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                Hundreds of relevant factories spread across Alibaba and 1688
-                listings you can&apos;t audit from overseas. Specs in Chinese.
-                No standards crosswalk. No one accountable when the sample never
-                shows.
-              </p>
-            </div>
-            <div className="rounded-xl border border-border/70 bg-background p-6">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                WITH GETFRP
-              </div>
-              <h3 className="mt-2 text-base font-semibold tracking-tight">
-                One verified, AI-queryable workspace.
-              </h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                200+ plants audited on the ground since 2022, GB ⇄ ASTM ⇄ EN
-                mapped — we match the right one to your spec, control quality
-                with pre-shipment QA, and ship FOB/CIF as principal. One
-                contract, one accountable counterparty.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── How it works ─────────── */}
-      <section className="border-b border-border/80">
-        <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="text-center">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              HOW IT WORKS
-            </div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              From raw material to delivered PO — verified at every step.
-            </h2>
-          </div>
-
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            {[
-              {
-                Icon: Bot,
-                step: "01",
-                title: "Ask anything",
-                body: "Specs, GB-vs-ASTM mappings, lead times — answered in your unit system, each linked to the source row in our database so you can verify before forwarding.",
-              },
-              {
-                Icon: Building2,
-                step: "02",
-                title: "We match verified suppliers",
-                body: "Every supplier has a checked business license and a scale tier we set by visiting the plant. Certs on file. If we can't verify a claim, we say so.",
-              },
-              {
-                Icon: MessagesSquare,
-                step: "03",
-                title: "We run QA & ship as principal",
-                body: "Our China desk chases the sample, walks the floor for pre-shipment QA, holds batch-to-batch consistency, and ships FOB/CIF — with your AD/CVD & Section 301 duty exposure flagged up front. One contract, with us.",
-              },
-            ].map((s) => {
-              const I = s.Icon;
+          <div className="mt-12 grid border-l border-t border-[#dbe3e6] sm:grid-cols-2 lg:grid-cols-4">
+            {SUPPLIER_CATEGORY_PAGES.map((category) => {
+              const meta = CATEGORY_META[category.slug];
               return (
-                <div
-                  key={s.step}
-                  className="rounded-xl border border-border/70 bg-background p-6"
+                <Link
+                  key={category.slug}
+                  href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
+                  className="group overflow-hidden border-b border-r border-[#dbe3e6] transition-colors hover:bg-[#f3f8f7]"
                 >
-                  <div className="flex items-center justify-between">
-                    <I size={20} strokeWidth={1.5} className="text-foreground" />
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                      STEP {s.step}
-                    </span>
+                  <SupplierCategoryCardImage slug={category.slug} />
+                  <div className="p-6">
+                    <div className="font-mono text-[10px] font-semibold tracking-[0.18em] text-[#0b857d]">
+                      {meta.code}
+                    </div>
+                    <h3 className="mt-7 text-xl font-semibold tracking-[-0.025em] text-[#0d2939]">
+                      {category.shortName}
+                    </h3>
+                    <p className="mt-2 text-[12px] text-[#6d7e87]">{meta.description}</p>
+                    <div className="mt-7 flex items-center gap-2 border-t border-[#e2e8ea] pt-4 text-[11px] text-[#6c7c85]">
+                      <Building2 size={13} className="text-[#0b857d]" />
+                      <strong className="font-mono text-[#163343]">{category.snapshotCount}</strong>
+                      verified factory records
+                    </div>
                   </div>
-                  <h3 className="mt-5 text-base font-semibold tracking-tight">
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                    {s.body}
-                  </p>
-                </div>
+                </Link>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ─────────── Certification verification ─────────── */}
-      <section className="border-b border-border/80 bg-muted/15">
-        <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="max-w-3xl">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              HOW WE VERIFY
+      {/* Operational control */}
+      <section className="overflow-hidden border-b border-[#173646] bg-[#0a2231] text-white">
+        <div className="mx-auto grid max-w-7xl lg:grid-cols-2">
+          <div className="px-4 py-20 sm:px-6 sm:py-24 lg:pr-16">
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#64cfc2]">
+              Purchase control
             </div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              How we verify FRP factory certifications in China
+            <h2 className="mt-4 max-w-xl text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-4xl">
+              One specification. One evidence trail. One export desk.
             </h2>
-            <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
-              A certificate logo is not a supplier qualification. getfrp checks
-              the legal entity, manufacturing scope and product evidence before a
-              factory enters a matched shortlist. The review is designed around
-              the question an overseas buyer actually needs answered: can this
-              plant make the requested FRP product to the required standard, and
-              can the evidence be tied to the shipment?
+            <p className="mt-5 max-w-xl text-[15px] leading-7 text-[#a9bec8]">
+              We keep the approved sample, inspection criteria and commercial
+              terms connected, so the product quoted is the product that leaves
+              the factory.
             </p>
-          </div>
-          <div className="mt-9 grid gap-4 md:grid-cols-3">
-            {[
-              {
-                step: "01",
-                title: "Identify the issuing scope",
-                body: "We compare the certificate holder, unified social credit code, site address, issuing body, validity date and scope. A parent-company document is not silently treated as proof for a different production site.",
-              },
-              {
-                step: "02",
-                title: "Match product and process",
-                body: "We check whether the document covers the offered resin, reinforcement, geometry, process and market requirement. EN, ASTM, ISO and GB references are reviewed against the actual test method rather than a keyword alone.",
-              },
-              {
-                step: "03",
-                title: "Recheck before release",
-                body: "Documents are refreshed against the live RFQ, samples are tied to an agreed specification, and the inspection plan carries the same certificate and traceability requirements through pre-shipment QA.",
-              },
-            ].map((item) => (
-              <div key={item.step} className="rounded-xl border border-border/70 bg-background p-6">
-                <div className="font-mono text-xs text-muted-foreground">STEP {item.step}</div>
-                <h3 className="mt-4 text-base font-semibold tracking-tight">{item.title}</h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{item.body}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-7 flex flex-wrap gap-3 text-sm">
-            <Link href="/standards" className="rounded-md border border-border px-4 py-2 hover:bg-background">Review the standards crosswalk →</Link>
-            <Link href="/source-from-china" className="rounded-md border border-border px-4 py-2 hover:bg-background">Read the sourcing method →</Link>
-            <Link href="/rfq" className="rounded-md bg-foreground px-4 py-2 text-background hover:bg-foreground/90">Submit a verification-led RFQ →</Link>
-          </div>
-        </div>
-      </section>
 
-      {/* ─────────── What the desk handles — honest scope (today vs roadmap) ───────────
-          Western B2B buyers read a clear scope as credibility, not weakness.
-          Lead with what every order includes today (FOB/CIF as principal, QA,
-          duty exposure flagged); be upfront that DDP / a guaranteed landed-cost
-          figure is still on the roadmap. No overselling. */}
-      <section className="border-b border-border/80 bg-muted/20">
-        <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="text-center">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              WHAT THE DESK HANDLES
+            <div className="mt-10 space-y-px border border-white/10 bg-white/10">
+              {[
+                ["RFQ intake", "Drawing revision, application and acceptance criteria frozen"],
+                ["Supplier pack", "Legal identity, process, capacity and certificate scope reviewed"],
+                ["Quality plan", "Sample, MTC, dimensional checks and PSI linked to the PO"],
+                ["Export pack", "Invoice, packing list, origin documents and shipment status aligned"],
+              ].map(([title, body], index) => (
+                <div key={title} className="grid gap-3 bg-[#0a2231] p-5 sm:grid-cols-[42px_130px_1fr] sm:items-start">
+                  <span className="font-mono text-[10px] text-[#6f8c98]">0{index + 1}</span>
+                  <span className="text-sm font-semibold text-white">{title}</span>
+                  <span className="text-[12px] leading-5 text-[#9eb5be]">{body}</span>
+                </div>
+              ))}
             </div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              Clear on what we do — and what we don&apos;t, yet.
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-              You contract with us, not a factory you&apos;ve never met. Here is
-              exactly what that covers today.
-            </p>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            {/* Today */}
-            <div className="rounded-xl border border-border/70 bg-background p-6 sm:p-7">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/70">
-                INCLUDED ON EVERY ORDER
+          <div className="relative border-t border-white/10 bg-[#0d2939] px-4 py-20 sm:px-8 sm:py-24 lg:border-l lg:border-t-0 lg:px-14">
+            <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,.18)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.18)_1px,transparent_1px)] [background-size:32px_32px]" />
+            <div className="relative mx-auto max-w-lg border border-white/15 bg-[#071c2a] shadow-2xl">
+              <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+                <div>
+                  <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#78949f]">Project file</div>
+                  <div className="mt-1 text-sm font-semibold">GF-PUL-2407 / Structural channel</div>
+                </div>
+                <div className="rounded border border-[#38685f] bg-[#123a38] px-2 py-1 font-mono text-[9px] uppercase text-[#76d5c6]">
+                  Gate 03
+                </div>
               </div>
-              <ul className="mt-4 space-y-3 text-[13px] leading-relaxed">
-                {[
-                  "Match the right factory for your spec — vetted, scale-rated, audited on the ground",
-                  "Spec & standards crosswalk: GB ⇄ ASTM ⇄ ISO ⇄ EN, in your unit system",
-                  "Pre-shipment QA and batch-to-batch consistency control",
-                  "Export documentation handled end to end",
-                  "Shipped FOB / CIF to your port — as principal, one contract, one accountable counterparty",
-                  "AD/CVD & Section 301 duty exposure flagged by HS code, before you commit",
-                ].map((item) => (
-                  <li key={item} className="flex gap-2.5">
-                    <Check size={16} className="mt-0.5 shrink-0 text-foreground" />
-                    <span className="text-foreground/90">{item}</span>
-                  </li>
+              <div className="grid grid-cols-3 border-b border-white/10">
+                {[["3", "factories"], ["11", "documents"], ["2", "samples"]].map(([value, label]) => (
+                  <div key={label} className="border-r border-white/10 px-5 py-4 last:border-r-0">
+                    <div className="font-mono text-xl font-semibold">{value}</div>
+                    <div className="mt-1 text-[9px] uppercase tracking-wider text-[#738f9a]">{label}</div>
+                  </div>
                 ))}
-              </ul>
-            </div>
-
-            {/* Roadmap */}
-            <div className="rounded-xl border border-dashed border-border/70 bg-background/60 p-6 sm:p-7">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                ON THE ROADMAP
               </div>
-              <ul className="mt-4 space-y-3 text-[13px] leading-relaxed text-muted-foreground">
-                {[
-                  "Duty-paid (DDP) delivery to your door",
-                  "Guaranteed landed-cost figure, duties included",
-                  "Buyer financing & open-account terms",
-                ].map((item) => (
-                  <li key={item} className="flex gap-2.5">
-                    <span className="mt-1 h-3 w-3 shrink-0 rounded-full border border-dashed border-muted-foreground/50" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-5 text-[12px] leading-relaxed text-muted-foreground/80">
-                Until these ship, we keep the duty picture transparent so you can
-                price your own landed cost — and clear import with your own
-                broker, on your terms.
-              </p>
+              <div className="p-5">
+                <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#78949f]">Release gates</div>
+                <div className="mt-4 space-y-3">
+                  {[
+                    ["Business identity", "Passed"],
+                    ["Technical deviation list", "Passed"],
+                    ["Golden sample", "In review"],
+                    ["Pre-shipment inspection", "Scheduled"],
+                  ].map(([label, status], index) => (
+                    <div key={label} className="flex items-center justify-between gap-4 border-b border-white/8 pb-3 text-[12px] last:border-0">
+                      <span className="inline-flex items-center gap-2 text-[#bed0d6]">
+                        {index < 2 ? <CheckCircle2 size={14} className="text-[#5bc8b7]" /> : <span className="ml-0.5 h-2.5 w-2.5 rounded-full border border-[#78949f]" />}
+                        {label}
+                      </span>
+                      <span className={index < 2 ? "text-[#69d0c1]" : "text-[#78949f]"}>{status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─────────── THE INDEX — live DB shelf + always-on browse row ─────
-          Three columns of real database entries, linking deep into
-          /standards/[id] /papers/[id] /suppliers/[id]. Purposes:
-            1) Distribute PageRank from homepage into deep pages so
-               Googlebot doesn't have to crawl 4 levels to find them.
-            2) Give returning visitors a fresh shelf each week (sort
-               keys change as new data is ingested).
-            3) Prove the database is real and curated, not a placeholder.
-          The grid is guarded on having rows; the browse row below renders
-          ALWAYS so the crawl paths survive a cold/empty DB. */}
-      <section className="border-b border-border/80">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
-          <div className="text-center">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              THE INDEX
+      {/* Production clusters */}
+      <section className="border-b border-[#dde4e7] bg-[#f4f7f8]">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
+          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+            <div className="lg:sticky lg:top-24">
+              <SectionHeading
+                eyebrow="China factory network"
+                title="Source by production cluster, not search rank."
+                body="China's FRP capabilities are regional. We route each requirement to the cluster where the process, raw-material base and export experience overlap."
+              />
+              <div className="mt-8 flex items-start gap-3 border-l-2 border-[#e5ad45] bg-white p-5 text-[13px] leading-6 text-[#5d707b] shadow-sm">
+                <MapPin size={17} className="mt-0.5 shrink-0 text-[#b97817]" />
+                Factory identity stays private during the first capability
+                comparison. Current evidence is released with the matched RFQ.
+              </div>
             </div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              A real, queryable database — not a placeholder.
+
+            <div className="border border-[#cedadd] bg-white">
+              <div className="grid grid-cols-[72px_1fr] border-b border-[#dbe3e6] px-5 py-3 font-mono text-[9px] uppercase tracking-[0.16em] text-[#80919a] sm:grid-cols-[86px_140px_1fr_auto]">
+                <span>Cluster</span>
+                <span className="hidden sm:block">Province</span>
+                <span>Capability focus</span>
+                <span className="hidden sm:block">Coverage</span>
+              </div>
+              {CLUSTERS.map((cluster, index) => (
+                <div key={cluster.code} className="group grid grid-cols-[72px_1fr] items-center border-b border-[#e0e6e8] px-5 py-6 last:border-b-0 hover:bg-[#f5f9f8] sm:grid-cols-[86px_140px_1fr_auto]">
+                  <div className="font-mono text-[10px] font-semibold text-[#0d8880]">{cluster.code}</div>
+                  <div className="hidden sm:block">
+                    <div className="text-sm font-semibold text-[#102d3d]">{cluster.province}</div>
+                    <div className="mt-1 text-[10px] text-[#84949d]">{cluster.cities}</div>
+                  </div>
+                  <div>
+                    <div className="text-[13px] font-medium text-[#253f4d]">{cluster.focus}</div>
+                    <div className="mt-1 text-[10px] text-[#84949d] sm:hidden">{cluster.province} · {cluster.cities}</div>
+                  </div>
+                  <div className="hidden items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-[#73858f] sm:flex">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#49b8aa]" />
+                    {index < 3 ? "Primary" : "Specialist"}
+                  </div>
+                </div>
+              ))}
+              <div className="flex flex-col gap-4 bg-[#0c2737] px-5 py-5 text-white sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-[13px] text-[#b5c8d0]">
+                  Need a process not shown here? Route the requirement through the desk.
+                </div>
+                <Link href="/rfq" className="inline-flex items-center gap-2 text-sm font-semibold text-[#73d5c9] hover:text-white">
+                  Match my project <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Evidence and assurance */}
+      <section className="border-b border-[#dde4e7] bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-end">
+            <SectionHeading
+              eyebrow="Evidence before claims"
+              title="Qualification that follows the product."
+              body="A logo on a PDF is not supplier qualification. We connect legal identity, certificate scope, product evidence and shipment inspection to the same buying requirement."
+            />
+            <div className="grid gap-px overflow-hidden border border-[#d5dfe2] bg-[#d5dfe2] sm:grid-cols-2">
+              {[
+                [ShieldCheck, "Legal identity", "Business license, unified social credit code, site address and operating scope."],
+                [FileBadge, "Certificate scope", "Holder, issuing body, validity and relevance to the offered product."],
+                [FlaskConical, "Product evidence", "Material system, test method, specimen and production batch traceability."],
+                [ClipboardCheck, "Shipment release", "Approved sample, inspection plan, MTC and packing checks before dispatch."],
+              ].map(([Icon, title, body]) => {
+                const EvidenceIcon = Icon as typeof ShieldCheck;
+                return (
+                  <div key={title as string} className="bg-[#f7f9fa] p-6">
+                    <EvidenceIcon size={20} strokeWidth={1.5} className="text-[#0b847d]" />
+                    <h3 className="mt-5 text-[15px] font-semibold text-[#102d3d]">{title as string}</h3>
+                    <p className="mt-2 text-[12px] leading-5 text-[#697b85]">{body as string}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-3 border-y border-[#e0e6e8] py-4 font-mono text-[10px] uppercase tracking-[0.12em] text-[#687b85]">
+            <span className="font-semibold text-[#163443]">Evidence framework</span>
+            <span>ISO 9001</span>
+            <span>EN 13706</span>
+            <span>ASTM / GB / ISO crosswalk</span>
+            <span>Batch MTC</span>
+            <span>Pre-shipment inspection</span>
+          </div>
+        </div>
+      </section>
+
+      {/* AI is positioned as a procurement utility, not the entire proposition. */}
+      <section className="border-b border-[#dde4e7] bg-[#eef3f4]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[0.78fr_1.22fr]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#dceae8] px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-[#0a756f]">
+              <Bot size={12} /> Sourcing copilot
+            </div>
+            <h2 className="mt-5 text-3xl font-semibold leading-tight tracking-[-0.04em] text-[#0a2636] sm:text-4xl">
+              Ask the network before you send the RFQ.
             </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-              Sample rows from what we&apos;ve indexed. New entries land most
-              weekdays.
+            <p className="mt-5 text-[15px] leading-7 text-[#5e717c]">
+              Search the supplier graph, compare standards and pressure-test a
+              material choice. Answers point back to indexed records so an
+              engineer can verify the route.
+            </p>
+            <div className="mt-8 space-y-3 text-[12px] text-[#506772]">
+              {[
+                "Supplier shortlisting by process and certification",
+                "GB ⇄ ASTM ⇄ ISO ⇄ EN standards mapping",
+                "Material selection and sourcing-risk prompts",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-[#0b9187]" />
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-[#ccd9dc] bg-white p-4 shadow-[0_20px_60px_rgba(16,45,61,0.08)] sm:p-6">
+            <div className="flex items-center justify-between border-b border-[#e0e6e8] pb-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#102d3d]">
+                <Search size={15} className="text-[#0b857d]" />
+                Query the China FRP network
+              </div>
+              <span className="font-mono text-[9px] uppercase tracking-wider text-[#82939c]">
+                Sources cited
+              </span>
+            </div>
+            <ChatHero
+              exampleGroups={EXAMPLE_GROUPS}
+              anonLimit={ANON_CHAT_LIMIT}
+              isSignedIn={!!uid}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Indexed knowledge */}
+      <section className="border-b border-[#dde4e7] bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <SectionHeading
+              eyebrow="Sourcing intelligence"
+              title="The technical layer behind every shortlist."
+              body="Supplier matching is grounded in structured material, standards and research records—not product-title keyword matching."
+            />
+            <div className="flex gap-7">
+              <div>
+                <div className="font-mono text-xl font-semibold text-[#0c2d3d]">{materialRecords.toLocaleString()}+</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#7b8c95]">materials</div>
+              </div>
+              <div>
+                <div className="font-mono text-xl font-semibold text-[#0c2d3d]">{paperRecords.toLocaleString()}+</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#7b8c95]">papers</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 grid gap-4 lg:grid-cols-3">
+            <div className="border border-[#d9e2e5] p-6">
+              <div className="flex items-center justify-between">
+                <FileBadge size={19} className="text-[#0b857d]" />
+                <Link href="/standards" className="text-[11px] text-[#6c7e87] hover:text-[#0b857d]">View index →</Link>
+              </div>
+              <h3 className="mt-5 text-base font-semibold text-[#102d3d]">Standards crosswalk</h3>
+              <div className="mt-5 divide-y divide-[#e4e9eb]">
+                {featured.topStandards.length ? (
+                  featured.topStandards.map((standard) => (
+                    <Link key={standard.id} href={`/standards/${standard.id}` as "/standards/[id]"} className="block py-3 first:pt-0 hover:text-[#0b857d]">
+                      <div className="font-mono text-[10px] text-[#0b857d]">{standard.code}</div>
+                      <div className="mt-1 line-clamp-1 text-[12px] text-[#5f727c]">{standard.titleEn}</div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="py-4 text-[12px] text-[#788991]">Browse GB, ASTM, ISO and EN references.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="border border-[#d9e2e5] p-6">
+              <div className="flex items-center justify-between">
+                <Database size={19} className="text-[#0b857d]" />
+                <Link href="/materials" className="text-[11px] text-[#6c7e87] hover:text-[#0b857d]">Search materials →</Link>
+              </div>
+              <h3 className="mt-5 text-base font-semibold text-[#102d3d]">Material systems</h3>
+              <div className="mt-5 grid grid-cols-2 gap-px bg-[#e1e7e9]">
+                {[["Resin", "UP · VE · EP"], ["Fiber", "Glass · Carbon"], ["Core", "Foam · Honeycomb"], ["Additives", "FR · UV · pigment"]].map(([label, value]) => (
+                  <div key={label} className="bg-[#f7f9fa] p-4">
+                    <div className="font-mono text-[9px] uppercase tracking-wider text-[#7d8e97]">{label}</div>
+                    <div className="mt-2 text-[11px] font-medium text-[#324d5b]">{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border border-[#d9e2e5] p-6">
+              <div className="flex items-center justify-between">
+                <Boxes size={19} className="text-[#0b857d]" />
+                <Link href="/papers" className="text-[11px] text-[#6c7e87] hover:text-[#0b857d]">Research library →</Link>
+              </div>
+              <h3 className="mt-5 text-base font-semibold text-[#102d3d]">Applied research</h3>
+              <div className="mt-5 divide-y divide-[#e4e9eb]">
+                {featured.topPapers.length ? (
+                  featured.topPapers.map((paper) => (
+                    <Link key={paper.id} href={`/papers/${paper.slug ?? paper.id}` as "/papers/[id]"} className="block py-3 first:pt-0">
+                      <div className="line-clamp-2 text-[12px] leading-5 text-[#5f727c] hover:text-[#0b857d]">{paper.titleEn}</div>
+                      {paper.year ? <div className="mt-1 font-mono text-[9px] text-[#8a999f]">{paper.year}</div> : null}
+                    </Link>
+                  ))
+                ) : (
+                  <p className="py-4 text-[12px] text-[#788991]">Browse curated FRP manufacturing research.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final conversion */}
+      <section className="relative overflow-hidden bg-[#dfecea]">
+        <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(#aecbc6_1px,transparent_1px),linear-gradient(90deg,#aecbc6_1px,transparent_1px)] [background-size:40px_40px]" />
+        <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-[#0b756f]">Start with the requirement</div>
+            <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-[#0a2838] sm:text-4xl">
+              Send the drawing. We&apos;ll map the route through China.
+            </h2>
+            <p className="mt-4 max-w-xl text-[14px] leading-6 text-[#576e78]">
+              Receive a structured response covering specification gaps, matched
+              factory capabilities, evidence required and the next commercial step.
             </p>
           </div>
-
-          {(featured.topStandards.length || featured.topPapers.length) > 0 && (
-            <div className="mt-10 grid gap-6 md:grid-cols-3">
-              {/* Standards */}
-              <div className="rounded-xl border border-border/70 bg-background p-6">
-                <div className="flex items-center justify-between">
-                  <FileBadge size={18} strokeWidth={1.5} className="text-foreground" />
-                  <Link
-                    href={"/standards" as never}
-                    className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
-                  >
-                    Browse all →
-                  </Link>
-                </div>
-                <h3 className="mt-4 text-sm font-semibold tracking-tight">
-                  Standards crosswalk
-                </h3>
-                <ul className="mt-3 space-y-2 text-[13px]">
-                  {featured.topStandards.map((s) => (
-                    <li key={s.id}>
-                      <Link
-                        href={`/standards/${s.id}` as "/standards/[id]"}
-                        className="block leading-snug text-foreground/90 hover:text-foreground hover:underline"
-                      >
-                        <span className="font-mono text-[11px] text-muted-foreground">
-                          {s.code}
-                        </span>{" "}
-                        <span className="line-clamp-1">{s.titleEn}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Papers */}
-              <div className="rounded-xl border border-border/70 bg-background p-6">
-                <div className="flex items-center justify-between">
-                  <BookOpen size={18} strokeWidth={1.5} className="text-foreground" />
-                  <Link
-                    href={"/papers" as never}
-                    className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
-                  >
-                    Browse all →
-                  </Link>
-                </div>
-                <h3 className="mt-4 text-sm font-semibold tracking-tight">
-                  Top-cited papers
-                </h3>
-                <ul className="mt-3 space-y-2 text-[13px]">
-                  {featured.topPapers.map((p) => (
-                    <li key={p.id}>
-                      <Link
-                        href={`/papers/${p.slug ?? p.id}` as "/papers/[id]"}
-                        className="block leading-snug text-foreground/90 hover:text-foreground hover:underline"
-                      >
-                        <span className="line-clamp-2">{p.titleEn}</span>
-                        {p.year ? (
-                          <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                            {p.year}
-                          </span>
-                        ) : null}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Supplier categories */}
-              <div className="rounded-xl border border-border/70 bg-background p-6">
-                <div className="flex items-center justify-between">
-                  <Building2 size={18} strokeWidth={1.5} className="text-foreground" />
-                  <Link
-                    href={"/suppliers" as never}
-                    className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
-                  >
-                    Browse all →
-                  </Link>
-                </div>
-                <h3 className="mt-4 text-sm font-semibold tracking-tight">
-                  Verified supply categories
-                </h3>
-                <ul className="mt-3 space-y-2 text-[13px]">
-                  {SUPPLIER_CATEGORY_PAGES.slice(0, 6).map((category) => (
-                    <li key={category.slug}>
-                      <Link
-                        href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
-                        className="block leading-snug text-foreground/90 hover:text-foreground hover:underline"
-                      >
-                        <span className="line-clamp-1">{category.shortName}</span>
-                        <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                          {category.snapshotCount} verified factory records
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {/* Always-on browse row — carries every crawl path the old
-              "prefer to browse" band had, and survives a cold/empty DB. */}
-          <div className="mt-10 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[13px]">
-            <Link
-              href={"/source-from-china" as never}
-              className="inline-flex items-center gap-1 text-foreground hover:underline"
-            >
-              Sourcing playbook
-              <ArrowUpRight size={13} />
+          <div className="flex shrink-0 flex-wrap gap-3">
+            <Link href="/rfq" className="inline-flex h-12 items-center gap-2 rounded-md bg-[#0a2a3a] px-6 text-sm font-semibold text-white hover:bg-[#12394b]">
+              Build an RFQ <ArrowRight size={15} />
             </Link>
-            <Link
-              href={"/suppliers?verified=1" as never}
-              className="inline-flex items-center gap-1 text-foreground hover:underline"
-            >
-              Verified suppliers ({verifiedSupplierCount.toLocaleString()})
-              <ArrowUpRight size={13} />
-            </Link>
-            <Link
-              href={"/standards" as never}
-              className="inline-flex items-center gap-1 text-foreground hover:underline"
-            >
-              Standards ({standardsCount.toLocaleString()})
-              <ArrowUpRight size={13} />
-            </Link>
-            <Link
-              href={"/materials" as never}
-              className="inline-flex items-center gap-1 text-foreground hover:underline"
-            >
-              Materials ({materialsCount.toLocaleString()})
-              <ArrowUpRight size={13} />
-            </Link>
-            <Link
-              href={"/papers" as never}
-              className="inline-flex items-center gap-1 text-foreground hover:underline"
-            >
-              Papers ({papersCount.toLocaleString()})
-              <ArrowUpRight size={13} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── Sourcing-desk escalation ─────────── */}
-      <section className="bg-foreground py-14 text-background sm:py-16">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-background/70">
-            READY TO RFQ?
-          </div>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Let a human take over.
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[14px] leading-relaxed text-background/80">
-            Our China desk is run by bilingual composites engineers
-            who&apos;ve walked these plant floors for a decade. Hand off the
-            RFQ — they chase the sample, translate the spec, run QA, and route
-            the payment, then ship as principal.
-          </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="mailto:f1frp2015@gmail.com"
-              className="inline-flex items-center gap-1.5 rounded-md bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background/90"
-            >
-              Email tech support
-              <ArrowRight size={14} />
-            </a>
-            <Link
-              href={"/rfq" as never}
-              className="inline-flex items-center gap-1.5 rounded-md border border-background/30 px-5 py-2.5 text-sm transition-colors hover:bg-background/10"
-            >
-              Submit a structured RFQ
-            </Link>
-            <Link
-              href={"/about" as never}
-              className="inline-flex items-center gap-1.5 text-sm text-background/70 transition-colors hover:text-background"
-            >
-              About F1 Composite
+            <Link href="/source-from-china" className="inline-flex h-12 items-center gap-2 rounded-md border border-[#7fa29d] bg-white/50 px-6 text-sm font-semibold text-[#143543] hover:bg-white">
+              See how sourcing works
             </Link>
           </div>
         </div>

@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { JsonLd } from "@/components/json-ld";
 import { TeamBlock } from "@/components/team-block";
 import { CONTACT } from "@/lib/contact";
 import { alternates } from "@/lib/seo";
@@ -169,79 +168,45 @@ export default async function AboutPage({
   );
 }
 
-// EN-side trust block: who you're buying from, registered identity, banking,
-// QA approach, contact. Inserted above the (auto-translated) generic body so
-// overseas buyers see proof of identity within the first viewport.
-//
-// TODO(user): supply ① company unified social credit code (USCC) for full
-// proof of identity ② a 12-15 sec factory walk-through video URL ③ 2-3
-// customer testimonial quotes (anonymized OK). Until then, fields read
-// "available on request".
+// EN-side identity block. getfrp is an independent team-run platform; do not
+// merge its identity with a supplier, exporter or unrelated legal entity.
 function EnglishTrustBlock() {
   return (
     <section className="mb-12 overflow-hidden rounded-xl border border-border/70">
-      <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Chongqing Yaoyi Advanced Materials Technology Co., Ltd.",
-          alternateName: ["F1 Composite", "getfrp"],
-          url: "https://getfrp.com",
-          foundingDate: "2015",
-          address: {
-            "@type": "PostalAddress",
-            addressCountry: "CN",
-            addressRegion: "Chongqing",
-          },
-          contactPoint: {
-            "@type": "ContactPoint",
-            contactType: "sales",
-            email: "f1frp2015@gmail.com",
-            availableLanguage: ["English", "Mandarin"],
-            areaServed: ["US", "DE", "FR", "GB", "IT", "ES", "NL", "PL", "AU", "CA"],
-          },
-        }}
-      />
       <div className="border-b border-border/70 bg-muted/30 px-6 py-5">
         <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          WHO YOU&apos;RE BUYING FROM
+          WHO RUNS GETFRP
         </div>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-          F1 Composite — China-based composites sourcing desk
+          getfrp team — independent FRP sourcing &amp; technical desk
         </h2>
         <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-          Operated by{" "}
-          <strong>
-            Chongqing Yaoyi Advanced Materials Technology Co., Ltd.
-          </strong>{" "}
-          (founded 2015), a Chongqing-registered exporter that has been
-          visiting Chinese FRP / GFRP / CFRP plants in person for a decade.
-          Our bilingual sourcing desk handles every overseas RFQ end-to-end —
-          composites engineers fluent in English and Mandarin, on the ground
-          in China. Your contract is with us as principal: we ship FOB/CIF to
-          your port, with pre-shipment QA and your duty exposure flagged up
-          front.
+          getfrp is operated by the getfrp team. It is not operated by or
+          affiliated with Chongqing Yaoyi Advanced Materials Technology Co.,
+          Ltd. We maintain the supplier, material and standards workspace,
+          help buyers structure RFQs, and identify the actual commercial
+          counterparty for each matched project before any order is placed.
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-px bg-border/70 sm:grid-cols-4">
         <TrustBlock
           Icon={Building2}
-          label="Legal entity"
-          value="Chongqing Yaoyi"
-          sub="USCC available on request"
+          label="Operating identity"
+          value="getfrp team"
+          sub="Independent platform team"
         />
         <TrustBlock
           Icon={Globe2}
-          label="Founded"
-          value="2015"
-          sub="10 years operating"
+          label="Coverage"
+          value="China FRP network"
+          sub="Product-focused sourcing"
         />
         <TrustBlock
           Icon={ShieldCheck}
-          label="Bank routing"
-          value="China Merchants Bank"
-          sub="USD T/T · L/C accepted"
+          label="Commercial route"
+          value="Named per RFQ"
+          sub="No hidden counterparty"
         />
         <TrustBlock
           Icon={FileCheck2}

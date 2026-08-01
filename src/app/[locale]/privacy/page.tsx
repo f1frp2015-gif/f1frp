@@ -20,7 +20,7 @@ export async function generateMetadata({
   };
 }
 
-const LAST_UPDATED = "2026-05-03";
+const LAST_UPDATED = "2026-07-31";
 
 export default async function PrivacyPage({
   params,
@@ -45,14 +45,12 @@ function PrivacyEn() {
     <div className="prose prose-sm dark:prose-invert max-w-none">
       <h1>Privacy Policy</h1>
       <p>
-        getfrp.com is operated by <strong>Chongqing Yaoyi Advanced Materials
-        Technology Co., Ltd.</strong> (&ldquo;F1 Composite&rdquo;,
-        &ldquo;we&rdquo;, &ldquo;our&rdquo;), a company registered in
-        Chongqing, People&apos;s Republic of China. This Privacy Policy
-        explains what personal data we collect when you use getfrp.com, why
-        we collect it, and the rights you have under the EU General Data
-        Protection Regulation (GDPR), the California Consumer Privacy Act
-        (CCPA), and the PRC Personal Information Protection Law (PIPL).
+        getfrp.com is operated by the <strong>getfrp team</strong>
+        (&ldquo;getfrp&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;). getfrp
+        is not operated by or affiliated with Chongqing Yaoyi Advanced
+        Materials Technology Co., Ltd. This Privacy Policy explains what
+        personal data we collect when you use getfrp.com, why we collect it,
+        and the rights available under applicable privacy law.
       </p>
 
       <h2>1. Data we collect</h2>
@@ -87,20 +85,18 @@ function PrivacyEn() {
 
       <h2>3. Where data is stored</h2>
       <p>
-        Application database: Neon Postgres, AWS region
-        ap-southeast-1 (Singapore). Static assets and edge cache: Vercel
-        (Frankfurt &amp; Washington D.C.). RFQ emails are sent via
-        transactional email and copied to our China sourcing desk.
+        Application data is stored with our contracted infrastructure
+        providers. Static assets and edge delivery use Vercel. RFQ emails are
+        sent through transactional email services and copied to the getfrp
+        sourcing mailbox.
       </p>
 
       <h2>4. International transfers</h2>
       <p>
-        Personal data submitted to getfrp may be transferred to the
-        People&apos;s Republic of China for the purpose of supplier
-        matching and RFQ routing. Such transfers rely on Standard
-        Contractual Clauses (EU SCCs) between F1 Composite (importer) and
-        the EU data subject (exporter), and on PIPL Art. 38 cross-border
-        transfer rules. Contact us for the relevant SCC schedule.
+        Personal data submitted with an RFQ may be transferred to service
+        providers or, with your instruction, matched suppliers in another
+        country. We apply the safeguards required by applicable law and share
+        only the information needed to handle the request.
       </p>
 
       <h2>5. Sharing with third parties</h2>
@@ -138,7 +134,7 @@ function PrivacyEn() {
 
       <h2>8. Contact</h2>
       <p>
-        Chongqing Yaoyi Advanced Materials Technology Co., Ltd.<br />
+        getfrp team<br />
         Attn: Data Protection contact<br />
         Email:{" "}
         <a href="mailto:f1frp2015@gmail.com">f1frp2015@gmail.com</a>

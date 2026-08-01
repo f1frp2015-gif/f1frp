@@ -1543,7 +1543,7 @@ export type NewQuoteLog = typeof quoteLogs.$inferInsert;
 // ═══════════════════════════════════════════
 // Sourcing Briefs — getfrp P0 采购台 handoff 落库(5 步终点)
 // 海外买家走完 Spec → Feasibility → Landed Cost → Compliance 后,点 "Get this
-// sourced" → 落一条结构化 brief + 通知曜一 ops 转人工 close。也是喂国内 S2 的
+// sourced" → 落一条结构化 brief + 通知 getfrp ops 转人工 follow-up。也是喂国内 S2 的
 // 需求情报源(买家真实在问什么)。各步结果用 jsonb snapshot 存,便于回放。
 // ═══════════════════════════════════════════
 export const sourcingBriefs = pgTable(

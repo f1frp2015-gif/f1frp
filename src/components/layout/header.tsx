@@ -22,7 +22,7 @@ function userInitial(user: { name: string | null; phone: string | null; email: s
   return "U";
 }
 
-function AuthButtons() {
+function AuthButtons({ compact = false }: { compact?: boolean }) {
   const { user, isLoaded, signOut } = useSession();
   const t = useTranslations("Nav");
   if (!isLoaded) return <div className="h-8 w-16" aria-hidden />;
@@ -48,9 +48,11 @@ function AuthButtons() {
             </span>
           )}
         </Link>
-        <Button variant="ghost" size="sm" onClick={() => signOut()}>
-          {t("signOut")}
-        </Button>
+        {!compact && (
+          <Button variant="ghost" size="sm" onClick={() => signOut()}>
+            {t("signOut")}
+          </Button>
+        )}
       </>
     );
   }
@@ -61,9 +63,11 @@ function AuthButtons() {
           {t("signIn")}
         </Button>
       </Link>
-      <Link href="/sign-up">
-        <Button size="sm">{t("signUp")}</Button>
-      </Link>
+      {!compact && (
+        <Link href="/sign-up">
+          <Button size="sm">{t("signUp")}</Button>
+        </Link>
+      )}
     </>
   );
 }
@@ -240,6 +244,29 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-px md:flex">
+          {showSourcing ? (
+            <>
+              {[
+                { href: "/suppliers", label: "Suppliers" },
+                { href: "/materials", label: "Materials" },
+                { href: "/standards", label: "Standards" },
+                { href: "/source-from-china", label: "Sourcing process" },
+                { href: "/ai", label: "Ask AI" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href as never}
+                  className={singleLinkClass(isActive(item.href))}
+                >
+                  {item.label}
+                  {isActive(item.href) && (
+                    <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-[#0b8179]" />
+                  )}
+                </Link>
+              ))}
+            </>
+          ) : (
+            <>
           {/* 资讯库 */}
           {showArticles && (
             <Link href="/articles" className={singleLinkClass(isActive("/articles"))}>
@@ -277,17 +304,6 @@ export function Header() {
             pathname={pathname}
           />
 
-          {showSourcing && (
-            <Link
-              href={"/source-from-china" as never}
-              className={[singleLinkClass(isActive("/source-from-china")), "font-medium"].join(" ")}
-            >
-              Source from China
-              {isActive("/source-from-china") && (
-                <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-foreground" />
-              )}
-            </Link>
-          )}
           {showOverseas && (
             <Link
               href={"/overseas" as never}
@@ -299,11 +315,20 @@ export function Header() {
               )}
             </Link>
           )}
+            </>
+          )}
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
           <LanguageSwitcher />
-          {showAuth && <AuthButtons />}
+          {showAuth && <AuthButtons compact={showSourcing} />}
+          {showSourcing && (
+            <Link href={"/rfq" as never}>
+              <Button size="sm" className="bg-[#0b756f] text-white hover:bg-[#09645f]">
+                Submit RFQ
+              </Button>
+            </Link>
+          )}
         </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
@@ -346,57 +371,85 @@ export function Header() {
                 </Link>
               )}
 
-              {/* 技术库 分组 */}
-              <div className="border-b py-2">
-                <div className="px-0 py-1 text-xs font-medium text-muted-foreground">
-                  {t("techLib")}
-                </div>
-                <div className="flex flex-col">
-                  {techItems.map((item) => (
+              {showSourcing ? (
+                <>
+                  {[
+                    { href: "/materials", label: "Materials" },
+                    { href: "/standards", label: "Standards" },
+                    { href: "/ai", label: "Ask AI" },
+                  ].map((item) => (
                     <Link
                       key={item.href}
-                      href={item.href}
+                      href={item.href as never}
                       onClick={() => setOpen(false)}
-                      className="py-2 pl-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="border-b py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {item.label}
                     </Link>
                   ))}
-                </div>
-              </div>
+                </>
+              ) : (
+                <>
+                  {/* 技术库 分组 */}
+                  <div className="border-b py-2">
+                    <div className="px-0 py-1 text-xs font-medium text-muted-foreground">
+                      {t("techLib")}
+                    </div>
+                    <div className="flex flex-col">
+                      {techItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setOpen(false)}
+                          className="py-2 pl-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
 
-              {/* AI 分组 */}
-              <div className="border-b py-2">
-                <div className="px-0 py-1 text-xs font-medium text-muted-foreground">
-                  {t("ai")}
-                </div>
-                <div className="flex flex-col">
-                  {aiItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center justify-between gap-2 py-2 pl-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      <span>{item.label}</span>
-                      {item.isNew && (
-                        <span className="rounded bg-foreground px-1.5 py-0.5 text-[9px] font-semibold leading-none text-background">
-                          NEW
-                        </span>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-              </div>
+                  {/* AI 分组 */}
+                  <div className="border-b py-2">
+                    <div className="px-0 py-1 text-xs font-medium text-muted-foreground">
+                      {t("ai")}
+                    </div>
+                    <div className="flex flex-col">
+                      {aiItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setOpen(false)}
+                          className="flex items-center justify-between gap-2 py-2 pl-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <span>{item.label}</span>
+                          {item.isNew && (
+                            <span className="rounded bg-foreground px-1.5 py-0.5 text-[9px] font-semibold leading-none text-background">
+                              NEW
+                            </span>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {showSourcing && (
-                <Link
-                  href={"/source-from-china" as never}
-                  onClick={() => setOpen(false)}
-                  className="border-b py-3 text-sm font-medium text-foreground transition-colors hover:text-foreground"
-                >
-                  Source from China
-                </Link>
+                <>
+                  <Link
+                    href={"/source-from-china" as never}
+                    onClick={() => setOpen(false)}
+                    className="border-b py-3 text-sm font-medium text-foreground transition-colors hover:text-foreground"
+                  >
+                    Sourcing process
+                  </Link>
+                  <Link href={"/rfq" as never} onClick={() => setOpen(false)} className="mt-5">
+                    <Button className="w-full bg-[#0b756f] text-white hover:bg-[#09645f]">
+                      Submit RFQ
+                    </Button>
+                  </Link>
+                </>
               )}
               {showOverseas && (
                 <Link

@@ -1,4 +1,4 @@
-// Catalog of standard pultruded FRP profile sizes = F1 Composite's REAL
+// Catalog of standard pultruded FRP profile sizes used by getfrp's
 // published product range, with REAL vendor-published mass per metre (米重) and
 // grade EN 13706 E23, across all 5 shapes the mechanics engine supports
 // (i-beam / channel / angle / square-tube / round-tube). Data source:
@@ -11,7 +11,7 @@
 // properties (Ix, Wx) are ALWAYS engine-computed by profile-mechanics and are a
 // PRELIMINARY screen only — never presented as datasheet section properties.
 // Mirrors f1composite's own "we deliberately do not publish back-calculated
-// Ix/Sx" stance. F1 Composite is the named principal on getfrp, so publishing
+// Ix/Sx" stance. The catalog supports preliminary engineering comparison; publishing
 // F1's own specs here is not an anonymization breach (that rule protects the
 // upstream Chinese factories, not F1's own catalog).
 //

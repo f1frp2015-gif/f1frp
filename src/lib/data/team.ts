@@ -42,7 +42,7 @@ export const team: TeamMember[] = [
     role: "Founder & sourcing lead",
     location: "Chongqing, CN (UTC+8)",
     languages: ["Mandarin (native)", "English (working)"],
-    bio: "Composites industry since 2014. Marketing VP at a Chongqing-based FRP manufacturer (parent industry experience). Founded F1 Composite (operated by Chongqing Yaoyi Advanced Materials Technology Co., Ltd.) in 2015 to handle overseas sourcing for Chinese FRP plants.",
+    bio: "Composites industry experience spanning supplier development, technical content and overseas sourcing. Leads getfrp's independent China FRP supplier network and buyer-facing sourcing workflow.",
   },
   {
     id: "sourcing-engineer",

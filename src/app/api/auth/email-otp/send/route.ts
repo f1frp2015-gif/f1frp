@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     if (process.env.RESEND_API_KEY) {
       const sent = await sendEmail({
         to: email,
-        subject: `${code} is your F1 Composite sign-in code`,
+        subject: `${code} is your getfrp sign-in code`,
         html: otpEmailHtml(code),
         cc: [], // never CC ops on an auth code
       });
@@ -86,7 +86,7 @@ function otpEmailHtml(code: string): string {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head>
 <body style="font-family:-apple-system,Segoe UI,sans-serif;max-width:480px;margin:auto;padding:32px;color:#1a1a1a">
   <h2 style="margin:0 0 8px">Your sign-in code</h2>
-  <p style="color:#555;margin:0 0 20px">Enter this code to sign in to F1 Composite. It expires in 5 minutes.</p>
+  <p style="color:#555;margin:0 0 20px">Enter this code to sign in to getfrp. It expires in 5 minutes.</p>
   <div style="font-size:32px;font-weight:700;letter-spacing:8px;background:#f5f5f5;border-radius:8px;padding:16px 0;text-align:center">${code}</div>
   <p style="color:#888;font-size:12px;margin-top:24px">If you didn't request this, you can safely ignore this email.</p>
 </body></html>`;

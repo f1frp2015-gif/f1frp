@@ -20,7 +20,7 @@ export async function generateMetadata({
   };
 }
 
-const LAST_UPDATED = "2026-05-03";
+const LAST_UPDATED = "2026-07-31";
 
 export default async function TermsPage({
   params,
@@ -46,9 +46,10 @@ function TermsEn() {
       <h1>Terms of Use</h1>
       <p>
         These Terms govern your use of getfrp.com (the &ldquo;Service&rdquo;),
-        operated by Chongqing Yaoyi Advanced Materials Technology Co., Ltd.
-        (&ldquo;F1 Composite&rdquo;). By using the Service you agree to
-        these Terms.
+        operated by the getfrp team (&ldquo;getfrp&rdquo;, &ldquo;we&rdquo;,
+        &ldquo;our&rdquo;). getfrp is not operated by or affiliated with
+        Chongqing Yaoyi Advanced Materials Technology Co., Ltd. By using the
+        Service you agree to these Terms.
       </p>
 
       <h2>1. The Service</h2>
@@ -63,9 +64,10 @@ function TermsEn() {
       <p>
         Quotes returned through getfrp are non-binding indications until a
         supply contract is signed between you and the relevant supplier
-        (or between you and F1 Composite where F1 Composite acts as
-        exporter of record). Specifications, prices, and lead times in
-        material datasheets, AI answers, or supplier listings are
+        or another commercial counterparty identified in writing for the
+        specific RFQ. getfrp is not the seller or exporter unless a separate
+        signed agreement expressly says so. Specifications, prices, and lead
+        times in material datasheets, AI answers, or supplier listings are
         informational and may change.
       </p>
 
@@ -73,9 +75,9 @@ function TermsEn() {
       <p>
         The AI assistant returns best-effort technical information and
         cites the underlying source where possible. It is not a
-        substitute for qualified engineering judgement. F1 Composite
-        accepts no liability for design, regulatory, or safety decisions
-        made on the basis of AI output.
+        substitute for qualified engineering judgement. getfrp accepts no
+        liability for design, regulatory, or safety decisions made on the
+        basis of AI output.
       </p>
 
       <h2>4. Acceptable use</h2>
@@ -87,29 +89,29 @@ function TermsEn() {
 
       <h2>5. Intellectual property</h2>
       <p>
-        Curated databases, written commentary, the AI prompt stack, and
-        the visual design are the property of F1 Composite. Standards
-        text, papers, and patents indexed on the platform remain the
-        property of their respective rights holders; we publish bibliographic
-        metadata, structured highlights, and DOI / publication number
-        references to enable lookup.
+        Unless otherwise stated, getfrp&apos;s original database structure,
+        written commentary, AI prompt stack, and visual design are maintained
+        by the getfrp team. Standards text, papers, patents and supplier-owned
+        materials remain the property of their respective rights holders; we
+        publish bibliographic metadata, structured highlights, and DOI or
+        publication-number references to enable lookup.
       </p>
 
       <h2>6. Limitation of liability</h2>
       <p>
-        To the maximum extent permitted by law, F1 Composite&apos;s total
-        liability arising from your use of the Service is limited to the
-        fees you have paid to F1 Composite in the 12 months preceding the
+        To the maximum extent permitted by applicable law, getfrp&apos;s total
+        liability arising from your use of the Service is limited to the fees
+        you have paid directly for the Service in the 12 months preceding the
         claim. We are not liable for indirect, incidental, or consequential
         damages.
       </p>
 
-      <h2>7. Governing law &amp; venue</h2>
+      <h2>7. Applicable law and transactions</h2>
       <p>
-        These Terms are governed by the laws of the People&apos;s Republic of
-        China. Disputes shall be submitted to the China International
-        Economic and Trade Arbitration Commission (CIETAC) for arbitration
-        in Beijing.
+        These platform Terms are subject to applicable law. Any purchase,
+        inspection, logistics or supply transaction is governed by the signed
+        agreement with the commercial counterparty identified for that project,
+        including the governing-law and dispute clauses stated there.
       </p>
 
       <h2>8. Contact</h2>

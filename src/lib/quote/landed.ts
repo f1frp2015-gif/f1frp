@@ -2,7 +2,7 @@
 //
 // 在确定性出口成本阶梯上,从 ex-works 含税 ¥/kg 一路叠到 USD FOB / CIF / DDP 区间。
 // 口径对齐出海手册 / `f1-export-quote` skill:
-//   ex-works 含税 ¥/kg → 退税抵 VAT → 曜一加价 → 汇率→USD → +港杂=FOB
+//   ex-works 含税 ¥/kg → 退税抵 VAT → sourcing/export handling → 汇率→USD → +港杂=FOB
 //     → +海运+保险=CIF → +进口关税(HS×目的国)+清关 = DDP
 // 复用 prices.ts 常数(VAT / OVERSEAS_MARKUP / USD_CNY_RATE / QUOTE_BAND),
 // 关税/退税/运费/兜底单价走 data/tariff.ts。**纯函数,不碰 DB / 不调 LLM**
@@ -79,7 +79,7 @@ export function computeLanded(
   // 1) 退税抵 VAT:出口退税抵掉部分进项 VAT,降低有效成本。
   const rebate = exportRebateRate(hs);
   const netCny = exWorks * (1 - rebate / (1 + VAT));
-  // 2) 曜一加价(出口代理服务 + margin),3) 汇率 → USD。
+  // 2) sourcing/export handling + margin, 3) 汇率 → USD。
   const exwUsd = (netCny * (1 + OVERSEAS_MARKUP)) / USD_CNY_RATE;
   // 4) FOB = ex-works USD + 出口港杂。
   const fob = exwUsd + PORT_HANDLING_USD_PER_KG;
@@ -129,9 +129,9 @@ export function computeLanded(
     confidence,
     basis:
       `ex-works 含税 ¥${round2(exWorks)}/kg(${input.exWorksCnyPerKg ? "调用方给定" : `${cat} 类目兜底参考`})` +
-      ` → 退税 ${round0(rebate * 100)}% 抵 VAT → 曜一加价 ${round0(OVERSEAS_MARKUP * 100)}% → 汇率 ¥${USD_CNY_RATE}/$ → +港杂(FOB)` +
+      ` → 退税 ${round0(rebate * 100)}% 抵 VAT → sourcing/export handling ${round0(OVERSEAS_MARKUP * 100)}% → 汇率 ¥${USD_CNY_RATE}/$ → +港杂(FOB)` +
       ` → +海运$${freight}/kg+保险(CIF) → +关税 ${round0(duty * 100)}%(HS ${hs} · ${region})+清关 = DDP。区间 ±${round0(band * 100)}%。`,
     caveat:
-      "Indicative landed-cost RANGE, not a quote. HS/duty/freight/ex-works are P0 reference values. Where trade-remedy measures may apply, an INDICATIVE AD/CVD / Section-301 exposure CEILING is included (see ddpWithRemedyUsdPerKg + remedyWarning) — but whether it actually applies, and the exact rate, depend on per-order HS classification + country of origin. Still excludes origin add-ons, US inland delivery, and any certification premium. Exact USD PI + final duty are confirmed by the F1 Composite (曜一) team after spec lock + HS confirmation.",
+      "Indicative landed-cost RANGE, not a quote. HS/duty/freight/ex-works are P0 reference values. Where trade-remedy measures may apply, an INDICATIVE AD/CVD / Section-301 exposure CEILING is included (see ddpWithRemedyUsdPerKg + remedyWarning) — but whether it actually applies, and the exact rate, depend on per-order HS classification + country of origin. Still excludes origin add-ons, US inland delivery, and any certification premium. Exact pricing and final duty must be confirmed after spec lock, supplier selection and HS review.",
   };
 }
