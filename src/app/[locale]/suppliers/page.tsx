@@ -11,6 +11,8 @@ import { JsonLd } from "@/components/json-ld";
 import { AskAiButton } from "@/components/ask-ai-button";
 import { alternates } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
+import { SUPPLIER_CATEGORY_PAGES } from "@/lib/data/supplier-category-pages";
+import { ArrowRight } from "lucide-react";
 export const revalidate = 3600;
 
 const PINNED_SUPPLIER_ID = "sup-yaoyi";
@@ -26,10 +28,10 @@ export async function generateMetadata({
     return {
       title: {
         absolute:
-          "FRP & Composite Suppliers China — Verified Factory Directory (199+ Factories) | getfrp",
+          "FRP & Composite Suppliers China — Manufacturer Directory | getfrp",
       },
       description:
-        "Browse verified China FRP suppliers by grating, pultruded profile, fiberglass sheet, rebar, pipe, SMC/BMC, resin and fiber capability.",
+        "Browse public China FRP supplier profiles by grating, pultruded profile, fiberglass sheet, rebar, pipe, SMC/BMC, resin and fiber capability.",
       alternates: alternates("/suppliers"),
     };
   }
@@ -149,6 +151,39 @@ export default async function SuppliersPage({
           )}
         </div>
       </div>
+
+      {isEn && (
+        <section id="product-categories" className="mb-10 scroll-mt-20 border-y border-border/70 py-8">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                BROWSE BY PRODUCT
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                Start with the part or material you need
+              </h2>
+            </div>
+            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Product pages apply capability-specific filters and buying checks before you compare company profiles.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-px overflow-hidden rounded-lg border border-border/70 bg-border/70 sm:grid-cols-2 lg:grid-cols-4">
+            {SUPPLIER_CATEGORY_PAGES.map((category) => (
+              <Link
+                key={category.slug}
+                href={`/suppliers/${category.slug}` as "/suppliers/[id]"}
+                className="group flex min-h-28 flex-col justify-between bg-background p-4 transition-colors hover:bg-muted/40"
+              >
+                <span className="font-semibold">{category.shortName}</span>
+                <span className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  Compare capabilities
+                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <SuppliersClient
         suppliers={serialized}

@@ -7,6 +7,11 @@ import { MaterialsClient } from "./materials-client";
 import { materialCategories } from "@/lib/data/materials";
 import { JsonLd } from "@/components/json-ld";
 import { alternates } from "@/lib/seo";
+import { CURRENT_SITE_URL } from "@/lib/sites";
+import {
+  dedupeEnglishMaterials,
+  isIndexableEnglishMaterial,
+} from "@/lib/material-publication";
 
 export const revalidate = 3600;
 
@@ -53,15 +58,22 @@ export default async function MaterialsPage({
       ),
     )
     .orderBy(asc(materialsTable.category), asc(materialsTable.name))
-    .limit(500);
+    .limit(isEn ? 5000 : 500);
+
+  // Keep the underlying data intact. The English procurement product only
+  // publishes records with a useful specification body, then collapses exact
+  // brand/grade duplicates before rendering and indexing.
+  const publicRows = isEn
+    ? dedupeEnglishMaterials(rows.filter(isIndexableEnglishMaterial)).slice(0, 1000)
+    : rows;
 
   const inLanguage = locale === "en" ? "en" : "zh-CN";
   const t = await getTranslations({ locale, namespace: "Materials" });
-  const top20 = rows.slice(0, 20);
+  const top20 = publicRows.slice(0, 20);
   const materialsItemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    url: `https://f1frp.com/${locale}/materials`,
+    url: `${CURRENT_SITE_URL}/materials`,
     inLanguage,
     name: t("metaTitle"),
     numberOfItems: top20.length,
@@ -70,17 +82,19 @@ export default async function MaterialsPage({
       position: i + 1,
       item: {
         "@type": "Product",
-        name: r.name,
-        alternateName: r.nameEn ?? undefined,
-        description: r.description ?? undefined,
-        url: `https://f1frp.com/${locale}/materials/${r.id}`,
-        brand: r.brand ? { "@type": "Brand", name: r.brand } : undefined,
+        name: isEn ? r.nameEn ?? r.name : r.name,
+        alternateName: isEn ? r.name : r.nameEn ?? undefined,
+        description: isEn ? r.descriptionEn ?? undefined : r.description ?? undefined,
+        url: `${CURRENT_SITE_URL}/materials/${encodeURIComponent(r.id)}`,
+        brand: (isEn ? r.brandEn : r.brand)
+          ? { "@type": "Brand", name: (isEn ? r.brandEn : r.brand) as string }
+          : undefined,
       },
     })),
   };
 
   // EN 侧已经在 SQL 层过滤掉缺英文的行, 此处不再向中文字段 fallback。
-  const serialized = rows.map((r) => ({
+  const serialized = publicRows.map((r) => ({
     id: r.id,
     name: isEn ? r.nameEn ?? "" : r.name,
     nameEn: r.nameEn ?? "",

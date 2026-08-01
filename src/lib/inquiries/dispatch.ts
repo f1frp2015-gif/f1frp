@@ -17,6 +17,7 @@
 import { db } from "@/lib/db";
 import { supplierListings, enterprises, rfqDispatches } from "@/lib/db/schema";
 import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { CURRENT_SITE_URL } from "@/lib/sites";
 
 export interface RfqPayload {
   id: string;
@@ -31,6 +32,14 @@ export interface RfqPayload {
   extraRequirements?: string | null;
   category: string;
   targetSupplierId?: string | null;
+  destinationCountry?: string | null;
+  deliveryDate?: string | null;
+  incoterm?: string | null;
+  standards?: string | null;
+  targetPrice?: string | null;
+  sampleRequired?: boolean;
+  ndaRequired?: boolean;
+  attachment?: { filename: string; content: string };
 }
 
 const FALLBACK_RECIPIENT = "f1frp2015@gmail.com";
@@ -51,6 +60,11 @@ const CATEGORY_TO_SUPPLIER: Record<string, string[]> = {
   gelcoat: ["resin"],
   auxiliary: ["additive", "resin"],
   composite: ["manufacturer"],
+  raw: ["resin", "fiber", "additive"],
+  equipment: ["equipment"],
+  tooling: ["tooling"],
+  molds: ["mold"],
+  finished: ["manufacturer"],
 };
 
 interface MatchedSupplier {
@@ -199,9 +213,10 @@ export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
     `[dispatch] rfq=${rfq.id} target=${rfq.targetSupplierId ?? "auto"} cats=${supplierCats.join(",")} matched=${matches.length} → recipients=${recipients.length}`,
   );
 
+  const subjectProduct = rfq.materialName.replace(/[\r\n]+/g, " ").slice(0, 150);
   const subject = targetSupplierName
-    ? `New supplier inquiry for ${targetSupplierName} — ${rfq.materialName}`
-    : `New RFQ from f1frp.com — ${rfq.materialName}`;
+    ? `New supplier inquiry for ${targetSupplierName} — ${subjectProduct}`
+    : `New RFQ via GetFRP — ${subjectProduct}`;
   const html = buildEmailHtml(rfq, targetSupplierName);
 
   // 3. Dispatch + log each
@@ -222,8 +237,10 @@ export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
             // 收件人若已是 f1frp2015 fallback，避免重复，把 CC 中相同地址过滤掉
             to: r.email,
             cc: CC_OPS.filter((c) => c.toLowerCase() !== r.email.toLowerCase()),
+            reply_to: rfq.email,
             subject,
             html,
+            attachments: rfq.attachment ? [rfq.attachment] : undefined,
           }),
         });
         if (res.ok) {
@@ -263,56 +280,80 @@ export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
   }
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function formatValue(value: string): string {
+  return escapeHtml(value).replaceAll("\n", "<br>");
+}
+
 function buildEmailHtml(rfq: RfqPayload, targetSupplierName: string | null): string {
-  const materialUrl = `https://f1frp.com/zh/materials/${rfq.materialId}`;
+  const isMaterialInquiry =
+    rfq.materialId !== "general-inquiry" &&
+    !rfq.materialId.startsWith("supplier:");
+  const materialUrl = isMaterialInquiry
+    ? `${CURRENT_SITE_URL}/materials/${encodeURIComponent(rfq.materialId)}`
+    : null;
+  const rows: Array<[string, string | null | undefined]> = [
+    ["指定供应商 / Target supplier", targetSupplierName],
+    ["产品 / Product", rfq.materialName],
+    ["公司 / Company", rfq.company],
+    ["联系人 / Contact", rfq.name],
+    ["邮箱 / Email", rfq.email],
+    ["电话 / Phone", rfq.phone],
+    ["目的国 / Destination", rfq.destinationCountry],
+    ["数量 / Quantity", rfq.quantity],
+    ["应用场景 / Application", rfq.application],
+    ["标准与认证 / Standards", rfq.standards],
+    ["交期 / Delivery date", rfq.deliveryDate],
+    ["Incoterm", rfq.incoterm],
+    ["目标价 / Target price", rfq.targetPrice],
+    ["样品 / Sample", rfq.sampleRequired ? "Required" : null],
+    ["NDA", rfq.ndaRequired ? "Requested before technical-file release" : null],
+    ["附件 / Attachment", rfq.attachment?.filename],
+    ["附加要求 / Extra", rfq.extraRequirements],
+  ];
+  const tableRows = rows
+    .filter((row): row is [string, string] => Boolean(row[1]))
+    .map(
+      ([label, value], index) => `
+    <tr${index % 2 ? ' style="background:#f9f9f9"' : ""}>
+      <td style="padding:8px;border:1px solid #ddd">${escapeHtml(label)}</td>
+      <td style="padding:8px;border:1px solid #ddd">${formatValue(value)}</td>
+    </tr>`,
+    )
+    .join("");
   return `
 <!DOCTYPE html>
 <html lang="zh">
 <head><meta charset="UTF-8"><title>New RFQ</title></head>
 <body style="font-family:sans-serif;max-width:600px;margin:auto;padding:24px;color:#1a1a1a">
-  <h2 style="color:#0070f3">新询价单 / New RFQ</h2>
-  <p>您好，f1frp.com 收到一份关于 <strong>${rfq.materialName}</strong> 的询价单。</p>
-  <p>Hello, a new RFQ for <strong>${rfq.materialName}</strong> has been submitted on f1frp.com.</p>
+  <h2 style="color:#0b756f">新询价单 / New RFQ</h2>
+  <p>您好，GetFRP 收到一份关于 <strong>${escapeHtml(rfq.materialName)}</strong> 的询价单。</p>
+  <p>Hello, a new RFQ for <strong>${escapeHtml(rfq.materialName)}</strong> has been submitted through GetFRP.</p>
 
   <table style="width:100%;border-collapse:collapse;margin-top:16px">
     <tr style="background:#f5f5f5">
       <th style="padding:8px;text-align:left;border:1px solid #ddd">字段 / Field</th>
       <th style="padding:8px;text-align:left;border:1px solid #ddd">内容 / Value</th>
     </tr>
-    ${targetSupplierName ? `<tr><td style="padding:8px;border:1px solid #ddd">指定供应商 / Target supplier</td><td style="padding:8px;border:1px solid #ddd">${targetSupplierName}</td></tr>` : ""}
-    <tr>
-      <td style="padding:8px;border:1px solid #ddd">材料 / Material</td>
-      <td style="padding:8px;border:1px solid #ddd"><a href="${materialUrl}">${rfq.materialName}</a></td>
-    </tr>
-    <tr style="background:#f9f9f9">
-      <td style="padding:8px;border:1px solid #ddd">公司 / Company</td>
-      <td style="padding:8px;border:1px solid #ddd">${rfq.company}</td>
-    </tr>
-    <tr>
-      <td style="padding:8px;border:1px solid #ddd">联系人 / Contact</td>
-      <td style="padding:8px;border:1px solid #ddd">${rfq.name}</td>
-    </tr>
-    <tr style="background:#f9f9f9">
-      <td style="padding:8px;border:1px solid #ddd">邮箱 / Email</td>
-      <td style="padding:8px;border:1px solid #ddd"><a href="mailto:${rfq.email}">${rfq.email}</a></td>
-    </tr>
-    ${rfq.phone ? `<tr><td style="padding:8px;border:1px solid #ddd">电话 / Phone</td><td style="padding:8px;border:1px solid #ddd">${rfq.phone}</td></tr>` : ""}
-    <tr style="background:#f9f9f9">
-      <td style="padding:8px;border:1px solid #ddd">数量 / Quantity</td>
-      <td style="padding:8px;border:1px solid #ddd">${rfq.quantity}</td>
-    </tr>
-    ${rfq.application ? `<tr><td style="padding:8px;border:1px solid #ddd">应用场景 / Application</td><td style="padding:8px;border:1px solid #ddd">${rfq.application}</td></tr>` : ""}
-    ${rfq.extraRequirements ? `<tr style="background:#f9f9f9"><td style="padding:8px;border:1px solid #ddd">附加要求 / Extra</td><td style="padding:8px;border:1px solid #ddd">${rfq.extraRequirements}</td></tr>` : ""}
+    ${tableRows}
   </table>
 
-  <p style="margin-top:24px">
-    <a href="${materialUrl}" style="display:inline-block;padding:10px 20px;background:#0070f3;color:#fff;border-radius:6px;text-decoration:none">
+  ${materialUrl ? `<p style="margin-top:24px">
+    <a href="${materialUrl}" style="display:inline-block;padding:10px 20px;background:#0b756f;color:#fff;border-radius:6px;text-decoration:none">
       查看材料详情 / View Material
     </a>
-  </p>
+  </p>` : ""}
   <p style="color:#888;font-size:12px;margin-top:32px">
-    此邮件由 f1frp.com 自动发出。如需回复，请直接回复采购方邮箱。<br>
-    Sent by f1frp.com. Reply directly to the buyer&apos;s email.
+    此邮件由 GetFRP 自动发出。直接回复即可联系采购方。<br>
+    Sent by GetFRP. Reply to this email to contact the buyer.
   </p>
 </body>
 </html>

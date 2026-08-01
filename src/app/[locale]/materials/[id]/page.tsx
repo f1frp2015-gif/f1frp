@@ -36,6 +36,7 @@ import { AskAiButton } from "@/components/ask-ai-button";
 import { resolveViewer, isSaved } from "@/lib/saved";
 import { alternates, og } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
+import { isIndexableEnglishMaterial } from "@/lib/material-publication";
 
 export const revalidate = 3600;
 
@@ -207,10 +208,11 @@ export async function generateMetadata({
   const apps = (isEn ? m.applicationsEn : m.applications) ?? [];
   const props = (isEn ? m.propertiesEn : m.properties) ?? null;
   const rawDesc = ((isEn ? m.descriptionEn : m.description) ?? "").trim();
-  const hasBody =
-    rawDesc !== "" ||
-    (Array.isArray(apps) && apps.length > 0) ||
-    (props != null && Object.keys(props as Record<string, unknown>).length > 0);
+  const hasBody = isEn
+    ? isIndexableEnglishMaterial(m)
+    : rawDesc !== "" ||
+      (Array.isArray(apps) && apps.length > 0) ||
+      (props != null && Object.keys(props as Record<string, unknown>).length > 0);
 
   const description =
     rawDesc ||

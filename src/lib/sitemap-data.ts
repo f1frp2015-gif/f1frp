@@ -33,6 +33,10 @@ import { allComboSlugs } from "@/lib/data/matrix";
 import { GB_STANDARDS_EN } from "@/lib/data/gb-standards-en";
 import { SUPPLIER_CATEGORY_SLUGS } from "@/lib/data/supplier-category-pages";
 import { SUPPLIER_REGION_SLUGS } from "@/lib/data/supplier-region-pages";
+import {
+  dedupeEnglishMaterials,
+  isIndexableEnglishMaterial,
+} from "@/lib/material-publication";
 
 export type SitemapType =
   | "core"
@@ -97,7 +101,7 @@ type StaticRoute = {
 
 const staticRoutes: StaticRoute[] = [
   { path: "/", changeFrequency: "daily", priority: 1.0 },
-  { path: "/materials", changeFrequency: "daily", priority: 0.9 },
+  { path: "/materials", changeFrequency: "weekly", priority: 0.6 },
   { path: "/standards", changeFrequency: "weekly", priority: 0.8 },
   { path: "/papers", changeFrequency: "daily", priority: 0.8 },
   { path: "/patents", changeFrequency: "weekly", priority: 0.7 },
@@ -187,17 +191,25 @@ export async function buildSitemapEntries(
         db
           .select({
             id: materials.id,
+            status: materials.status,
+            category: materials.category,
             nameEn: materials.nameEn,
+            brandEn: materials.brandEn,
+            modelEn: materials.modelEn,
+            descriptionEn: materials.descriptionEn,
+            propertiesEn: materials.propertiesEn,
+            applicationsEn: materials.applicationsEn,
             updatedAt: materials.updatedAt,
           })
           .from(materials)
           .limit(MAX_PER_SITEMAP),
-      )) as Array<{ id: string; nameEn: string | null; updatedAt: Date | null }>;
-      return rows
-        .filter((r) =>
-          isEn ? isAsciiPath(r.id) && (r.nameEn ?? "").trim() !== "" : true,
-        )
-        .map((r) => toEntry(`/materials/${r.id}`, r.updatedAt, 0.6, now));
+      ));
+      const publishedRows = isEn
+        ? dedupeEnglishMaterials(rows.filter(isIndexableEnglishMaterial))
+        : rows.filter((row) => row.status === "verified");
+      return publishedRows.map((r) =>
+        toEntry(`/materials/${r.id}`, r.updatedAt, 0.45, now),
+      );
     }
 
     case "papers": {

@@ -11,7 +11,6 @@ export type SupplierRegionPage = {
   slug: SupplierRegionSlug;
   name: string;
   provinceToken: string;
-  snapshotCount: number;
   summary: string;
   overview: string[];
   categoryFocus: Array<{
@@ -27,7 +26,6 @@ export const SUPPLIER_REGION_PAGES: SupplierRegionPage[] = [
     slug: "jiangsu",
     name: "Jiangsu",
     provinceToken: "江苏",
-    snapshotCount: 42,
     summary:
       "Compare verified FRP and composite manufacturers in Jiangsu, China by resin, pultrusion, grating, sheet and export documentation capability.",
     overview: [
@@ -51,7 +49,6 @@ export const SUPPLIER_REGION_PAGES: SupplierRegionPage[] = [
     slug: "shandong",
     name: "Shandong",
     provinceToken: "山东",
-    snapshotCount: 31,
     summary:
       "Browse verified Shandong FRP manufacturers and reinforcement suppliers for pipe, profiles, rebar, fiber and industrial composite applications.",
     overview: [
@@ -75,7 +72,6 @@ export const SUPPLIER_REGION_PAGES: SupplierRegionPage[] = [
     slug: "zhejiang",
     name: "Zhejiang",
     provinceToken: "浙江",
-    snapshotCount: 28,
     summary:
       "Find verified Zhejiang FRP and composite manufacturers for profiles, sheets, fiber conversion, gelcoat and engineered components near eastern China export routes.",
     overview: [
@@ -99,7 +95,6 @@ export const SUPPLIER_REGION_PAGES: SupplierRegionPage[] = [
     slug: "guangdong",
     name: "Guangdong",
     provinceToken: "广东",
-    snapshotCount: 24,
     summary:
       "Compare verified Guangdong FRP suppliers for electrical, automotive, architectural, marine and export-oriented composite applications.",
     overview: [
@@ -123,7 +118,6 @@ export const SUPPLIER_REGION_PAGES: SupplierRegionPage[] = [
     slug: "hebei",
     name: "Hebei",
     provinceToken: "河北",
-    snapshotCount: 22,
     summary:
       "Browse verified Hebei FRP manufacturers for filament-wound pipe, tanks, grating, anti-corrosion equipment and industrial composite systems.",
     overview: [

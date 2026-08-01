@@ -273,13 +273,12 @@ export async function HomePageEnglish() {
       getSessionUid(),
     ]);
 
-  // Static category pages are a durable fallback when the live database is
-  // unavailable during a cold build. These baselines match the published
-  // library copy elsewhere on the site; live counts replace them when present.
-  const supplierRecords = verifiedCount || 199;
-  const materialRecords = materialsCount || 4_300;
-  const standardRecords = standardsCount || 95;
-  const paperRecords = papersCount || 698;
+  const supplierRecords = verifiedCount;
+  const materialRecords = materialsCount;
+  const standardRecords = standardsCount;
+  const paperRecords = papersCount;
+  const formatCount = (count: number) =>
+    count > 0 ? count.toLocaleString() : "Live";
 
   return (
     <>
@@ -429,9 +428,9 @@ export async function HomePageEnglish() {
 
         <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-[#071b2a]/95 backdrop-blur">
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-5 px-4 py-5 sm:grid-cols-4 sm:px-6">
-            <Metric value={`${supplierRecords}+`} label="verified network records" />
-            <Metric value={`${standardRecords.toLocaleString()}+`} label="standards indexed" />
-            <Metric value={`${materialRecords.toLocaleString()}+`} label="materials mapped" />
+            <Metric value={formatCount(supplierRecords)} label="verified supplier profiles" />
+            <Metric value={formatCount(standardRecords)} label="standards indexed" />
+            <Metric value={formatCount(materialRecords)} label="materials mapped" />
             <Metric value="4" label="core production clusters" />
           </div>
         </div>
@@ -497,8 +496,7 @@ export async function HomePageEnglish() {
                     <p className="mt-2 text-[12px] text-[#6d7e87]">{meta.description}</p>
                     <div className="mt-7 flex items-center gap-2 border-t border-[#e2e8ea] pt-4 text-[11px] text-[#6c7c85]">
                       <Building2 size={13} className="text-[#0b857d]" />
-                      <strong className="font-mono text-[#163343]">{category.snapshotCount}</strong>
-                      verified factory records
+                      Public profiles · capability filters · RFQ
                     </div>
                   </div>
                 </Link>
@@ -596,8 +594,8 @@ export async function HomePageEnglish() {
               />
               <div className="mt-8 flex items-start gap-3 border-l-2 border-[#e5ad45] bg-white p-5 text-[13px] leading-6 text-[#5d707b] shadow-sm">
                 <MapPin size={17} className="mt-0.5 shrink-0 text-[#b97817]" />
-                Factory identity stays private during the first capability
-                comparison. Current evidence is released with the matched RFQ.
+                Public company profiles support first-pass comparison. Current
+                product evidence is rechecked against the matched RFQ.
               </div>
             </div>
 
@@ -734,11 +732,11 @@ export async function HomePageEnglish() {
             />
             <div className="flex gap-7">
               <div>
-                <div className="font-mono text-xl font-semibold text-[#0c2d3d]">{materialRecords.toLocaleString()}+</div>
+                <div className="font-mono text-xl font-semibold text-[#0c2d3d]">{formatCount(materialRecords)}</div>
                 <div className="text-[10px] uppercase tracking-wider text-[#7b8c95]">materials</div>
               </div>
               <div>
-                <div className="font-mono text-xl font-semibold text-[#0c2d3d]">{paperRecords.toLocaleString()}+</div>
+                <div className="font-mono text-xl font-semibold text-[#0c2d3d]">{formatCount(paperRecords)}</div>
                 <div className="text-[10px] uppercase tracking-wider text-[#7b8c95]">papers</div>
               </div>
             </div>

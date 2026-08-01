@@ -64,6 +64,7 @@ type NetworkRow = {
   certificationsEn: string[] | null;
   scaleTier: string | null;
   exportReady: boolean;
+  profilePublished: boolean;
 };
 
 type SupplierProfile = {
@@ -455,6 +456,7 @@ async function loadCategoryNetwork(
         certificationsEn: supplierListings.certificationsEn,
         scaleTier: supplierListings.scaleTier,
         exportReady: supplierListings.exportReady,
+        profilePublished: supplierListings.profilePublished,
       })
       .from(supplierListings)
       .orderBy(
@@ -495,14 +497,14 @@ function scaleLabel(tier: string | null): string {
 }
 
 const CATEGORY_SEO_TITLES: Record<string, string> = {
-  "frp-grating": "FRP Grating Suppliers China — 38 Verified Factories | getfrp",
-  "pultruded-profiles": "Pultruded FRP Profiles Suppliers China — 29 Verified Factories | getfrp",
-  "fiberglass-sheet": "Fiberglass Sheet Suppliers China — 19 Verified Factories | getfrp",
-  "frp-rebar": "FRP Rebar Suppliers China — Verified Fiberglass Rebar Factories | getfrp",
-  "frp-pipe": "FRP Pipe Suppliers China — Verified Fiberglass Pipe Factories | getfrp",
-  "smc-bmc": "SMC BMC Manufacturers China — Verified Composite Molders | getfrp",
-  "resin-gelcoat": "FRP Resin & Gelcoat Manufacturers China — Verified Suppliers | getfrp",
-  "fiber-glass": "Fiberglass Fiber Suppliers China — Verified E-Glass Producers | getfrp",
+  "frp-grating": "FRP Grating Suppliers China — Manufacturer Directory | getfrp",
+  "pultruded-profiles": "Pultruded FRP Profile Suppliers China — Manufacturer Directory | getfrp",
+  "fiberglass-sheet": "Fiberglass Sheet Suppliers China — Manufacturer Directory | getfrp",
+  "frp-rebar": "FRP Rebar Suppliers China — Manufacturer Directory | getfrp",
+  "frp-pipe": "FRP Pipe Suppliers China — Manufacturer Directory | getfrp",
+  "smc-bmc": "SMC BMC Manufacturers China — Supplier Directory | getfrp",
+  "resin-gelcoat": "FRP Resin & Gelcoat Manufacturers China — Supplier Directory | getfrp",
+  "fiber-glass": "Fiberglass & Composite Fiber Suppliers China | getfrp",
 };
 
 const CATEGORY_STANDARD_LINKS: Record<string, Array<{ id: string; label: string }>> = {
@@ -585,7 +587,7 @@ export async function generateMetadata({
   const category = getSupplierCategoryPage(id);
   const region = getSupplierRegionPage(id);
   if (locale === "en" && region) {
-    const title = `FRP & Composite Manufacturers in ${region.name}, China — Verified Directory | getfrp`;
+    const title = `FRP & Composite Manufacturers in ${region.name}, China — Supplier Directory | getfrp`;
     return {
       title: { absolute: title },
       description: region.summary,
@@ -595,7 +597,7 @@ export async function generateMetadata({
   }
   if (locale === "en" && category) {
     const title = CATEGORY_SEO_TITLES[category.slug] ??
-      `${category.name} Suppliers China — ${category.snapshotCount} Verified Factories | getfrp`;
+      `${category.name} Suppliers China — Manufacturer Directory | getfrp`;
     return {
       title: { absolute: title },
       description: category.summary,
@@ -651,6 +653,7 @@ async function loadRegionNetwork(region: SupplierRegionPage): Promise<NetworkRow
         certificationsEn: supplierListings.certificationsEn,
         scaleTier: supplierListings.scaleTier,
         exportReady: supplierListings.exportReady,
+        profilePublished: supplierListings.profilePublished,
       })
       .from(supplierListings)
       .where(
@@ -671,7 +674,7 @@ async function loadRegionNetwork(region: SupplierRegionPage): Promise<NetworkRow
 
 async function renderRegionPage(region: SupplierRegionPage) {
   const network = await loadRegionNetwork(region);
-  const provinceCount = network.length || region.snapshotCount;
+  const provinceCount = network.length;
   const certCount = network.filter((row) => normalizedCerts(row).length > 0).length;
   const exportReadyCount = network.filter((row) => row.exportReady).length;
   const featured = network;
@@ -696,7 +699,7 @@ async function renderRegionPage(region: SupplierRegionPage) {
     about: { "@type": "Place", name: `${region.name}, China` },
     mainEntity: {
       "@type": "ItemList",
-      name: `Verified FRP capability records in ${region.name}`,
+      name: `Public FRP capability records in ${region.name}`,
       numberOfItems: provinceCount,
     },
   };
@@ -733,7 +736,7 @@ async function renderRegionPage(region: SupplierRegionPage) {
             </p>
           </div>
           <div className="mt-9 grid grid-cols-2 gap-3 md:grid-cols-4">
-            <div className="rounded-xl border border-border/70 bg-background p-5"><Factory size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{provinceCount}</div><div className="mt-1 text-xs text-muted-foreground">Verified regional records</div></div>
+            <div className="rounded-xl border border-border/70 bg-background p-5"><Factory size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{provinceCount}</div><div className="mt-1 text-xs text-muted-foreground">Public regional records</div></div>
             <div className="rounded-xl border border-border/70 bg-background p-5"><MapPin size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{region.categoryFocus.length}+</div><div className="mt-1 text-xs text-muted-foreground">Priority categories</div></div>
             <div className="rounded-xl border border-border/70 bg-background p-5"><FileCheck2 size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{certCount || "RFQ"}</div><div className="mt-1 text-xs text-muted-foreground">Records with documents</div></div>
             <div className="rounded-xl border border-border/70 bg-background p-5"><ShieldCheck size={18} strokeWidth={1.5} /><div className="mt-4 text-3xl font-semibold">{exportReadyCount || "QA"}</div><div className="mt-1 text-xs text-muted-foreground">Export-ready matches</div></div>
@@ -787,6 +790,10 @@ async function renderRegionPage(region: SupplierRegionPage) {
               <div className="mt-2 text-xs text-muted-foreground">{scaleLabel(row.scaleTier)}</div>
               {products.length > 0 && <div className="mt-4 flex flex-wrap gap-1.5">{products.map((product) => <span key={product} className="rounded-md bg-muted px-2 py-1 text-[11px] text-muted-foreground">{product}</span>)}</div>}
               <div className="mt-4 border-t border-border/60 pt-4 text-[12px] leading-relaxed text-muted-foreground">{certs.length > 0 ? `Documents on file: ${certs.join(" · ")}` : "Product evidence reviewed during RFQ matching."}</div>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs font-medium">
+                {row.profilePublished && <Link href={`/suppliers/${row.id}` as "/suppliers/[id]"} className="underline underline-offset-4">View company profile</Link>}
+                <Link href={(row.profilePublished ? `/rfq?supplier=${encodeURIComponent(row.id)}` : `/rfq?product=${encodeURIComponent(products[0] ?? region.name)}`) as never} className="underline underline-offset-4">Send inquiry</Link>
+              </div>
             </article>;
           })}</div> : <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">Live capability cards are refreshed against the public network when a specification is submitted.</p>}
         </div>
@@ -835,12 +842,10 @@ export default async function SupplierCategoryPageRoute({
   const provinces = [...provinceCounts.entries()].sort((a, b) => b[1] - a[1]);
   const provinceCount =
     provinces.length || Object.keys(category.provinceNotes).length;
-  const liveCeCount = network.filter((row) =>
-    normalizedCerts(row).some((cert) => /\bce\b/i.test(cert)),
+  const documentedCount = network.filter(
+    (row) => normalizedCerts(row).length > 0,
   ).length;
-  const liveIsoCount = network.filter((row) =>
-    normalizedCerts(row).some((cert) => /iso\s*9001/i.test(cert)),
-  ).length;
+  const exportReadyCount = network.filter((row) => row.exportReady).length;
   const featured = network;
 
   const pageUrl = `${CURRENT_SITE_URL}/suppliers/${category.slug}`;
@@ -856,7 +861,7 @@ export default async function SupplierCategoryPageRoute({
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `China ${category.name} Manufacturers — Verified Supply Network`,
+    name: `China ${category.name} Manufacturers — Public Supplier Network`,
     description: category.summary,
     url: pageUrl,
     inLanguage: "en",
@@ -868,7 +873,7 @@ export default async function SupplierCategoryPageRoute({
     mainEntity: {
       "@type": "ItemList",
       name: `Public ${category.name} supplier records`,
-      numberOfItems: network.length || category.snapshotCount,
+      numberOfItems: network.length,
     },
   };
 
@@ -895,10 +900,10 @@ export default async function SupplierCategoryPageRoute({
           </nav>
           <div className="mt-6 max-w-4xl">
             <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              VERIFIED CHINA SUPPLY NETWORK
+              PUBLIC CHINA SUPPLY NETWORK
             </div>
             <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-[-0.03em] sm:text-5xl">
-              China {category.name} Manufacturers — Verified Supply Network
+              China {category.name} Manufacturers — Public Supplier Network
             </h1>
             <p className="mt-5 max-w-3xl text-[16px] leading-7 text-muted-foreground">
               {category.summary}
@@ -908,7 +913,7 @@ export default async function SupplierCategoryPageRoute({
           <div className="mt-9 grid grid-cols-2 gap-3 md:grid-cols-4">
             <div className="rounded-xl border border-border/70 bg-background p-5">
               <Factory size={18} strokeWidth={1.5} />
-              <div className="mt-4 text-3xl font-semibold">{network.length || category.snapshotCount}</div>
+              <div className="mt-4 text-3xl font-semibold">{network.length}</div>
               <div className="mt-1 text-xs text-muted-foreground">Public supplier records</div>
             </div>
             <div className="rounded-xl border border-border/70 bg-background p-5">
@@ -919,19 +924,19 @@ export default async function SupplierCategoryPageRoute({
             <div className="rounded-xl border border-border/70 bg-background p-5">
               <FileCheck2 size={18} strokeWidth={1.5} />
               <div className="mt-4 text-3xl font-semibold">
-                {category.certifiedSnapshot?.count ?? liveIsoCount}
+                {documentedCount}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                {category.certifiedSnapshot?.label ?? "ISO 9001 records in live match"}
+                Records with published certifications
               </div>
             </div>
             <div className="rounded-xl border border-border/70 bg-background p-5">
               <ShieldCheck size={18} strokeWidth={1.5} />
               <div className="mt-4 text-3xl font-semibold">
-                {liveCeCount || "RFQ"}
+                {exportReadyCount || "RFQ"}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                {liveCeCount ? "CE records in live match" : "Evidence rechecked before release"}
+                {exportReadyCount ? "Export-ready matches" : "Evidence rechecked before release"}
               </div>
             </div>
           </div>
@@ -1095,6 +1100,21 @@ export default async function SupplierCategoryPageRoute({
                       {certs.length > 0
                         ? `Documents on file: ${certs.join(" · ")}`
                         : "Product evidence reviewed during RFQ matching."}
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3 text-xs font-medium">
+                      {row.profilePublished && (
+                        <Link href={`/suppliers/${row.id}` as "/suppliers/[id]"} className="underline underline-offset-4">
+                          View company profile
+                        </Link>
+                      )}
+                      <Link
+                        href={(row.profilePublished
+                          ? `/rfq?supplier=${encodeURIComponent(row.id)}&product=${encodeURIComponent(category.shortName)}`
+                          : `/rfq?product=${encodeURIComponent(category.shortName)}&category=${category.match.businessTypes.includes("manufacturer") ? "finished" : "raw"}`) as never}
+                        className="underline underline-offset-4"
+                      >
+                        Send inquiry
+                      </Link>
                     </div>
                   </article>
                 );
