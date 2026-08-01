@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Card,
@@ -12,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SupplierClaimButton } from "@/components/supplier-claim-button";
-import { ProgressiveCollapse } from "@/components/progressive-collapse";
 import { provincesEn } from "@/lib/data/suppliers";
 import { ExternalLink, ArrowRight } from "lucide-react";
 
@@ -35,6 +35,34 @@ export type SerializedSupplier = {
 type Opt = { id: string; name: string; nameEn?: string };
 
 const ALL_REGIONS_TOKEN = "__all__";
+const PAGE_SIZE = 20;
+
+type PaginationItem = number | "start-ellipsis" | "end-ellipsis";
+
+function paginationItems(current: number, total: number): PaginationItem[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 4) return [1, 2, 3, 4, 5, "end-ellipsis", total];
+  if (current >= total - 3) {
+    return [
+      1,
+      "start-ellipsis",
+      total - 4,
+      total - 3,
+      total - 2,
+      total - 1,
+      total,
+    ];
+  }
+  return [
+    1,
+    "start-ellipsis",
+    current - 1,
+    current,
+    current + 1,
+    "end-ellipsis",
+    total,
+  ];
+}
 
 export function SuppliersClient({
   suppliers,
@@ -53,6 +81,8 @@ export function SuppliersClient({
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("all");
   const [region, setRegion] = useState<string>(ALL_REGIONS_TOKEN);
+  const [page, setPage] = useState(1);
+  const listTopRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -71,6 +101,25 @@ export function SuppliersClient({
       return hitSearch && hitCat && hitRegion;
     });
   }, [suppliers, search, cat, region]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = useMemo(
+    () =>
+      filtered.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE,
+      ),
+    [filtered, currentPage],
+  );
+  const pageItems = paginationItems(currentPage, totalPages);
+
+  const changePage = (nextPage: number) => {
+    setPage(Math.min(Math.max(nextPage, 1), totalPages));
+    requestAnimationFrame(() => {
+      listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   const catStats = useMemo(() => {
     const m: Record<string, number> = {};
@@ -91,7 +140,10 @@ export function SuppliersClient({
         <Input
           placeholder={t("searchPlaceholder")}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="sm:max-w-lg"
         />
         <div className="flex flex-wrap items-center gap-2">
@@ -99,7 +151,10 @@ export function SuppliersClient({
           <Badge
             variant={cat === "all" ? "default" : "outline"}
             className="cursor-pointer px-3 py-1"
-            onClick={() => setCat("all")}
+            onClick={() => {
+              setCat("all");
+              setPage(1);
+            }}
           >
             {t("all")}
           </Badge>
@@ -108,7 +163,10 @@ export function SuppliersClient({
               key={c.id}
               variant={cat === c.id ? "default" : "outline"}
               className="cursor-pointer px-3 py-1"
-              onClick={() => setCat(c.id)}
+              onClick={() => {
+                setCat(c.id);
+                setPage(1);
+              }}
             >
               {optLabel(c)}
               {catStats[c.id] ? ` (${catStats[c.id]})` : ""}
@@ -120,7 +178,10 @@ export function SuppliersClient({
           <Badge
             variant={region === ALL_REGIONS_TOKEN ? "default" : "outline"}
             className="cursor-pointer px-3 py-1"
-            onClick={() => setRegion(ALL_REGIONS_TOKEN)}
+            onClick={() => {
+              setRegion(ALL_REGIONS_TOKEN);
+              setPage(1);
+            }}
           >
             {t("allRegions")}
           </Badge>
@@ -129,7 +190,10 @@ export function SuppliersClient({
               key={p}
               variant={region === p ? "default" : "outline"}
               className="cursor-pointer px-3 py-1"
-              onClick={() => setRegion(p)}
+              onClick={() => {
+                setRegion(p);
+                setPage(1);
+              }}
             >
               {isEn ? (provincesEn[p] ?? p) : p}
             </Badge>
@@ -137,7 +201,10 @@ export function SuppliersClient({
         </div>
       </div>
 
-      <div className="mb-4 text-sm text-muted-foreground">
+      <div
+        ref={listTopRef}
+        className="mb-4 scroll-mt-20 text-sm text-muted-foreground"
+      >
         {t("resultCount", { filtered: filtered.length, total: suppliers.length })}
       </div>
 
@@ -148,16 +215,14 @@ export function SuppliersClient({
           </CardContent>
         </Card>
       ) : (
-        <ProgressiveCollapse
-          className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
-          pageSize={suppliers.length}
-        >
-          {filtered.map((s) => (
-            <Card
-              key={s.id}
-              id={s.id}
-              className="flex flex-col transition-colors hover:border-primary/50"
-            >
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {paginated.map((s) => (
+              <Card
+                key={s.id}
+                id={s.id}
+                className="flex flex-col transition-colors hover:border-primary/50"
+              >
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">{s.name}</CardTitle>
@@ -289,9 +354,72 @@ export function SuppliersClient({
                   </div>
                 )}
               </CardContent>
-            </Card>
-          ))}
-        </ProgressiveCollapse>
+              </Card>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <nav
+              aria-label={t("paginationLabel")}
+              className="mt-8 flex flex-wrap items-center justify-center gap-2"
+            >
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => changePage(currentPage - 1)}
+              >
+                {t("previousPage")}
+              </Button>
+
+              {pageItems.map((item) =>
+                typeof item === "number" ? (
+                  <Button
+                    key={item}
+                    type="button"
+                    variant={item === currentPage ? "default" : "outline"}
+                    size="sm"
+                    aria-current={item === currentPage ? "page" : undefined}
+                    aria-label={t("pageStatus", {
+                      page: item,
+                      total: totalPages,
+                    })}
+                    onClick={() => changePage(item)}
+                    className="min-w-9"
+                  >
+                    {item}
+                  </Button>
+                ) : (
+                  <span
+                    key={item}
+                    aria-hidden="true"
+                    className="px-1 text-sm text-muted-foreground"
+                  >
+                    …
+                  </span>
+                ),
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => changePage(currentPage + 1)}
+              >
+                {t("nextPage")}
+              </Button>
+
+              <span className="ml-1 text-xs text-muted-foreground">
+                {t("pageStatus", {
+                  page: currentPage,
+                  total: totalPages,
+                })}
+              </span>
+            </nav>
+          )}
+        </>
       )}
     </>
   );
