@@ -80,8 +80,7 @@ const loadSupplierProfile = cache(async (id: string): Promise<SupplierProfile | 
       .where(
         and(
           eq(supplierListings.id, id),
-          eq(supplierListings.verified, true),
-          isNotNull(supplierListings.enterpriseId),
+          eq(supplierListings.profilePublished, true),
         ),
       )
       .limit(1);
@@ -109,8 +108,10 @@ function categoryLabel(category: string | null, isEn: boolean): string {
 function renderSupplierProfile(profile: SupplierProfile, locale: string) {
   const { supplier, enterprise } = profile;
   const isEn = locale === "en";
+  const isVerified = Boolean(supplier.verified && enterprise);
+  const isClaimed = Boolean(enterprise);
   const name = (isEn ? supplier.nameEn : supplier.name) ?? supplier.name;
-  const legalName = enterprise?.name ?? supplier.name;
+  const legalName = enterprise?.name ?? supplier.nameEn ?? supplier.name;
   const description =
     (isEn ? supplier.descriptionEn : supplier.description) ??
     supplier.description ??
@@ -131,13 +132,24 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
     description;
   const ecatalogs = supplier.ecatalogs ?? [];
   const website = supplier.website ?? enterprise?.website ?? null;
-  const logo = enterprise?.logo ?? null;
+  const logo = supplier.logo ?? enterprise?.logo ?? null;
+  const contactEmail = supplier.contactEmail ?? enterprise?.contactEmail ?? null;
+  const contactPhone = supplier.contactPhone ?? enterprise?.contactPhone ?? null;
+  const address = supplier.address ?? enterprise?.address ?? null;
+  const phoneHref = contactPhone
+    ? `tel:${contactPhone.trim().startsWith("+") ? contactPhone.replace(/[^\d+]/g, "") : `+86${contactPhone.replace(/\D/g, "")}`}`
+    : null;
   const pageUrl = `${CURRENT_SITE_URL}/suppliers/${supplier.id}`;
+  const profileKind = isVerified
+    ? isEn ? "verified company profile" : "已认证企业主页"
+    : isClaimed
+      ? isEn ? "claimed company profile" : "已认领企业主页"
+      : isEn ? "public company profile" : "公开企业档案";
   const profileJsonLd = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
     url: pageUrl,
-    name: `${name} — ${isEn ? "verified company profile" : "已认证企业主页"}`,
+    name: `${name} — ${profileKind}`,
     inLanguage: isEn ? "en" : "zh-CN",
     mainEntity: {
       "@type": "Organization",
@@ -149,12 +161,12 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
       logo: logo ?? undefined,
       foundingDate: supplier.established ? String(supplier.established) : undefined,
       description,
-      email: enterprise?.contactEmail ?? undefined,
-      telephone: enterprise?.contactPhone ? `+86-${enterprise.contactPhone}` : undefined,
+      email: contactEmail ?? undefined,
+      telephone: contactPhone ?? undefined,
       address: location
         ? {
             "@type": "PostalAddress",
-            streetAddress: enterprise?.address ?? undefined,
+            streetAddress: address ?? undefined,
             addressLocality: location,
             addressCountry: "CN",
           }
@@ -179,61 +191,76 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
     ? {
         home: "Home",
         suppliers: "Suppliers",
-        eyebrow: "VERIFIED COMPANY PROFILE",
-        verified: "Verified business profile",
+        eyebrow: isVerified ? "VERIFIED COMPANY PROFILE" : isClaimed ? "CLAIMED COMPANY PROFILE" : "PUBLIC COMPANY PROFILE",
+        verified: isVerified ? "Verified business profile" : isClaimed ? "Claimed company profile" : "Public profile · Not claimed",
         legal: "Legal entity",
-        established: "Legal entity established",
+        established: isVerified ? "Legal entity established" : "Manufacturing since (company statement)",
         location: "Location",
         category: "Business type",
         about: "Company overview",
         products: "Products and supply scope",
         processes: "Capabilities and services",
-        certifications: "Document-backed certifications",
-        noCerts: "No company-level certification is published without supporting documentation.",
+        certifications: isVerified ? "Document-backed certifications" : "Company-published certifications",
+        noCerts: "No company-level certification is listed on this profile.",
         productsServices: "Products & services summary",
         ecatalog: "eCatalog",
-        ecatalogSub: "Company catalogs and technical guides published by the supplier.",
+        ecatalogSub: "Official product catalogs, web directories and technical guides published by the supplier.",
         openCatalog: "Open catalog",
-        contact: "Official company contact",
-        contactSupplier: "Contact supplier",
+        contact: isVerified ? "Official company contact" : "Public company contact",
+        contactSupplier: isVerified ? "Contact supplier" : "Send inquiry via GetFRP",
         website: "Visit official website",
-        verification: "What GetFRP verified",
-        verifyItems: [
-          "The business identity is linked to an approved GetFRP enterprise record.",
-          "The official website and company-domain contact match this profile.",
-          "Product and certification claims remain subject to document-level review.",
-        ],
-        note:
-          "The verified badge covers the business identity and official-domain association. It does not certify every product, standard or performance claim.",
+        verification: isVerified ? "What GetFRP verified" : "Profile status",
+        verifyItems: isVerified
+          ? [
+              "The business identity is linked to an approved GetFRP enterprise record.",
+              "The official website and company-domain contact match this profile.",
+              "Product and certification claims remain subject to document-level review.",
+            ]
+          : [
+              "GetFRP compiled this profile from the company's official website.",
+              "The website, company-domain emails and telephone are published as contact references.",
+              "The company has not claimed or completed business-identity verification for this profile.",
+            ],
+        note: isVerified
+          ? "The verified badge covers the business identity and official-domain association. It does not certify every product, standard or performance claim."
+          : "Company, product and certification statements are attributed to the official website and have not been independently audited by GetFRP.",
       }
     : {
         home: "首页",
         suppliers: "供应商目录",
-        eyebrow: "已认证企业主页",
-        verified: "企业身份已审核",
+        eyebrow: isVerified ? "已认证企业主页" : isClaimed ? "已认领企业主页" : "公开企业档案",
+        verified: isVerified ? "企业身份已审核" : isClaimed ? "企业已认领" : "公开档案 · 尚未认领",
         legal: "法律主体",
-        established: "法律主体成立年份",
+        established: isVerified ? "法律主体成立年份" : "开始制造年份（企业自述）",
         location: "所在地",
         category: "企业类型",
         about: "企业简介",
         products: "产品与供应范围",
         processes: "能力与服务",
-        certifications: "有文件佐证的认证",
-        noCerts: "未提供佐证文件的企业级认证不会在此展示。",
+        certifications: isVerified ? "有文件佐证的认证" : "企业官网公开的认证",
+        noCerts: "本档案暂未列出企业级认证。",
         productsServices: "产品与服务总结",
         ecatalog: "电子样本",
-        ecatalogSub: "由企业公开发布的产品目录与技术手册。",
+        ecatalogSub: "企业官网公开的产品目录、网页目录与技术资料。",
         openCatalog: "打开样本",
-        contact: "企业官方联系方式",
-        contactSupplier: "通过平台联系企业",
+        contact: isVerified ? "企业官方联系方式" : "企业公开联系方式",
+        contactSupplier: isVerified ? "通过平台联系企业" : "通过 GetFRP 发送询盘",
         website: "访问企业官网",
-        verification: "复材站核验范围",
-        verifyItems: [
-          "该企业身份已关联至审核通过的企业记录。",
-          "企业官网与公司域名联系方式已完成匹配。",
-          "产品与认证主张仍须逐份文件审核。",
-        ],
-        note: "认证标识仅覆盖企业身份与官网关联，不代表对每项产品、标准或性能主张的认证。",
+        verification: isVerified ? "复材站核验范围" : "档案状态",
+        verifyItems: isVerified
+          ? [
+              "该企业身份已关联至审核通过的企业记录。",
+              "企业官网与公司域名联系方式已完成匹配。",
+              "产品与认证主张仍须逐份文件审核。",
+            ]
+          : [
+              "GetFRP 根据该企业官方网站整理本档案。",
+              "官网、企业域名邮箱与电话作为公开联系信息展示。",
+              "该企业尚未认领本档案，也未完成 GetFRP 企业身份认证。",
+            ],
+        note: isVerified
+          ? "认证标识仅覆盖企业身份与官网关联，不代表对每项产品、标准或性能主张的认证。"
+          : "公司、产品与认证表述均注明来源于企业官网，GetFRP 尚未进行独立审计。",
       };
 
   return (
@@ -280,7 +307,7 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-3">
                     <h1 className="text-4xl font-semibold leading-tight tracking-[-0.03em] sm:text-5xl">{name}</h1>
-                    <Badge className="gap-1.5"><ShieldCheck size={13} />{labels.verified}</Badge>
+                    <Badge variant={isVerified ? "default" : "outline"} className="gap-1.5"><ShieldCheck size={13} />{labels.verified}</Badge>
                   </div>
                   <div className="mt-2 text-sm text-muted-foreground">{legalName}{location ? ` · ${location}` : ""}</div>
                 </div>
@@ -303,9 +330,9 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
                     {labels.website} <ExternalLink size={15} />
                   </a>
                 )}
-                {enterprise?.contactPhone && (
-                  <a href={`tel:+86${enterprise.contactPhone}`} className={buttonVariants({ variant: "outline" })}>
-                    <Phone size={15} /> +86 {enterprise.contactPhone}
+                {contactPhone && phoneHref && (
+                  <a href={phoneHref} className={buttonVariants({ variant: "outline" })}>
+                    <Phone size={15} /> {contactPhone}
                   </a>
                 )}
               </div>
@@ -399,9 +426,9 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
             </Link>
             <div className="mt-5 space-y-4 text-sm">
               {website && <a href={website} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 hover:underline"><Globe2 size={16} className="mt-0.5 shrink-0" /><span>{website.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span></a>}
-              {enterprise?.contactEmail && <a href={`mailto:${enterprise.contactEmail}`} className="flex items-start gap-3 hover:underline"><Mail size={16} className="mt-0.5 shrink-0" /><span>{enterprise.contactEmail}</span></a>}
-              {enterprise?.contactPhone && <a href={`tel:+86${enterprise.contactPhone}`} className="flex items-start gap-3 hover:underline"><Phone size={16} className="mt-0.5 shrink-0" /><span>+86 {enterprise.contactPhone}</span></a>}
-              {enterprise?.address && <div className="flex items-start gap-3 text-muted-foreground"><MapPin size={16} className="mt-0.5 shrink-0" /><span>{enterprise.address}</span></div>}
+              {contactEmail && <a href={`mailto:${contactEmail}`} className="flex items-start gap-3 hover:underline"><Mail size={16} className="mt-0.5 shrink-0" /><span>{contactEmail}</span></a>}
+              {contactPhone && phoneHref && <a href={phoneHref} className="flex items-start gap-3 hover:underline"><Phone size={16} className="mt-0.5 shrink-0" /><span>{contactPhone}</span></a>}
+              {address && <div className="flex items-start gap-3 text-muted-foreground"><MapPin size={16} className="mt-0.5 shrink-0" /><span>{address}</span></div>}
             </div>
           </aside>
         </div>
@@ -593,9 +620,10 @@ export async function generateMetadata({
     (locale === "en" ? profile.supplier.descriptionEn : profile.supplier.description) ??
     profile.supplier.description ??
     `${supplierName} supplier profile.`;
+  const isVerifiedProfile = Boolean(profile.supplier.verified && profile.enterprise);
   const title = locale === "en"
-    ? `${supplierName} — Verified FRP Supplier Profile | getfrp`
-    : `${supplierName}｜已认证复材企业主页`;
+    ? `${supplierName} — ${isVerifiedProfile ? "Verified" : "Public"} FRP Supplier Profile | getfrp`
+    : `${supplierName}｜${isVerifiedProfile ? "已认证复材企业主页" : "公开复材企业档案"}`;
   return {
     title: { absolute: title },
     description,

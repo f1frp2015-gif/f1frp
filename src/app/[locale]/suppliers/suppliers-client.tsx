@@ -27,6 +27,7 @@ export type SerializedSupplier = {
   processList: string[];
   certifications: string[];
   verified: boolean;
+  profilePublished: boolean;
   enterpriseId: string | null;
   website: string | null;
 };
@@ -258,12 +259,12 @@ export function SuppliersClient({
                   </a>
                 )}
 
-                {isEn && s.verified && s.enterpriseId && (
+                {isEn && s.profilePublished && (
                   <a
                     href={`/suppliers/${encodeURIComponent(s.id)}`}
                     className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
                   >
-                    View verified company profile
+                    {s.verified ? "View verified company profile" : "View public company profile"}
                     <ArrowRight size={12} />
                   </a>
                 )}

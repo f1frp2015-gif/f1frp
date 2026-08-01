@@ -578,6 +578,12 @@ export const supplierListings = pgTable(
         format?: string;
       }>
     >(),
+    profilePublished: boolean("profile_published").default(false).notNull(),
+    profileReviewedAt: timestamp("profile_reviewed_at"),
+    logo: varchar("logo", { length: 500 }),
+    contactEmail: varchar("contact_email", { length: 255 }),
+    contactPhone: varchar("contact_phone", { length: 64 }),
+    address: text("address"),
     website: varchar("website", { length: 255 }),
     enterpriseId: uuid("enterprise_id").references(() => enterprises.id),
     scaleTier: varchar("scale_tier", { length: 10 }),
@@ -605,6 +611,7 @@ export const supplierListings = pgTable(
     index("supplier_listings_brand_priority_idx").on(table.brandPriority),
     index("supplier_listings_scale_tier_idx").on(table.scaleTier),
     index("supplier_listings_export_ready_idx").on(table.exportReady),
+    index("supplier_listings_profile_published_idx").on(table.profilePublished),
   ]
 );
 

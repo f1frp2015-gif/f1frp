@@ -328,8 +328,7 @@ export async function buildSitemapEntries(
           .from(supplierListings)
           .where(
             and(
-              eq(supplierListings.verified, true),
-              isNotNull(supplierListings.enterpriseId),
+              eq(supplierListings.profilePublished, true),
               isNotNull(supplierListings.nameEn),
               ne(supplierListings.nameEn, ""),
             ),

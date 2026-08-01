@@ -125,6 +125,8 @@ async function main() {
       productsServicesSummaryEn:
         "Supplies pultruded fiberglass structural profiles, gratings and platform systems, fenestration profiles and finished window/door systems, custom pultrusions, pipe and panels. Services include drawing and profile-selection review, custom tooling and prototyping, quality and export documentation, consolidation and international logistics.",
       ecatalogs,
+      profilePublished: true,
+      profileReviewedAt: new Date(),
       website: "https://www.f1composite.com",
       enterpriseId: ENTERPRISE_ID,
       capabilities: ["profile", "grating", "tube", "panel", "custom"],
@@ -147,13 +149,14 @@ async function main() {
       verified: supplierListings.verified,
       website: supplierListings.website,
       enterpriseId: supplierListings.enterpriseId,
+      profilePublished: supplierListings.profilePublished,
       ecatalogs: supplierListings.ecatalogs,
     })
     .from(supplierListings)
     .where(eq(supplierListings.id, SUPPLIER_ID))
     .limit(1);
 
-  if (!result?.verified || !result.enterpriseId || !result.website) {
+  if (!result?.verified || !result.enterpriseId || !result.website || !result.profilePublished) {
     throw new Error("F1 supplier profile verification failed after update");
   }
   console.log(

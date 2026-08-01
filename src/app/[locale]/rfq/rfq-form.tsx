@@ -41,9 +41,11 @@ const INITIAL: FormState = {
 export function RfqForm({
   targetSupplierId,
   targetSupplierName,
+  targetSupplierVerified = false,
 }: {
   targetSupplierId?: string;
   targetSupplierName?: string;
+  targetSupplierVerified?: boolean;
 }) {
   const [form, setForm] = useState<FormState>(() => ({
     ...INITIAL,
@@ -124,8 +126,9 @@ export function RfqForm({
           </div>
           <div className="mt-1 text-sm font-semibold">{targetSupplierName}</div>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Your inquiry will be routed to this verified supplier and copied to
-            the GetFRP sourcing desk for delivery tracking.
+            {targetSupplierVerified
+              ? "Your inquiry will be routed to this verified supplier and copied to the GetFRP sourcing desk for delivery tracking."
+              : "This public supplier profile is not claimed. The GetFRP sourcing desk will receive your inquiry and route it using the company's public contact information."}
           </p>
         </div>
       )}

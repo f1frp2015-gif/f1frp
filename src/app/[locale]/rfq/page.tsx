@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { alternates } from "@/lib/seo";
 import { setRequestLocale } from "next-intl/server";
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { supplierListings } from "@/lib/db/schema";
 import { RfqForm } from "./rfq-form";
@@ -27,13 +27,17 @@ export default async function RfqPage({
 
   const [targetSupplier] = requestedSupplierId
     ? await db
-        .select({ id: supplierListings.id, name: supplierListings.nameEn })
+        .select({
+          id: supplierListings.id,
+          name: supplierListings.nameEn,
+          verified: supplierListings.verified,
+          enterpriseId: supplierListings.enterpriseId,
+        })
         .from(supplierListings)
         .where(
           and(
             eq(supplierListings.id, requestedSupplierId),
-            eq(supplierListings.verified, true),
-            isNotNull(supplierListings.enterpriseId),
+            eq(supplierListings.profilePublished, true),
           ),
         )
         .limit(1)
@@ -52,7 +56,9 @@ export default async function RfqPage({
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
           {targetSupplier
-            ? "Send a product or project inquiry through GetFRP. We route it to the verified company contact and track delivery through the sourcing desk."
+            ? targetSupplier.verified && targetSupplier.enterpriseId
+              ? "Send a product or project inquiry through GetFRP. We route it to the verified company contact and track delivery through the sourcing desk."
+              : "Send a product or project inquiry through GetFRP. Our sourcing desk receives it and routes it using the supplier's public contact information."
             : "Tell us what you need — raw materials, equipment, tooling, molds, or finished parts. We match you with verified Chinese manufacturers and respond within 24 hours."}
         </p>
       </div>
@@ -61,6 +67,7 @@ export default async function RfqPage({
         <RfqForm
           targetSupplierId={targetSupplier?.id}
           targetSupplierName={targetSupplier?.name ?? undefined}
+          targetSupplierVerified={Boolean(targetSupplier?.verified && targetSupplier?.enterpriseId)}
         />
       </div>
 

@@ -86,7 +86,7 @@ export default async function SuppliersPage({
             }
           : undefined,
         url:
-          s.verified && s.enterpriseId
+          s.profilePublished
             ? `${CURRENT_SITE_URL}/suppliers/${s.id}`
             : `${CURRENT_SITE_URL}/suppliers#${s.id}`,
       },
@@ -104,6 +104,7 @@ export default async function SuppliersPage({
     processList: ((isEn ? s.processListEn : s.processList) ?? s.processList ?? []) as string[],
     certifications: ((isEn ? s.certificationsEn : s.certifications) ?? s.certifications ?? []) as string[],
     verified: Boolean(s.verified),
+    profilePublished: Boolean(s.profilePublished),
     enterpriseId: s.enterpriseId ?? null,
     website: s.website ?? null,
   }));

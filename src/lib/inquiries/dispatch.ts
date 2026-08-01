@@ -138,16 +138,36 @@ async function findTargetSupplier(supplierId: string): Promise<MatchedSupplier[]
   );
 }
 
+async function findPublishedTargetName(supplierId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ nameEn: supplierListings.nameEn, name: supplierListings.name })
+    .from(supplierListings)
+    .where(
+      and(
+        eq(supplierListings.id, supplierId),
+        eq(supplierListings.profilePublished, true),
+      ),
+    )
+    .limit(1);
+  return row?.nameEn ?? row?.name ?? null;
+}
+
 export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   const supplierCats = CATEGORY_TO_SUPPLIER[rfq.category] ?? ["manufacturer"];
 
   // 1. Look up claimed suppliers (best-effort)
   let matches: MatchedSupplier[] = [];
+  let targetSupplierName: string | null = null;
   try {
-    matches = rfq.targetSupplierId
-      ? await findTargetSupplier(rfq.targetSupplierId)
-      : await findClaimedSuppliers(supplierCats);
+    if (rfq.targetSupplierId) {
+      [matches, targetSupplierName] = await Promise.all([
+        findTargetSupplier(rfq.targetSupplierId),
+        findPublishedTargetName(rfq.targetSupplierId),
+      ]);
+    } else {
+      matches = await findClaimedSuppliers(supplierCats);
+    }
   } catch (err) {
     console.error("[dispatch] supplier lookup failed:", err);
   }
@@ -179,7 +199,6 @@ export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
     `[dispatch] rfq=${rfq.id} target=${rfq.targetSupplierId ?? "auto"} cats=${supplierCats.join(",")} matched=${matches.length} → recipients=${recipients.length}`,
   );
 
-  const targetSupplierName = rfq.targetSupplierId ? matches[0]?.name ?? null : null;
   const subject = targetSupplierName
     ? `New supplier inquiry for ${targetSupplierName} — ${rfq.materialName}`
     : `New RFQ from f1frp.com — ${rfq.materialName}`;
