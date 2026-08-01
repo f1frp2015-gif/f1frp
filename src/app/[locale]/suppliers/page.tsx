@@ -85,7 +85,10 @@ export default async function SuppliersPage({
               addressCountry: "CN",
             }
           : undefined,
-        url: `${CURRENT_SITE_URL}/suppliers#${s.id}`,
+        url:
+          s.verified && s.enterpriseId
+            ? `${CURRENT_SITE_URL}/suppliers/${s.id}`
+            : `${CURRENT_SITE_URL}/suppliers#${s.id}`,
       },
     })),
   };

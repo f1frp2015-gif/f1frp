@@ -308,19 +308,16 @@ export async function buildSitemapEntries(
     }
 
     case "suppliers": {
-      // /suppliers/[id] detail pages are closed on getfrp.com (en) to avoid
-      // exposing factory identities — drop them from the EN sitemap entirely.
-      // (zh keeps its existing entries; those already 404 and are left as-is so
-      // f1frp.com output is unchanged.) The anonymized /suppliers index page
-      // itself stays in the core sitemap.
-      if (isEn) {
-        return [...SUPPLIER_CATEGORY_SLUGS, ...SUPPLIER_REGION_SLUGS].map((slug) => ({
+      // Only claimed + verified businesses receive individual public profile
+      // URLs. Unclaimed directory records remain discoverable on /suppliers
+      // without creating thin or misleading company pages.
+      const networkEntries = isEn
+        ? [...SUPPLIER_CATEGORY_SLUGS, ...SUPPLIER_REGION_SLUGS].map((slug) => ({
           ...toEntry(`/suppliers/${slug}`, now, 0.85, now),
           alternates: enOnlyAlternatesFor(`/suppliers/${slug}`),
           changeFrequency: "weekly" as const,
-        }));
-      }
-      // Mirror the /suppliers/[id] notFound() gate: verified + English name.
+        }))
+        : [];
       const rows = (await safeFetch(() =>
         db
           .select({
@@ -332,15 +329,17 @@ export async function buildSitemapEntries(
           .where(
             and(
               eq(supplierListings.verified, true),
+              isNotNull(supplierListings.enterpriseId),
               isNotNull(supplierListings.nameEn),
               ne(supplierListings.nameEn, ""),
             ),
           )
           .limit(MAX_PER_SITEMAP),
       )) as Array<{ id: string; nameEn: string | null; updatedAt: Date | null }>;
-      return rows
+      const companyEntries = rows
         .filter((r) => (isEn ? (r.nameEn ?? "").trim() !== "" : true))
         .map((r) => toEntry(`/suppliers/${r.id}`, r.updatedAt, 0.7, now));
+      return [...networkEntries, ...companyEntries];
     }
 
     case "sourcing": {

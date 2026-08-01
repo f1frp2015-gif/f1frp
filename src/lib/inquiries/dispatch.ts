@@ -30,6 +30,7 @@ export interface RfqPayload {
   application?: string | null;
   extraRequirements?: string | null;
   category: string;
+  targetSupplierId?: string | null;
 }
 
 const FALLBACK_RECIPIENT = "f1frp2015@gmail.com";
@@ -107,6 +108,36 @@ async function findClaimedSuppliers(supplierCats: string[]): Promise<MatchedSupp
     );
 }
 
+async function findTargetSupplier(supplierId: string): Promise<MatchedSupplier[]> {
+  const rows = await db
+    .select({
+      supplierId: supplierListings.id,
+      enterpriseId: enterprises.id,
+      email: enterprises.contactEmail,
+      name: supplierListings.nameEn,
+    })
+    .from(supplierListings)
+    .innerJoin(enterprises, eq(supplierListings.enterpriseId, enterprises.id))
+    .where(
+      and(
+        eq(supplierListings.id, supplierId),
+        eq(supplierListings.verified, true),
+        isNotNull(supplierListings.enterpriseId),
+        isNotNull(enterprises.contactEmail),
+      ),
+    )
+    .limit(1);
+
+  return rows.filter(
+    (row): row is MatchedSupplier =>
+      row.enterpriseId != null &&
+      row.email != null &&
+      row.email.length > 0 &&
+      row.name != null &&
+      row.name.length > 0,
+  );
+}
+
 export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   const supplierCats = CATEGORY_TO_SUPPLIER[rfq.category] ?? ["manufacturer"];
@@ -114,7 +145,9 @@ export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
   // 1. Look up claimed suppliers (best-effort)
   let matches: MatchedSupplier[] = [];
   try {
-    matches = await findClaimedSuppliers(supplierCats);
+    matches = rfq.targetSupplierId
+      ? await findTargetSupplier(rfq.targetSupplierId)
+      : await findClaimedSuppliers(supplierCats);
   } catch (err) {
     console.error("[dispatch] supplier lookup failed:", err);
   }
@@ -143,11 +176,14 @@ export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
   });
 
   console.info(
-    `[dispatch] rfq=${rfq.id} cats=${supplierCats.join(",")} matched=${matches.length} → recipients=${recipients.length}`,
+    `[dispatch] rfq=${rfq.id} target=${rfq.targetSupplierId ?? "auto"} cats=${supplierCats.join(",")} matched=${matches.length} → recipients=${recipients.length}`,
   );
 
-  const subject = `New RFQ from f1frp.com — ${rfq.materialName}`;
-  const html = buildEmailHtml(rfq);
+  const targetSupplierName = rfq.targetSupplierId ? matches[0]?.name ?? null : null;
+  const subject = targetSupplierName
+    ? `New supplier inquiry for ${targetSupplierName} — ${rfq.materialName}`
+    : `New RFQ from f1frp.com — ${rfq.materialName}`;
+  const html = buildEmailHtml(rfq, targetSupplierName);
 
   // 3. Dispatch + log each
   for (const r of recipients) {
@@ -208,7 +244,7 @@ export async function dispatchToSuppliers(rfq: RfqPayload): Promise<void> {
   }
 }
 
-function buildEmailHtml(rfq: RfqPayload): string {
+function buildEmailHtml(rfq: RfqPayload, targetSupplierName: string | null): string {
   const materialUrl = `https://f1frp.com/zh/materials/${rfq.materialId}`;
   return `
 <!DOCTYPE html>
@@ -224,6 +260,7 @@ function buildEmailHtml(rfq: RfqPayload): string {
       <th style="padding:8px;text-align:left;border:1px solid #ddd">字段 / Field</th>
       <th style="padding:8px;text-align:left;border:1px solid #ddd">内容 / Value</th>
     </tr>
+    ${targetSupplierName ? `<tr><td style="padding:8px;border:1px solid #ddd">指定供应商 / Target supplier</td><td style="padding:8px;border:1px solid #ddd">${targetSupplierName}</td></tr>` : ""}
     <tr>
       <td style="padding:8px;border:1px solid #ddd">材料 / Material</td>
       <td style="padding:8px;border:1px solid #ddd"><a href="${materialUrl}">${rfq.materialName}</a></td>

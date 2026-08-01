@@ -566,6 +566,18 @@ export const supplierListings = pgTable(
     descriptionEn: text("description_en"),
     certifications: jsonb("certifications").$type<string[]>(),
     certificationsEn: jsonb("certifications_en").$type<string[]>(),
+    productsServicesSummary: text("products_services_summary"),
+    productsServicesSummaryEn: text("products_services_summary_en"),
+    ecatalogs: jsonb("ecatalogs").$type<
+      Array<{
+        title: string;
+        titleEn?: string;
+        description?: string;
+        descriptionEn?: string;
+        url: string;
+        format?: string;
+      }>
+    >(),
     website: varchar("website", { length: 255 }),
     enterpriseId: uuid("enterprise_id").references(() => enterprises.id),
     scaleTier: varchar("scale_tier", { length: 10 }),

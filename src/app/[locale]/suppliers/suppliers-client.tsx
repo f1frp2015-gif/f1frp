@@ -258,12 +258,12 @@ export function SuppliersClient({
                   </a>
                 )}
 
-                {isEn && (
+                {isEn && s.verified && s.enterpriseId && (
                   <a
-                    href={`/suppliers#${encodeURIComponent(s.id)}`}
+                    href={`/suppliers/${encodeURIComponent(s.id)}`}
                     className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
                   >
-                    View in public directory
+                    View verified company profile
                     <ArrowRight size={12} />
                   </a>
                 )}

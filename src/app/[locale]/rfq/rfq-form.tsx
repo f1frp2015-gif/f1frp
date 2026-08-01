@@ -38,8 +38,17 @@ const INITIAL: FormState = {
   extraRequirements: "",
 };
 
-export function RfqForm() {
-  const [form, setForm] = useState<FormState>(INITIAL);
+export function RfqForm({
+  targetSupplierId,
+  targetSupplierName,
+}: {
+  targetSupplierId?: string;
+  targetSupplierName?: string;
+}) {
+  const [form, setForm] = useState<FormState>(() => ({
+    ...INITIAL,
+    category: targetSupplierId ? "finished" : INITIAL.category,
+  }));
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +66,11 @@ export function RfqForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          materialId: "general-inquiry",
+          materialId: targetSupplierId
+            ? `supplier:${targetSupplierId}`
+            : "general-inquiry",
           materialName: form.productNeed || "General sourcing inquiry",
+          targetSupplierId,
           category: form.category,
           company: form.company,
           name: form.name,
@@ -105,6 +117,18 @@ export function RfqForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {targetSupplierId && targetSupplierName && (
+        <div className="rounded-lg border border-primary/25 bg-primary/5 p-4">
+          <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            Contacting through getfrp
+          </div>
+          <div className="mt-1 text-sm font-semibold">{targetSupplierName}</div>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Your inquiry will be routed to this verified supplier and copied to
+            the GetFRP sourcing desk for delivery tracking.
+          </p>
+        </div>
+      )}
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Company" required>
           <input

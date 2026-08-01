@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     application,
     extraRequirements,
     category,
+    targetSupplierId,
   } = body as Record<string, string | undefined>;
 
   // Validate required fields
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
     extraRequirements: extraRequirements ?? null,
     // category comes from client; fallback to empty so dispatch uses default
     category: category ?? "",
+    targetSupplierId: targetSupplierId ?? null,
   };
 
   // Dispatch emails best-effort (non-blocking for response)

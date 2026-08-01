@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { alternates } from "@/lib/seo";
 import { setRequestLocale } from "next-intl/server";
+import { and, eq, isNotNull } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { supplierListings } from "@/lib/db/schema";
 import { RfqForm } from "./rfq-form";
 
 export const metadata: Metadata = {
@@ -13,11 +16,28 @@ export const metadata: Metadata = {
 
 export default async function RfqPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ supplier?: string }>;
 }) {
   const { locale } = await params;
+  const { supplier: requestedSupplierId } = await searchParams;
   setRequestLocale(locale);
+
+  const [targetSupplier] = requestedSupplierId
+    ? await db
+        .select({ id: supplierListings.id, name: supplierListings.nameEn })
+        .from(supplierListings)
+        .where(
+          and(
+            eq(supplierListings.id, requestedSupplierId),
+            eq(supplierListings.verified, true),
+            isNotNull(supplierListings.enterpriseId),
+          ),
+        )
+        .limit(1)
+    : [];
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
@@ -26,17 +46,22 @@ export default async function RfqPage({
           REQUEST FOR QUOTATION
         </div>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-          Source composites from China
+          {targetSupplier
+            ? `Contact ${targetSupplier.name ?? "supplier"}`
+            : "Source composites from China"}
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          Tell us what you need — raw materials, equipment, tooling, molds, or
-          finished parts. We match you with verified Chinese manufacturers and
-          respond within 24 hours.
+          {targetSupplier
+            ? "Send a product or project inquiry through GetFRP. We route it to the verified company contact and track delivery through the sourcing desk."
+            : "Tell us what you need — raw materials, equipment, tooling, molds, or finished parts. We match you with verified Chinese manufacturers and respond within 24 hours."}
         </p>
       </div>
 
       <div className="mt-10">
-        <RfqForm />
+        <RfqForm
+          targetSupplierId={targetSupplier?.id}
+          targetSupplierName={targetSupplier?.name ?? undefined}
+        />
       </div>
 
       <div className="mt-12 border-t border-border/70 pt-6">
