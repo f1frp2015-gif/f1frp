@@ -128,7 +128,7 @@ const profile = {
   ecatalogs,
   profilePublished: true,
   profileReviewedAt: new Date("2026-08-01T00:00:00.000Z"),
-  logo: "https://omo-oss-image.thefastimg.com/portal-saas/pg2024093018225312272/cms/image/89630602-d04b-4001-a40c-e4d6e3c5bc2c.png",
+  logo: "https://getfrp.com/api/supplier-assets/zhongyi-logo",
   contactEmail: "salesdirector@jzfrp.com",
   contactPhone: "+86 318 861 3433",
   address:
