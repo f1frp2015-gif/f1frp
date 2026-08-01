@@ -10,6 +10,7 @@ import { enterprises, supplierListings, users } from "@/lib/db/schema";
 const ENTERPRISE_ID = "0ef991ac-03b8-46bd-a5e9-6346ea43939e";
 const SUPPLIER_ID = "sup-yaoyi";
 const OWNER_EMAIL = "f1frp2015@gmail.com";
+const PINNED_BRAND_PRIORITY = 1000;
 
 const productsZh = [
   "FRP 拉挤结构型材",
@@ -130,6 +131,7 @@ async function main() {
       website: "https://www.f1composite.com",
       enterpriseId: ENTERPRISE_ID,
       capabilities: ["profile", "grating", "tube", "panel", "custom"],
+      brandPriority: PINNED_BRAND_PRIORITY,
       exportReady: true,
       updatedAt: new Date(),
     })
@@ -150,13 +152,20 @@ async function main() {
       website: supplierListings.website,
       enterpriseId: supplierListings.enterpriseId,
       profilePublished: supplierListings.profilePublished,
+      brandPriority: supplierListings.brandPriority,
       ecatalogs: supplierListings.ecatalogs,
     })
     .from(supplierListings)
     .where(eq(supplierListings.id, SUPPLIER_ID))
     .limit(1);
 
-  if (!result?.verified || !result.enterpriseId || !result.website || !result.profilePublished) {
+  if (
+    !result?.verified ||
+    !result.enterpriseId ||
+    !result.website ||
+    !result.profilePublished ||
+    result.brandPriority !== PINNED_BRAND_PRIORITY
+  ) {
     throw new Error("F1 supplier profile verification failed after update");
   }
   console.log(
