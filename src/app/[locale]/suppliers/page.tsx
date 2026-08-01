@@ -13,6 +13,8 @@ import { alternates } from "@/lib/seo";
 import { CURRENT_SITE_URL } from "@/lib/sites";
 export const revalidate = 3600;
 
+const PINNED_SUPPLIER_ID = "sup-yaoyi";
+
 export async function generateMetadata({
   params,
 }: {
@@ -53,8 +55,13 @@ export default async function SuppliersPage({
   // backfilled, so no supplier is hidden from discovery or search.
   const isEn = locale === "en";
   const baseQuery = db.select().from(supplierListings);
+  const pinnedRank = sql<number>`CASE WHEN ${supplierListings.id} = ${PINNED_SUPPLIER_ID} THEN 1 ELSE 0 END`;
   const tierRank = sql`CASE ${supplierListings.scaleTier} WHEN 'XL' THEN 4 WHEN 'L' THEN 3 WHEN 'M' THEN 2 WHEN 'S' THEN 1 ELSE 0 END`;
   const rows = await baseQuery.orderBy(
+    // F1 stays permanently first. Published company profiles follow as one
+    // contiguous group, then the remaining directory-only records.
+    desc(pinnedRank),
+    desc(supplierListings.profilePublished),
     desc(supplierListings.verified),
     desc(supplierListings.brandPriority),
     desc(tierRank),
