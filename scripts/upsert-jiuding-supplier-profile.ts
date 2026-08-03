@@ -76,40 +76,40 @@ const servicesEn = [
 
 const ecatalogs = [
   {
-    title: "九鼎复材产品展厅（416 SKU）",
-    titleEn: "Jiuding Composite Product Showroom (416 SKUs Online)",
-    description: "官网产品展示厅，416 个产品页面涵盖 FRP 拉挤型材、格栅、管材、棒材、法兰、扶手、灯杆、采光板、电缆桥架、环氧棒等全品类，含规格参数与图片。",
+    title: "九鼎复材产品展示厅 · 416 SKU 在线浏览",
+    titleEn: "Product Showroom — 416 FRP SKUs with Specs & Photos",
+    description: "官网产品展示厅，416 个产品页面覆盖拉挤型材（工字梁/H型/槽钢/角钢/方管/圆管/实心棒）、模塑/拉挤格栅、法兰、管材、灯杆、采光板、电缆桥架、FR4/G10 环氧棒、帐篷杆、扶手护栏等全品类，含规格参数与产品实物图。",
     descriptionEn:
-      "Official product showroom with 416 indexed product pages covering FRP pultruded profiles, grating, tubes, rods, flanges, handrails, light poles, roofing sheets, cable trays and epoxy rods — complete with specifications, dimensions and product photography.",
+      "Browse 416 individually listed FRP products with specifications, dimensions and photography: pultruded profiles (I-beam, H-beam, channel, angle, square/round tube, solid rod), molded and pultruded grating panels, flanges, pipes, light poles, roofing sheets, cable trays, FR4/G10 epoxy rods, tent poles, handrails and barriers.",
     url: "https://www.jiudingcomposite.com/showroom/high-strength-frp-pultruded-structural-profile.html",
-    format: "Web showroom",
+    format: "Product showroom · 416 SKUs",
   },
   {
-    title: "九鼎新材公司新闻与行业动态",
-    titleEn: "Jiuding News and Industry Updates (188+ Articles)",
-    description: "官网新闻中心，含 JEC 世界复材展参展报道、中国复材工业协会动态、远景能源合作伙伴奖、省级技能竞赛获奖等行业新闻。",
+    title: "VR 工厂虚拟参观 · 在线验厂",
+    titleEn: "VR Factory Tour — Virtual Site Inspection",
+    description: "全景 VR 虚拟工厂参观：无需亲赴中国即可在线查看九鼎如皋生产基地的拉挤车间、格栅生产线、检测实验室和仓储区域，支持桌面与移动端浏览。",
     descriptionEn:
-      "Company news hub with 188+ articles covering JEC World Paris exhibitions, China Composites Industry Association updates, Envision Energy Partner Award, provincial skills competition results, and fiberglass industry developments.",
-    url: "https://www.jiudingcomposite.com/newslist-1",
-    format: "News center",
+      "Immersive 360° VR factory tour: inspect Jiuding's Rugao production facility online — walk through pultrusion workshops, grating production lines, quality testing laboratories and warehousing areas without traveling to China. Desktop and mobile compatible.",
+    url: "https://www.linked-reality.com/company/16085/en",
+    format: "Virtual tour · 360° VR",
   },
   {
-    title: "九鼎 FRP 产品分类目录",
-    titleEn: "Jiuding FRP Product Category Directory",
-    description: "按类型分类的产品浏览：FRP Pultrusion Profiles（拉挤型材）、FRP Grating（格栅）、FRP Flanges（法兰），含应用图示与技术描述。",
+    title: "FRP 产品分类目录与选购指南",
+    titleEn: "FRP Product Categories — Selection Guide",
+    description: "按三大品类分类浏览：FRP Pultrusion Profiles（拉挤型材结构件与定制断面）、FRP Grating（模塑与拉挤格栅平台板）、FRP Flanges（法兰与管接头），每类含应用场景图示与选型说明。",
     descriptionEn:
-      "Product directory organized by category: FRP Pultrusion Profiles (structural shapes and custom sections), FRP Grating (molded and pultruded walkway panels), FRP Flanges (pipe connectors and fittings) — with application photography and technical descriptions.",
+      "Browse by product category with application photography and selection guidance: FRP Pultrusion Profiles (structural shapes and custom cross-sections), FRP Grating (molded and pultruded walkway and platform panels), FRP Flanges (pipe connectors and fittings for chemical and water systems).",
     url: "https://www.jiudingcomposite.com/products",
     format: "Product catalog",
   },
   {
-    title: "关于九鼎新材——企业概况与联系方式",
-    titleEn: "About Jiuding — Company Profile and Contact Information",
-    description: "企业概况页：公司历史沿革、深交所上市信息（002201）、全球出口网络（50+ 国家）、12 语言客服支持、VR 工厂参观入口。",
+    title: "九鼎新材 · 关于我们与全球联系",
+    titleEn: "About Jiuding — Company Profile & Global Contacts",
+    description: "企业概况页：公司历史沿革（1994 年创立·2007 年深交所上市 002201）、全球出口网络（50+ 国家）、12 种语言客服、Jason Zhu（亚太/澳洲）与 Wendy Zong（美洲/欧洲）联系信息、询盘表单。",
     descriptionEn:
-      "Company overview page: corporate history, Shenzhen Stock Exchange listing (002201), global export network (50+ countries), 12-language customer support, VR factory tour access, and contact details for Jason Zhu (Asia/Australia) and Wendy Zong (Americas/Europe).",
+      "Company overview: history since 1994, Shenzhen Stock Exchange listing (002201) since 2007, export network spanning 50+ countries, 12-language customer support, and direct contact details for Jason Zhu (Asia-Pacific & Australia) and Wendy Zong (Americas & Europe), plus online inquiry form.",
     url: "https://www.jiudingcomposite.com/about",
-    format: "Company profile",
+    format: "Company profile & contacts",
   },
 ];
 
@@ -168,7 +168,7 @@ const profile = {
   ecatalogs,
   profilePublished: true,
   profileReviewedAt: new Date("2026-08-02T00:00:00.000Z"),
-  logo: "https://www.jiudingcomposite.com/favicon.ico",
+  logo: "https://www.jiudingcomposite.com/uploads/202027407/logo202006051112355935739.png",
   contactEmail: "zhuxiaoxiang@jiudinggroup.com",
   contactPhone: "+86 513 8069 5308",
   address: "No. 1 East Zhongshan Road, Rugao, Jiangsu 226500, China",
