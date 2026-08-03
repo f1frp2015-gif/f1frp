@@ -53,25 +53,29 @@ const productsEn = [
 ];
 
 const servicesZh = [
-  "拉挤成型（不饱和聚酯/乙烯基酯/聚氨酯树脂体系）",
-  "模压成型（SMC/BMC）",
-  "缠绕成型（管道与储罐）",
-  "玻纤织物织造与涂覆",
-  "定制型材断面开发与模具设计",
-  "出口包装与物流（50+ 国家）",
-  "应用工程与售前技术支持",
-  "OEM/ODM 定制制造",
+  "拉挤成型（UP/VE/EP/PU 树脂，0.5–2 m/min，21 条线 500+ 模具）",
+  "模压成型（SMC/BMC，至 3,000 吨）",
+  "缠绕成型（管道/贮罐/工艺容器，至直径 4m）",
+  "VIP 真空灌注成型",
+  "RTM 树脂传递模塑",
+  "玻纤拉丝、改性、织造、表面处理（四大核心技术）",
+  "定制断面模具开发与 CNC 加工",
+  "来料认证、设计指导与售前工程技术支持",
+  "出口包装、质检报告与合规单证（50+ 国家）",
+  "OEM/ODM 合同制造（300+ 专有技术）",
 ];
 
 const servicesEn = [
-  "Pultrusion (unsaturated polyester / vinyl ester / polyurethane resin systems)",
-  "Compression molding (SMC/BMC)",
-  "Filament winding (pipes and tanks)",
-  "Fiberglass fabric weaving and coating",
-  "Custom profile die development and tooling design",
-  "Export packaging and logistics (50+ countries)",
-  "Application engineering and pre-sales technical support",
-  "OEM/ODM contract manufacturing",
+  "Pultrusion (UP/VE/EP/PU resins, 0.5–2 m/min, 21 lines, 500+ profile dies)",
+  "Compression molding (SMC/BMC, up to 3,000-ton press capacity)",
+  "Filament winding (pipe, tank, process vessel, up to 4 m diameter)",
+  "VIP vacuum infusion processing",
+  "RTM resin transfer molding",
+  "Fiberglass drawing, modification, weaving & surface treatment (4 core technologies)",
+  "Custom die development and CNC machining",
+  "Raw material certification, design guidance & pre-sales engineering support",
+  "Export packaging, quality test reports & compliance documentation (50+ countries)",
+  "OEM/ODM contract manufacturing (300+ proprietary technologies)",
 ];
 
 const ecatalogs = [
@@ -111,6 +115,15 @@ const ecatalogs = [
     url: "https://www.jiudingcomposite.com/about",
     format: "Company profile & contacts",
   },
+  {
+    title: "FRP 技术知识库 · 9 页深度文章",
+    titleEn: "FRP Technical Knowledge Hub — 9 Pages of Articles",
+    description: "官网技术知识库（9 页，持续更新）：FRP 拉挤型材、格栅、玻纤窗框、电缆桥架、灯杆横担等产品选型指南，含切割安装维护教程、耐候性/寿命分析、车辆轻量化应用等行业深度文章。",
+    descriptionEn:
+      "Technical knowledge hub (9 pages, regularly updated): product selection guides for FRP profiles, grating, window frames, cable trays and cross arms; installation and maintenance tutorials (cutting stair treads, surface care); durability and lifespan analysis; vehicle lightweighting and industrial application articles. Demonstrates deep in-house technical expertise.",
+    url: "https://www.jiudingcomposite.com/info/",
+    format: "Knowledge hub · 9 pages",
+  },
 ];
 
 const profile = {
@@ -134,7 +147,8 @@ const profile = {
     + "Jiuding holds a commanding position in the global fiberglass supply chain. It is the world's largest producer of fiberglass mesh discs for reinforced abrasive grinding wheels, a product category where its manufacturing scale, proprietary weaving technology, and surface-treatment expertise give it unmatched cost and quality advantages. Beyond abrasive reinforcement, the company operates one of the most vertically integrated FRP manufacturing platforms in China, spanning fiberglass yarn drawing, fabric weaving, surface coating, and all three major thermoset composite forming processes: pultrusion, compression molding (SMC/BMC), and filament winding.\n\n"
     + "The company's pultrusion division runs 21 production lines equipped with more than 500 profile dies, capable of producing I-beams, H-beams, channels, angles, square and rectangular hollow tubes, round tubes, and solid rods in unsaturated polyester, vinyl ester, epoxy, phenolic, and polyurethane resin systems. Its grating division operates over 100 dedicated molds for both molded and pultruded FRP grating, including heavy-duty, mini-mesh, phenolic, and solid-top configurations for industrial flooring, walkways, trench covers, and offshore platforms. The filament-winding workshop produces corrosion-resistant FRP pipes, storage tanks, process vessels, and flanges for chemical processing, water treatment, and infrastructure applications.\n\n"
     + "Jiuding's product portfolio extends well beyond structural profiles and grating. The company manufactures SMC and BMC compression-molded components for electrical insulation, automotive, and building applications; FRP cable trays and ladder-type support systems; handrails, safety barriers, and access ladders; FRP bridge decks for pedestrian and light vehicle applications; street light poles and electrical cross arms with high dielectric strength; FR4 and G10 epoxy fiberglass rods for electrical and mechanical uses; lightweight FRP tent poles and tool handles; pultruded window and door frame profiles; and translucent FRP skylight and roofing sheets. In fiberglass textiles, Jiuding produces E-glass woven roving, high-silica fabrics for thermal protection, alkali-resistant mesh for construction reinforcement, self-adhesive fiberglass tapes, and fiberglass geogrids.\n\n"
-    + "The company exports to more than 50 countries across North America, Europe, Southeast Asia, Japan, and South Korea, serving distributors, OEM manufacturers, engineering contractors, and government infrastructure projects. It has earned certifications including ISO 9001, ISO 14001, ISO 45001 (OHSAS 18001), TS 16949 for automotive quality management, TÜV product certification, and CE marking for the European market. Jiuding is a regular exhibitor at JEC World in Paris and the China International Composites Exhibition, where it showcases new product developments and manufacturing capabilities.\n\n"
+    + "The company exports to more than 50 countries across North America, Europe, Southeast Asia, Japan, and South Korea, serving distributors, OEM manufacturers, engineering contractors, and government infrastructure projects. Its certifications include ISO 9001:2015, ISO 14001:2015, and ISO 45001:2018 (OHSAS 18001) for quality, environmental, and occupational health management; IATF 16949:2016 for automotive-sector quality; TÜV product certification; and CE marking for European Union market access. Jiuding is a regular exhibitor at JEC World in Paris and the China International Composites Exhibition.\n\n"
+    + "Key technical specifications for buyers: FRP pultruded profiles achieve approximately 7 tons of tensile strength per square centimeter of cross-section, with density one-quarter that of steel and weight savings up to 75%. The material withstands continuous operating temperatures from −50°C to 100°C, with a design service life of 20–25 years under normal conditions. Resin systems include general-purpose unsaturated polyester, isophthalic polyester (ISO), vinyl ester (VE), epoxy, phenolic, and polyurethane, selected by the end-use chemical environment and temperature. Fire-retardant, anti-static, UV-stabilized, and corrosion-resistant grades are available. Profiles can be cut, drilled, tapped, and machined with standard metalworking tools, and surface finishes include veil, nexus mat (anti-ageing), and pigmented gel coats. Jiuding maintains an active technical knowledge hub with 9 pages of product selection guides, installation tutorials, and application articles, reflecting deep in-house engineering expertise.\n\n"
     + "In 2025, the company regained its original name — Jiuding New Material — after a corporate restructuring returned control to the founding Jiuding Group under Chairman Gu Qingbo. In May 2026, General Manager Gu Roujian was elected Vice President of the China Composites Industry Association, underscoring Jiuding's influence in shaping industry standards and policy. The same year, the company received the Envision Energy 2025 Outstanding Partner Award, recognizing its contribution to renewable energy infrastructure. With cumulative investment exceeding ¥100 million, approximately 2,400 employees, and a factory area of 25,000 square meters, Jiuding is positioned as a top-tier FRP contract manufacturer for global buyers seeking high-volume, quality-certified fiberglass composite products from China.\n\n"
     + "For international buyers evaluating Chinese FRP suppliers, Jiuding offers several differentiated advantages. First, its status as a publicly listed company (SZSE: 002201) provides audited financial transparency and corporate governance accountability that privately held manufacturers cannot match. Second, its scale — 21 pultrusion lines, 500+ profile dies, and 100+ grating molds under one roof — enables it to handle large-volume orders and multi-product bundled procurement programs that would require multiple smaller suppliers. Third, its vertical integration from glass fiber yarn through finished FRP products reduces supply chain risk, improves quality traceability, and supports cost-competitive pricing for distributors and OEM buyers. Fourth, its export experience across 50+ countries means it understands international documentation, packaging, labeling, and compliance requirements for markets including the European Union (CE Marking), North America (ASTM standards), and Asia-Pacific. Fifth, its engineering team provides application-level support — from profile cross-section optimization and resin system selection to structural load calculations — helping buyers specify the right FRP solution for their project. Buyers interested in pultruded FRP profiles, molded FRP grating, FRP pipe and tank systems, or custom fiberglass composite products are encouraged to contact Jiuding through the GetFRP RFQ platform or directly via the company's multilingual website at www.jiudingcomposite.com.",
   certifications: [
@@ -164,7 +178,7 @@ const profile = {
   productsServicesSummaryEn:
     "Jiuding New Material operates across two integrated business segments, both serving the global fiberglass reinforced plastic (FRP) and advanced composites market. Segment One — Fiberglass Deep-Processing Products: The company is the world's largest manufacturer of fiberglass mesh discs for reinforced abrasive grinding wheels, a position built on proprietary weaving technology, high-throughput surface coating lines, and decades of quality consistency. Additional textile products include E-glass woven roving and plain-weave fabrics for hand lay-up and vacuum infusion processes; high-silica fabrics rated for continuous thermal protection above 1,000°C in aerospace, foundry, and fire-safety applications; alkali-resistant mesh for EIFS façade reinforcement and concrete crack control; fiberglass geogrids for soil stabilization and asphalt reinforcement; self-adhesive fiberglass joint tapes for drywall and construction; and decorative wall-covering fabrics. These materials are supplied to abrasive manufacturers, construction materials companies, composite fabricators, and industrial distributors worldwide.\n\n"
     + "Segment Two — FRP Composite Products and Engineered Solutions: Jiuding manufactures one of the widest FRP product ranges available from a single Chinese supplier. The pultrusion division produces structural profiles (I-beam, H-beam, wide-flange beam, channel, equal and unequal angle, square and rectangular hollow tube, round tube, solid rod, flat bar, and custom cross-sections) in unsaturated polyester, vinyl ester, epoxy, phenolic, and polyurethane resin matrices, with fire-retardant, anti-static, UV-stabilized, and corrosion-resistant grades available. The grating division supplies both molded (square-mesh, rectangular-mesh, mini-mesh, covered, phenolic, heavy-duty) and pultruded (standard T-bar, heavy-duty I-bar, solid-top) grating panels, stair treads, and landing platforms. The filament-winding division delivers corrosion-resistant FRP pipes (standard and jacking), above-ground and underground storage tanks, process vessels, scrubbers, flanges, and custom fittings. The compression-molding workshop produces SMC and BMC electrical enclosures, insulators, automotive body panels, and building components. Additional engineered products include FRP cable trays and ladder racks, safety handrails and guardrails, access ladders, pedestrian and light-vehicle bridge decks, street light poles and electrical transmission cross arms, FR4 and G10 epoxy glass rods for transformers and switchgear, tent poles and tool handles, pultruded window and door lineals, and translucent corrugated roofing and skylight panels.\n\n"
-    + "Jiuding accepts OEM and ODM contracts and provides application engineering, custom die development, pre-sales technical support, and export documentation services. The company's in-house capabilities span the full value chain: glass fiber yarn drawing and sizing, fabric weaving and finishing, profile die design and CNC machining, thermoset composite processing (pultrusion at 0.5–2 m/min, compression molding to 3,000 tons, and filament winding to 4-meter diameter), CNC fabrication and assembly, and export-compliant packaging. Buyers can source single-category volumes or bundled multi-category procurement packages from a single audited manufacturer.",
+    + "Jiuding accepts OEM and ODM contracts and provides application engineering, custom die development and CNC machining, raw material certification, pre-sales technical support including design guidance, and export documentation services with quality test reports for every shipment. The company's in-house capabilities span the full value chain: glass fiber yarn drawing and sizing, fabric weaving and surface finishing, profile die design and CNC machining, complete thermoset composite processing (pultrusion at 0.5–2 m/min with 21 lines, compression molding to 3,000-ton press capacity, filament winding to 4-meter diameter vessels, plus VIP vacuum infusion and RTM resin transfer molding), CNC fabrication and assembly, and export-compliant crating and container loading. The company operates four proprietary core technology platforms — fiberglass wire drawing, glass modification, textile weaving, and surface treatment — supported by more than 300 proprietary technologies. Buyers can source single-category volumes or bundled multi-category procurement packages from a single audited, publicly listed manufacturer, reducing supplier management overhead and simplifying logistics.",
   ecatalogs,
   profilePublished: true,
   profileReviewedAt: new Date("2026-08-02T00:00:00.000Z"),
