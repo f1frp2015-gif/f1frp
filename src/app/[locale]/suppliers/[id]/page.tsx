@@ -68,7 +68,11 @@ function supplierProfilePath(supplierId: string): string {
 }
 
 export function generateStaticParams() {
-  return [...SUPPLIER_CATEGORY_SLUGS, ...SUPPLIER_REGION_SLUGS].map((id) => ({ id }));
+  return [
+    ...SUPPLIER_CATEGORY_SLUGS,
+    ...SUPPLIER_REGION_SLUGS,
+    ...Object.keys(SUPPLIER_PROFILE_ID_BY_SLUG),
+  ].map((id) => ({ id }));
 }
 
 type NetworkRow = {
@@ -109,6 +113,118 @@ type SupplierProfile = {
   }>;
 };
 
+// Critical published profiles remain available during a transient database
+// outage. These are public, reviewed listing fields only; they never confer a
+// claimed or verified status. Normal requests still prefer the database row.
+const STATIC_SUPPLIER_FALLBACKS: Record<string, SupplierProfile["supplier"]> = {
+  "sup-jiuding": {
+    id: "sup-jiuding",
+    name: "江苏九鼎新材料股份有限公司",
+    nameEn: "Jiangsu Jiuding New Material Co., Ltd.",
+    location: "江苏如皋",
+    locationEn: "Rugao, Jiangsu, China",
+    province: "江苏",
+    category: "manufacturer",
+    products: [
+      "拉挤 FRP 型材",
+      "模塑与拉挤 FRP 格栅",
+      "FRP 管道与储罐",
+      "玻纤织物与网片",
+      "SMC/BMC 模压制品",
+      "FRP 电缆桥架与护栏",
+    ],
+    productsEn: [
+      "Pultruded FRP structural profiles",
+      "Molded and pultruded FRP grating",
+      "FRP pipes and storage tanks",
+      "Fiberglass fabrics and mesh discs",
+      "SMC/BMC compression-molded components",
+      "FRP cable trays, handrails and barriers",
+    ],
+    processList: [
+      "拉挤成型",
+      "模压成型（SMC/BMC）",
+      "缠绕成型",
+      "玻纤织造与表面处理",
+    ],
+    processListEn: [
+      "Pultrusion",
+      "Compression molding (SMC/BMC)",
+      "Filament winding",
+      "Fiberglass weaving and surface treatment",
+    ],
+    established: 1994,
+    verified: false,
+    description:
+      "江苏九鼎新材料股份有限公司（深交所：002201）创立于 1994 年，总部位于江苏如皋，产品覆盖拉挤型材、复合材料格栅、管道储罐、模压制品及玻纤深加工制品，出口至 50 多个国家和地区。",
+    descriptionEn:
+      "Jiangsu Jiuding New Material Co., Ltd. (SZSE: 002201), founded in 1994 in Rugao, Jiangsu, manufactures pultruded profiles, composite grating, pipe and tank systems, molded components and fiberglass products for customers in more than 50 countries and regions.",
+    certifications: [
+      "ISO 9001:2015",
+      "ISO 14001:2015",
+      "ISO 45001:2018",
+      "IATF 16949:2016",
+      "TÜV 产品认证（官网公示）",
+      "CE 标志（欧盟市场）",
+    ],
+    certificationsEn: [
+      "ISO 9001:2015 quality management system",
+      "ISO 14001:2015 environmental management system",
+      "ISO 45001:2018 occupational health and safety management",
+      "IATF 16949:2016 automotive quality management system",
+      "TÜV product certification (displayed on official website)",
+      "CE marking for European Union market access",
+    ],
+    productsServicesSummary:
+      "玻纤深加工制品与 FRP 复合材料两大板块，具备拉挤、模压、缠绕以及玻纤织造和涂覆能力，可承接 OEM/ODM 定制。",
+    productsServicesSummaryEn:
+      "Integrated fiberglass processing and FRP manufacturing with pultrusion, compression molding, filament winding, textile weaving and coating capabilities for OEM and ODM programs.",
+    ecatalogs: [
+      {
+        title: "九鼎复材产品展示厅",
+        titleEn: "Jiuding Composite Product Showroom",
+        description: "官网产品展示厅，按产品类别浏览规格与图片。",
+        descriptionEn: "Official product showroom with specifications and product photography.",
+        url: "https://www.jiudingcomposite.com/showroom/high-strength-frp-pultruded-structural-profile.html",
+        format: "Web showroom",
+      },
+      {
+        title: "九鼎新材公司概况",
+        titleEn: "About Jiuding",
+        description: "公司历史、制造能力、出口网络与联系信息。",
+        descriptionEn: "Company history, manufacturing capabilities, export network and contacts.",
+        url: "https://www.jiudingcomposite.com/about",
+        format: "Company profile",
+      },
+    ],
+    profilePublished: true,
+    profileReviewedAt: new Date("2026-08-02T00:00:00.000Z"),
+    logo: "https://www.jiudingcomposite.com/uploads/202027407/logo202006051112355935739.png",
+    contactEmail: "zhuxiaoxiang@jiudinggroup.com",
+    contactPhone: "+86 513 8069 5308",
+    address: "No. 1 East Zhongshan Road, Rugao, Jiangsu 226500, China",
+    website: "https://www.jiudingcomposite.com",
+    enterpriseId: null,
+    scaleTier: "XL",
+    brandPriority: 22,
+    viewCount: 0,
+    capabilities: ["profile", "grating", "rod", "tube", "panel", "custom"],
+    standardsSupported: [
+      "ISO 9001:2015",
+      "ISO 14001:2015",
+      "ISO 45001:2018",
+      "IATF 16949:2016",
+      "CE Marking",
+      "TÜV",
+    ],
+    moqKg: null,
+    leadTimeDays: null,
+    exportReady: true,
+    createdAt: new Date("2026-04-17T17:42:13.760Z"),
+    updatedAt: new Date("2026-08-03T07:01:22.530Z"),
+  },
+};
+
 const loadSupplierProfile = cache(async (id: string): Promise<SupplierProfile | null> => {
   try {
     let row: Omit<SupplierProfile, "structuredProducts"> | undefined;
@@ -141,7 +257,10 @@ const loadSupplierProfile = cache(async (id: string): Promise<SupplierProfile | 
         identityError instanceof Error ? identityError.message : identityError,
       );
     }
-    if (!row) return null;
+    if (!row) {
+      const supplier = STATIC_SUPPLIER_FALLBACKS[id];
+      return supplier ? { supplier, enterprise: null, structuredProducts: [] } : null;
+    }
     let structuredProducts: SupplierProfile["structuredProducts"] = [];
     try {
       structuredProducts = await db
