@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { and, desc, eq, isNotNull, ne } from "drizzle-orm";
 import { cache } from "react";
 import {
@@ -27,6 +27,7 @@ import {
   enterprises,
   materials as materialsTable,
   supplierListings,
+  supplierProducts,
 } from "@/lib/db/schema";
 import {
   getSupplierCategoryPage,
@@ -43,9 +44,28 @@ import {
   SUPPLIER_REGION_SLUGS,
   type SupplierRegionPage,
 } from "@/lib/data/supplier-region-pages";
+import { taxonomyLabel } from "@/lib/supplier-products/taxonomy";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 export const dynamicParams = true;
+
+// Preserve supplier URLs that have already been indexed or shared publicly.
+// The database keeps a stable internal ID; the public route uses an SEO slug.
+const SUPPLIER_PROFILE_ID_BY_SLUG: Record<string, string> = {
+  "jiangsu-jiuding-new-materials": "sup-jiuding",
+};
+
+const SUPPLIER_PROFILE_SLUG_BY_ID = Object.fromEntries(
+  Object.entries(SUPPLIER_PROFILE_ID_BY_SLUG).map(([slug, id]) => [id, slug]),
+) as Record<string, string>;
+
+function resolveSupplierProfileId(routeId: string): string {
+  return SUPPLIER_PROFILE_ID_BY_SLUG[routeId] ?? routeId;
+}
+
+function supplierProfilePath(supplierId: string): string {
+  return `/suppliers/${SUPPLIER_PROFILE_SLUG_BY_ID[supplierId] ?? supplierId}`;
+}
 
 export function generateStaticParams() {
   return [...SUPPLIER_CATEGORY_SLUGS, ...SUPPLIER_REGION_SLUGS].map((id) => ({ id }));
@@ -70,22 +90,95 @@ type NetworkRow = {
 type SupplierProfile = {
   supplier: typeof supplierListings.$inferSelect;
   enterprise: typeof enterprises.$inferSelect | null;
+  structuredProducts: Array<{
+    id: string;
+    name: string;
+    nameEn: string;
+    description: string | null;
+    descriptionEn: string | null;
+    objectType: string;
+    productFamily: string;
+    form: string | null;
+    processes: string[];
+    materials: string[];
+    resins: string[];
+    applications: string[];
+    standards: string[];
+    specifications: Record<string, string>;
+    classificationStatus: string;
+  }>;
 };
 
 const loadSupplierProfile = cache(async (id: string): Promise<SupplierProfile | null> => {
   try {
-    const [row] = await db
-      .select({ supplier: supplierListings, enterprise: enterprises })
-      .from(supplierListings)
-      .leftJoin(enterprises, eq(supplierListings.enterpriseId, enterprises.id))
-      .where(
-        and(
-          eq(supplierListings.id, id),
-          eq(supplierListings.profilePublished, true),
-        ),
-      )
-      .limit(1);
-    return row ?? null;
+    let row: Omit<SupplierProfile, "structuredProducts"> | undefined;
+    let identityError: unknown;
+    // A sleeping Neon compute can exceed the first HTTP-query window. Retry
+    // once so a transient cold start does not become a cached supplier 404.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const [result] = await db
+          .select({ supplier: supplierListings, enterprise: enterprises })
+          .from(supplierListings)
+          .leftJoin(enterprises, eq(supplierListings.enterpriseId, enterprises.id))
+          .where(
+            and(
+              eq(supplierListings.id, id),
+              eq(supplierListings.profilePublished, true),
+            ),
+          )
+          .limit(1);
+        row = result;
+        identityError = undefined;
+        break;
+      } catch (error) {
+        identityError = error;
+      }
+    }
+    if (identityError) {
+      console.error(
+        "[supplier-profile] identity unavailable after retry:",
+        identityError instanceof Error ? identityError.message : identityError,
+      );
+    }
+    if (!row) return null;
+    let structuredProducts: SupplierProfile["structuredProducts"] = [];
+    try {
+      structuredProducts = await db
+        .select({
+          id: supplierProducts.id,
+          name: supplierProducts.name,
+          nameEn: supplierProducts.nameEn,
+          description: supplierProducts.description,
+          descriptionEn: supplierProducts.descriptionEn,
+          objectType: supplierProducts.objectType,
+          productFamily: supplierProducts.productFamily,
+          form: supplierProducts.form,
+          processes: supplierProducts.processes,
+          materials: supplierProducts.materials,
+          resins: supplierProducts.resins,
+          applications: supplierProducts.applications,
+          standards: supplierProducts.standards,
+          specifications: supplierProducts.specifications,
+          classificationStatus: supplierProducts.classificationStatus,
+        })
+        .from(supplierProducts)
+        .where(
+          and(
+            eq(supplierProducts.supplierListingId, id),
+            eq(supplierProducts.publicationStatus, "published"),
+          ),
+        )
+        .orderBy(desc(supplierProducts.createdAt));
+    } catch (error) {
+      // The public company identity remains available if a catalog migration
+      // is temporarily unavailable; only the structured catalog is omitted.
+      console.warn(
+        "[supplier-profile] structured catalog unavailable:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+    return { ...row, structuredProducts };
   } catch {
     return null;
   }
@@ -107,7 +200,7 @@ function categoryLabel(category: string | null, isEn: boolean): string {
 }
 
 function renderSupplierProfile(profile: SupplierProfile, locale: string) {
-  const { supplier, enterprise } = profile;
+  const { supplier, enterprise, structuredProducts } = profile;
   const isEn = locale === "en";
   const isVerified = Boolean(supplier.verified && enterprise);
   const isClaimed = Boolean(enterprise);
@@ -140,7 +233,7 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
   const phoneHref = contactPhone
     ? `tel:${contactPhone.trim().startsWith("+") ? contactPhone.replace(/[^\d+]/g, "") : `+86${contactPhone.replace(/\D/g, "")}`}`
     : null;
-  const pageUrl = `${CURRENT_SITE_URL}/suppliers/${supplier.id}`;
+  const pageUrl = `${CURRENT_SITE_URL}${supplierProfilePath(supplier.id)}`;
   const profileKind = isVerified
     ? isEn ? "verified company profile" : "已认证企业主页"
     : isClaimed
@@ -173,15 +266,22 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
           }
         : undefined,
       knowsAbout: products,
-      hasOfferCatalog: ecatalogs.length
+      hasOfferCatalog: structuredProducts.length
         ? {
             "@type": "OfferCatalog",
-            name: `${name} eCatalog`,
-            itemListElement: ecatalogs.map((catalog) => ({
-              "@type": "CreativeWork",
-              name: (isEn ? catalog.titleEn : catalog.title) ?? catalog.title,
-              url: catalog.url,
-              encodingFormat: catalog.format ?? "application/pdf",
+            name: `${name} structured product catalog`,
+            itemListElement: structuredProducts.map((product) => ({
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Product",
+                name: isEn ? product.nameEn : product.name,
+                description:
+                  (isEn ? product.descriptionEn : product.description) ??
+                  product.descriptionEn ??
+                  product.description ??
+                  undefined,
+                category: taxonomyLabel("family", product.productFamily, isEn ? "en" : "zh"),
+              },
             })),
           }
         : undefined,
@@ -204,6 +304,14 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
         certifications: isVerified ? "Document-backed certifications" : "Company-published certifications",
         noCerts: "No company-level certification is listed on this profile.",
         productsServices: "Products & services summary",
+        structuredCatalog: "Structured product catalog",
+        structuredCatalogSub: "Search-ready product records classified by product type, form, process, material and standard.",
+        supplierConfirmed: "Supplier-confirmed classification",
+        supplierConfirmedNote: "The supplier confirmed these classification fields. GetFRP has not independently verified product performance or standards compliance.",
+        model: "Model",
+        dimensions: "Dimensions",
+        moq: "MOQ",
+        leadTime: "Lead time",
         ecatalog: "eCatalog",
         ecatalogSub: "Official product catalogs, web directories and technical guides published by the supplier.",
         openCatalog: "Open catalog",
@@ -241,6 +349,14 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
         certifications: isVerified ? "有文件佐证的认证" : "企业官网公开的认证",
         noCerts: "本档案暂未列出企业级认证。",
         productsServices: "产品与服务总结",
+        structuredCatalog: "结构化产品目录",
+        structuredCatalogSub: "按产品类型、形态、工艺、材料和标准组织，可直接承接海外买家搜索。",
+        supplierConfirmed: "供应商确认的分类",
+        supplierConfirmedNote: "以下分类由供应商确认；GetFRP 尚未独立核验产品性能或标准符合性。",
+        model: "型号",
+        dimensions: "尺寸",
+        moq: "起订量",
+        leadTime: "交期",
         ecatalog: "电子样本",
         ecatalogSub: "企业官网公开的产品目录、网页目录与技术资料。",
         openCatalog: "打开样本",
@@ -384,6 +500,55 @@ function renderSupplierProfile(profile: SupplierProfile, locale: string) {
                 <div><h3 className="text-sm font-semibold">{labels.products}</h3><div className="mt-3 flex flex-wrap gap-2">{products.map((item) => <Badge key={item} variant="outline" className="px-3 py-1.5">{item}</Badge>)}</div></div>
                 <div><h3 className="text-sm font-semibold">{labels.processes}</h3><div className="mt-3 flex flex-wrap gap-2">{processes.map((item) => <Badge key={item} variant="secondary" className="px-3 py-1.5">{item}</Badge>)}</div></div>
               </div>
+              {structuredProducts.length > 0 && (
+                <div className="mt-10">
+                  <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-semibold">{labels.structuredCatalog}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{labels.structuredCatalogSub}</p>
+                    </div>
+                    <Badge variant="outline" className="gap-1.5">
+                      <CheckCircle2 size={12} /> {labels.supplierConfirmed}
+                    </Badge>
+                  </div>
+                  <div className="mt-5 grid gap-4">
+                    {structuredProducts.map((product) => {
+                      const productName = isEn ? product.nameEn : product.name;
+                      const productDescription =
+                        (isEn ? product.descriptionEn : product.description) ??
+                        product.descriptionEn ??
+                        product.description;
+                      const language = isEn ? "en" : "zh";
+                      const specs = [
+                        [labels.model, product.specifications.model],
+                        [labels.dimensions, product.specifications.dimensions],
+                        [labels.moq, product.specifications.moq],
+                        [labels.leadTime, product.specifications.lead_time],
+                      ].filter((item): item is [string, string] => Boolean(item[1]));
+                      return (
+                        <article key={product.id} className="rounded-xl border border-border/70 bg-background p-5">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <h4 className="font-semibold">{productName}</h4>
+                              {productDescription && <p className="mt-2 text-sm leading-6 text-muted-foreground">{productDescription}</p>}
+                            </div>
+                            <Badge variant="secondary">{taxonomyLabel("family", product.productFamily, language)}</Badge>
+                          </div>
+                          <div className="mt-4 flex flex-wrap gap-1.5">
+                            {product.form && <Badge variant="outline">{taxonomyLabel("form", product.form, language)}</Badge>}
+                            {product.processes.map((value) => <Badge key={`process-${value}`} variant="outline">{taxonomyLabel("process", value, language)}</Badge>)}
+                            {product.materials.map((value) => <Badge key={`material-${value}`} variant="outline">{taxonomyLabel("material", value, language)}</Badge>)}
+                            {product.resins.map((value) => <Badge key={`resin-${value}`} variant="outline">{taxonomyLabel("resin", value, language)}</Badge>)}
+                            {product.standards.map((value) => <Badge key={`standard-${value}`} variant="outline">{value}</Badge>)}
+                          </div>
+                          {specs.length > 0 && <dl className="mt-4 grid gap-2 border-t border-border/70 pt-4 text-xs sm:grid-cols-2">{specs.map(([label, value]) => <div key={label} className="flex gap-2"><dt className="text-muted-foreground">{label}</dt><dd className="font-medium">{value}</dd></div>)}</dl>}
+                        </article>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{labels.supplierConfirmedNote}</p>
+                </div>
+              )}
             </div>
             <div><h2 className="text-xl font-semibold">{labels.certifications}</h2>{certifications.length > 0 ? <div className="mt-4 flex flex-wrap gap-2">{certifications.map((item) => <Badge key={item} variant="outline" className="border-amber-400 px-3 py-1.5 text-amber-700">{item}</Badge>)}</div> : <p className="mt-3 text-sm text-muted-foreground">{labels.noCerts}</p>}</div>
 
@@ -608,11 +773,12 @@ export async function generateMetadata({
       }),
     };
   }
-  const profile = await loadSupplierProfile(id);
+  const supplierId = resolveSupplierProfileId(id);
+  const profile = await loadSupplierProfile(supplierId);
   if (!profile) {
     return {
       robots: { index: false, follow: false },
-      alternates: alternates(`/suppliers/${id}`),
+      alternates: alternates(supplierProfilePath(supplierId)),
     };
   }
   const supplierName =
@@ -629,8 +795,8 @@ export async function generateMetadata({
   return {
     title: { absolute: title },
     description,
-    alternates: alternates(`/suppliers/${id}`),
-    openGraph: og(`/suppliers/${id}`, {
+    alternates: alternates(supplierProfilePath(supplierId)),
+    openGraph: og(supplierProfilePath(supplierId), {
       title,
       description,
     }),
@@ -825,7 +991,9 @@ export default async function SupplierCategoryPageRoute({
     return renderRegionPage(region);
   }
   if (!category) {
-    const profile = await loadSupplierProfile(id);
+    const canonicalSlug = SUPPLIER_PROFILE_SLUG_BY_ID[id];
+    if (canonicalSlug) permanentRedirect(`/suppliers/${canonicalSlug}`);
+    const profile = await loadSupplierProfile(resolveSupplierProfileId(id));
     if (!profile) notFound();
     return renderSupplierProfile(profile, locale);
   }

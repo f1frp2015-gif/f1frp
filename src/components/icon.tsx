@@ -22,6 +22,7 @@ import {
   ArrowRight,
   Bookmark,
   UserRound,
+  PackageSearch,
 } from "lucide-react";
 
 import {
@@ -76,6 +77,7 @@ const REGISTRY: Record<string, IconComponent | LucideIcon> = {
   "post-list": FileText,
   messages: MessageCircle,
   enterprise: Factory,
+  products: PackageSearch,
   claims: CheckCircle2,
   "admin-claims": Shield,
   bookmark: Bookmark,

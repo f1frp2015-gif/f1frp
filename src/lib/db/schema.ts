@@ -647,6 +647,79 @@ export const supplierClaims = pgTable(
 );
 
 // ═══════════════════════════════════════════
+// Supplier products — supplier-confirmed structured catalog
+//
+// Classification is a reproducible rule suggestion, not a verification claim.
+// `classification_status=supplier_confirmed` means the supplier accepted or
+// corrected the suggested facets. Platform review can later promote it to
+// `platform_verified` without changing the supplier's original provenance.
+// ═══════════════════════════════════════════
+
+export const supplierProducts = pgTable(
+  "supplier_catalog_products",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    enterpriseId: uuid("enterprise_id")
+      .references(() => enterprises.id, { onDelete: "cascade" })
+      .notNull(),
+    supplierListingId: varchar("supplier_listing_id", { length: 50 }).references(
+      () => supplierListings.id,
+      { onDelete: "set null" },
+    ),
+    createdByUserId: uuid("created_by_user_id")
+      .references(() => users.id)
+      .notNull(),
+    name: varchar("name", { length: 200 }).notNull(),
+    nameEn: varchar("name_en", { length: 200 }).notNull(),
+    description: text("description"),
+    descriptionEn: text("description_en"),
+    objectType: varchar("object_type", { length: 48 }).notNull(),
+    productFamily: varchar("product_family", { length: 64 }).notNull(),
+    form: varchar("form", { length: 48 }),
+    processes: jsonb("processes").$type<string[]>().default(sql`'[]'::jsonb`).notNull(),
+    materials: jsonb("materials").$type<string[]>().default(sql`'[]'::jsonb`).notNull(),
+    resins: jsonb("resins").$type<string[]>().default(sql`'[]'::jsonb`).notNull(),
+    applications: jsonb("applications").$type<string[]>().default(sql`'[]'::jsonb`).notNull(),
+    standards: jsonb("standards").$type<string[]>().default(sql`'[]'::jsonb`).notNull(),
+    specifications: jsonb("specifications")
+      .$type<Record<string, string>>()
+      .default(sql`'{}'::jsonb`)
+      .notNull(),
+    datasheetKey: text("datasheet_key"),
+    datasheetFileName: varchar("datasheet_file_name", { length: 200 }),
+    classificationStatus: varchar("classification_status", { length: 32 })
+      .default("supplier_confirmed")
+      .notNull(),
+    classificationSource: varchar("classification_source", { length: 32 })
+      .default("deterministic_rule")
+      .notNull(),
+    classificationRuleVersion: varchar("classification_rule_version", { length: 48 }).notNull(),
+    classificationConfidence: integer("classification_confidence").notNull(),
+    classificationEvidence: jsonb("classification_evidence")
+      .$type<string[]>()
+      .default(sql`'[]'::jsonb`)
+      .notNull(),
+    publicationStatus: varchar("publication_status", { length: 24 })
+      .default("draft")
+      .notNull(),
+    reviewerId: uuid("reviewer_id").references(() => users.id),
+    reviewNote: text("review_note"),
+    reviewedAt: timestamp("reviewed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("supplier_catalog_products_enterprise_idx").on(table.enterpriseId),
+    index("supplier_catalog_products_listing_idx").on(table.supplierListingId),
+    index("supplier_catalog_products_family_idx").on(table.productFamily),
+    index("supplier_catalog_products_publication_idx").on(table.publicationStatus),
+  ],
+);
+
+export type SupplierProduct = typeof supplierProducts.$inferSelect;
+export type NewSupplierProduct = typeof supplierProducts.$inferInsert;
+
+// ═══════════════════════════════════════════
 // Supplier qualifications — 资质上传 → AI 结构化 → 自动打标
 //   supplier_documents:      一份上传文件 + AI 抽取结果 + 审核态(真相源 SoT)
 //   supplier_document_tags:  带「来源/信任/有效期」的 canonical 标签实例,
